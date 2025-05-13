@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using API.AppResponse;
 using API.Data;
 using API.DTOs;
+using API.Migrations;
 using API.Models;
 using API.Services.Argon;
 using API.Services.TokenServiceFolder;
@@ -27,9 +28,9 @@ namespace API.Controllers
             _argonHashing = argonHashing;
             _tokenService = tokenService;
         }
-     
+
         [HttpPost("createUser")]
-        public async Task<AppResponse<UserDto>> CreateUser([FromBody]UserInputDto dto)
+        public async Task<AppResponse<UserDto>> CreateUser([FromBody] UserInputDto dto)
         {
 
             try
@@ -39,7 +40,7 @@ namespace API.Controllers
 
                 if (existingUser != null)
                 {
-                    return new AppResponse<UserDto>(null, "User already exists",404,false);
+                    return new AppResponse<UserDto>(null, "User already exists", 404, false);
                 }
 
                 var user = new User
@@ -66,10 +67,10 @@ namespace API.Controllers
                 return new AppResponse<UserDto>(userDto, "User created successfully", 201, true);
             }
             catch (Exception ex)
-            {  
+            {
                 return new AppResponse<UserDto>(null, ex.Message, 500, false);
             }
-            
+
         }
 
         [HttpGet("getAllUsers")]
@@ -132,7 +133,7 @@ namespace API.Controllers
             {
                 return new AppResponse<UserDto>(null, ex.Message, 500, false);
             }
- 
+
         }
 
         [HttpDelete("deleteUser/{id}")]
@@ -152,13 +153,13 @@ namespace API.Controllers
                 await _context.SaveChangesAsync();
 
                 return new AppResponse<bool>(true, "User deleted successfully", 200, true);
-                
+
             }
             catch (Exception ex)
             {
                 return new AppResponse<bool>(false, ex.Message, 500, false);
             }
-           
+
         }
 
         [HttpPut("updateUser/{id}")]
@@ -253,12 +254,12 @@ namespace API.Controllers
                     DeliveryFee = restaurant.DeliveryFee,
                     Suspended = restaurant.IsSupended
                 };
-    
+
                 return new AppResponse<RestaurantDto>(restaurantDto, "Restaurant created successfully", 201, true);
             }
             catch (Exception ex)
             {
-               return new AppResponse<RestaurantDto>(null, ex.Message, 500, false);
+                return new AppResponse<RestaurantDto>(null, ex.Message, 500, false);
             }
         }
 
@@ -350,7 +351,7 @@ namespace API.Controllers
         {
             try
             {
-                if(dto == null)
+                if (dto == null)
                 {
                     return new AppResponse<RestaurantDto>(null, "Invalid data", 400, false);
                 }
@@ -358,7 +359,7 @@ namespace API.Controllers
                     .Include(r => r.Categories)
                     .FirstOrDefaultAsync(r => r.Id == id);
 
-                if (restaurant == null )
+                if (restaurant == null)
                 {
                     return new AppResponse<RestaurantDto>(null, "Restaurant not found", 404, false);
                 }
@@ -372,13 +373,13 @@ namespace API.Controllers
                 restaurant.Email = dto.Email ?? restaurant.Email;
                 restaurant.OpeningHours = dto.OpeningHours ?? restaurant.OpeningHours;
                 restaurant.IsSupended = dto.Issuspended;
-                
+
                 // Handle categories update
                 if (dto.Categories != null)
                 {
                     // Clear existing categories
                     restaurant.Categories.Clear();
-                    
+
                     // Add new categories
                     foreach (var categoryName in dto.Categories)
                     {
@@ -390,10 +391,10 @@ namespace API.Controllers
                         });
                     }
                 }
-                
+
                 _context.Restaurants.Update(restaurant);
                 await _context.SaveChangesAsync();
-                
+
                 var restaurantDto = new RestaurantDto
                 {
                     Id = restaurant.Id,
@@ -412,7 +413,7 @@ namespace API.Controllers
                     DeliveryFee = restaurant.DeliveryFee,
                     Suspended = restaurant.IsSupended
                 };
-                
+
                 return new AppResponse<RestaurantDto>(restaurantDto, "Restaurant updated successfully", 200, true);
             }
             catch (Exception ex)
@@ -443,17 +444,189 @@ namespace API.Controllers
             {
                 return new AppResponse<bool>(false, ex.Message, 500, false);
             }
-            
+
         }
 
-        
+        [HttpPut("suspendRestaurant/{id}")]
+        public async Task<AppResponse<bool>> SuspendRestaurant(int id)
+        {
+            try
+            {
+                var restaurant = await _context.Restaurants.FindAsync(id);
 
+                if (restaurant == null)
+                {
+                    return new AppResponse<bool>(false, "Restaurant not found", 404, false);
+                }
 
+                restaurant.IsSupended = true;
+                _context.Restaurants.Update(restaurant);
+                await _context.SaveChangesAsync();
 
+                return new AppResponse<bool>(true, "Restaurant suspended successfully", 200, true);
+            }
+            catch (Exception ex)
+            {
+                return new AppResponse<bool>(false, ex.Message, 500, false);
+            }
+        }
 
+        [HttpPut("unsuspendRestaurant/{id}")]
+        public async Task<AppResponse<bool>> UnsuspendRestaurant(int id)
+        {
+            try
+            {
+                var restaurant = await _context.Restaurants.FindAsync(id);
 
+                if (restaurant == null)
+                {
+                    return new AppResponse<bool>(false, "Restaurant not found", 404, false);
+                }
 
-        
+                restaurant.IsSupended = false;
+                _context.Restaurants.Update(restaurant);
+                await _context.SaveChangesAsync();
+
+                return new AppResponse<bool>(true, "Restaurant unsuspended successfully", 200, true);
+            }
+            catch (Exception ex)
+            {
+                return new AppResponse<bool>(false, ex.Message, 500, false);
+            }
+        }
+
+        [HttpGet("getAllOrders")]
+        public async Task<AppResponse<List<OrderDto>>> GetAllOrders()
+        {
+            try
+            {
+                var orders = await _context.Orders
+                    .Include(o => o.User)
+                    .Include(o => o.Restaurant)
+                    .ToListAsync();
+
+                if (orders == null || !orders.Any())
+                {
+                    return new AppResponse<List<OrderDto>>(null, "No orders found", 404, false);
+                }
+
+                var orderDtos = orders.Select(order => new OrderDto
+                {
+                    Id = order.Id,
+                    TotalAmount = order.TotalAmount,
+                    PaymentMethod = order.PaymentMethod,
+                    Status = order.Status,
+                    UserId = order.UserId,
+                    RestaurantId = order.RestaurantId,
+                    EmployeeId = order.EmployeeId,
+                    UserName = order.User.UserName,
+                    RestaurantName = order.Restaurant.Name
+                }).ToList();
+
+                return new AppResponse<List<OrderDto>>(orderDtos, "Orders retrieved successfully", 200, true);
+            }
+            catch (Exception ex)
+            {
+                return new AppResponse<List<OrderDto>>(null, ex.Message, 500, false);
+            }
+
+        }
+
+        [HttpPost("createOrder")]
+        public async Task<AppResponse<OrderDto>> CreateOrder([FromBody] CreateOrderDto dto)
+        {
+            try
+            {
+                // Validate input
+                if (dto == null)
+                {
+                    return new AppResponse<OrderDto>(null, "Invalid order data", 400, false);
+                }
+
+                // Check if user exists
+                var user = await _context.Users.FindAsync(dto.UserId);
+                if (user == null)
+                {
+                    return new AppResponse<OrderDto>(null, "User not found", 404, false);
+                }
+
+                // Check if restaurant exists
+                var restaurant = await _context.Restaurants.FindAsync(dto.RestaurantId);
+                if (restaurant == null)
+                {
+                    return new AppResponse<OrderDto>(null, "Restaurant not found", 404, false);
+                }
+
+                // Initialize order with calculated total amount
+                decimal calculatedTotal = 0;
+                var orderItems = new List<OrderItem>();
+
+                // Calculate total from menu items
+                if (dto.OrderItems != null && dto.OrderItems.Any())
+                {
+                    foreach (var itemDto in dto.OrderItems)
+                    {
+                        var menuItem = await _context.OrderItems.FindAsync(itemDto.DishId);
+                        if (menuItem == null)
+                        {
+                            return new AppResponse<OrderDto>(null, $"Menu item with ID {itemDto.DishId} not found", 404, false);
+                        }
+
+                        // Use the price from database for security
+                        decimal itemPrice = menuItem.DishId;
+                        calculatedTotal += itemPrice * itemDto.Quantity;
+
+                        var orderItem = new OrderItem
+                        {
+                            DishId = itemDto.DishId,
+                            Quantity = itemDto.Quantity,
+                            UnitPrice = itemPrice,
+                            TotalPrice = itemPrice * itemDto.Quantity
+                                
+                        };
+                        orderItems.Add(orderItem);
+                    }
+                }
+
+                // Create new order with calculated total
+                var order = new Order
+                {
+                    TotalAmount = calculatedTotal,
+                    PaymentMethod = dto.PaymentMethod,
+                    Status = "Pending",
+                    UserId = dto.UserId,
+                    RestaurantId = dto.RestaurantId,
+                    EmployeeId = dto.EmployeeId ?? 0,
+                    CreatedAt = DateTime.UtcNow,
+                    OrderItems = orderItems
+                };
+
+                // Save to database
+                await _context.Orders.AddAsync(order);
+                await _context.SaveChangesAsync();
+
+                // Return response with OrderDto format matching GetAllOrders
+                var orderDto = new OrderDto
+                {
+                    Id = order.Id,
+                    TotalAmount = order.TotalAmount,
+                    PaymentMethod = order.PaymentMethod,
+                    Status = order.Status,
+                    UserId = order.UserId,
+                    RestaurantId = order.RestaurantId,
+                    EmployeeId = order.EmployeeId,
+                    UserName = user.UserName,
+                    RestaurantName = restaurant.Name
+                };
+
+                return new AppResponse<OrderDto>(orderDto, "Order created successfully", 201, true);
+            }
+            catch (Exception ex)
+            {
+                return new AppResponse<OrderDto>(null, ex.Message, 500, false);
+            }
+        }
     }
 }
+
 
