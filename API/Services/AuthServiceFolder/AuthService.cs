@@ -57,7 +57,8 @@ namespace API.Services.TokenServiceFolder.AuthService
                     Username = user.UserName,
                     Email = user.Email,
                     Rolename = user.Role.ToString(),
-                    Token = _tokenService.CreateToken(user) 
+                    Token = _tokenService.CreateToken(user),
+                    Address = user.Address
                 };
 
                 return new AppResponse<UserDto>(userDto, "Login successful", 200, true);
@@ -82,6 +83,7 @@ namespace API.Services.TokenServiceFolder.AuthService
                 {
                     UserName = dto.Username,
                     Email = dto.Email,
+                    Address = dto.Address,
                     PasswordHash = await _argonHashing.HashPasswordAsync(dto.Password), 
                     CreatedAt = DateTime.UtcNow
                 };
@@ -92,7 +94,8 @@ namespace API.Services.TokenServiceFolder.AuthService
                     Username = user.UserName,
                     Email = user.Email,
                     Rolename = user.Role.ToString(),
-                    Token = _tokenService.CreateToken(user)
+                    Token = _tokenService.CreateToken(user),
+                    Address = user.Address
                 };
                 
                 await _context.Users.AddAsync(user);

@@ -13,9 +13,14 @@ namespace API.DTOs
         [EmailAddress]
         public required string Email { get; set; } = string.Empty;
 
+        [StringLength(10, MinimumLength = 3)]
+        public string? Role { get; set; }
+
         [Required]
         [StringLength(100, MinimumLength = 6)]
         public required string Password { get; set; } = string.Empty;
+        [Required]
+        public required List<string> Address { get; set; }
     }
 
     // DTO for user login
@@ -58,5 +63,6 @@ namespace API.DTOs
         public string Token { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public DateTime Createdat { get; set; }
+        public List<string> Address { get; set; } = new List<string>();
     }
 }

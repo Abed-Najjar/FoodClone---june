@@ -69,6 +69,9 @@ namespace API.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("RestaurantId")
                         .HasColumnType("INTEGER");
 
@@ -87,7 +90,10 @@ namespace API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("EmployeeId")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("EmployeeId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("PaymentMethod")
@@ -102,7 +108,7 @@ namespace API.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
@@ -118,7 +124,7 @@ namespace API.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("API.Models.OrderItem", b =>
+            modelBuilder.Entity("API.Models.OrderDish", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -142,7 +148,7 @@ namespace API.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderDishes", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.Restaurant", b =>
@@ -163,7 +169,7 @@ namespace API.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("DeliveryFee")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -259,7 +265,7 @@ namespace API.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("RestaurantUsers", (string)null);
+                    b.ToTable("RestaurantUser");
                 });
 
             modelBuilder.Entity("API.Models.Category", b =>
@@ -275,7 +281,7 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.Dish", b =>
                 {
-                    b.HasOne("API.Models.Category", null)
+                    b.HasOne("API.Models.Category", "Category")
                         .WithMany("Dishes")
                         .HasForeignKey("CategoryId");
 
@@ -285,6 +291,8 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Category");
+
                     b.Navigation("Restaurant");
                 });
 
@@ -293,13 +301,12 @@ namespace API.Migrations
                     b.HasOne("API.Models.User", "Employee")
                         .WithMany("OrdersDelivered")
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("API.Models.Restaurant", "Restaurant")
                         .WithMany("Orders")
                         .HasForeignKey("RestaurantId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("API.Models.User", "User")
@@ -315,7 +322,7 @@ namespace API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("API.Models.OrderItem", b =>
+            modelBuilder.Entity("API.Models.OrderDish", b =>
                 {
                     b.HasOne("API.Models.Dish", "Dish")
                         .WithMany("OrderItems")

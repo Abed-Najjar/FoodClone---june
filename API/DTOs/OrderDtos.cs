@@ -40,23 +40,35 @@ namespace API.DTOs
         public decimal TotalPrice { get; set; }
     }
 
+    public class OrderCreateDto
+    {
+        // No ID field - will be auto-generated
+        public string? PaymentMethod { get; set; }
+
+        [Required]
+        public required int RestaurantId { get; set; }
+
+        [Required]
+        public required List<OrderItemCreateDto> OrderItems { get; set; } = new();
+  
+    }
+
+    public class OrderItemCreateDto
+    {
+        // No ID field - will be auto-generated
+        public int DishId { get; set; }
+        public int Quantity { get; set; }
+    }
+
     // DTO for creating a new order
     public class CreateOrderDto
     {
-        [Required]
+        public decimal TotalAmount { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string? Status { get; set; }
         public int UserId { get; set; }
-        
-        [Required]
         public int RestaurantId { get; set; }
-        
-        // EmployeeId might be assigned later in the process
-        public int? EmployeeId { get; set; }
-        
-        [Required]
-        public string PaymentMethod { get; set; } = string.Empty;
-        
-        [Required]
-        public List<CreateOrderItemDto> OrderItems { get; set; } = new List<CreateOrderItemDto>();
+        public int EmployeeId { get; set; }
         
     }
 

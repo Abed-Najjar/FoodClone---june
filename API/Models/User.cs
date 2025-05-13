@@ -1,6 +1,7 @@
 using API.Enums;
 using System.Collections.Generic; // Added for ICollection
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Models
 {
@@ -20,9 +21,11 @@ namespace API.Models
         public virtual ICollection<Restaurant> Restaurants { get; set; } = new List<Restaurant>();
 
         // Navigation property for orders placed by the user (as a customer)
+        [InverseProperty("User")]
         public virtual ICollection<Order> OrdersPlaced { get; set; } = new List<Order>();
 
         // Navigation property for orders delivered by the user (as an employee)
+        [InverseProperty("Employee")]
         public virtual ICollection<Order> OrdersDelivered { get; set; } = new List<Order>();
     }
 }

@@ -23,6 +23,23 @@ namespace API.DTOs
         public string Password { get; set; } = string.Empty;
     }
 
+    public class AdminUpdateUserDto
+    {
+        [Required]
+        [StringLength(50, MinimumLength = 3)]
+        public string AdminName { get; set; } = string.Empty;
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        public int MyProperty { get; set; }
+
+        [Required]
+        [StringLength(100, MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
+    }
+
     // DTO for admin login
     public class AdminLoginDto
     {
