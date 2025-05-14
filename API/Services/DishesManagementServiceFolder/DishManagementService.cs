@@ -4,53 +4,13 @@ using API.DTOs;
 using API.Models;
 using Microsoft.EntityFrameworkCore;
 
-
-public class RestaurantMenuService : IRestaurantMenuService
+public class DishManagementService : IDishManagementService
 {
     private readonly AppDbContext _context;
 
-    public RestaurantMenuService(AppDbContext context)
+    public DishManagementService(AppDbContext context)
     {
-        _context = context;
-    }
-
-    public async Task<AppResponse<CategoryDto>> CreateCategory(CreateCategoryDto categoryDto)
-    {
-        try
-            {
-                var restaurant = await _context.Restaurants.FindAsync(categoryDto.RestaurantId);
-                if (restaurant == null)
-                {
-                    return new AppResponse<CategoryDto>(null, "Restaurant not found", 404, false);
-                }
-
-                var category = new Category
-                {
-                    Name = categoryDto.Name,
-                    Description = categoryDto.Description,
-                    ImageUrl = categoryDto.ImageUrl,
-                    RestaurantId = categoryDto.RestaurantId
-                };
-
-                await _context.Categories.AddAsync(category);
-                await _context.SaveChangesAsync();
-
-                var responseDto = new CategoryDto
-                {
-                    Id = category.Id,
-                    Name = category.Name,
-                    Description = category.Description,
-                    ImageUrl = category.ImageUrl,
-                    RestaurantId = category.RestaurantId,
-                    RestaurantName = restaurant.Name
-                };
-
-                return new AppResponse<CategoryDto>(responseDto, "Category created successfully", 201, true);
-            }
-            catch (Exception ex)
-            {
-                return new AppResponse<CategoryDto>(null, ex.Message, 500, false);
-            }
+        _context = context; 
     }
 
     public async Task<AppResponse<DishDto>> CreateDish(CreateDishDto dishDto)
@@ -109,26 +69,6 @@ public class RestaurantMenuService : IRestaurantMenuService
             }
     }
 
-    public async Task<AppResponse<bool>> DeleteCategory(int id)
-    {
-            try
-            {
-                var category = await _context.Categories.FindAsync(id);
-                if (category == null)
-                {
-                    return new AppResponse<bool>(false, "Category not found", 404, false);
-                }
-
-                _context.Categories.Remove(category);
-                await _context.SaveChangesAsync();
-
-                return new AppResponse<bool>(true, "Category deleted successfully", 200, true);
-            }
-            catch (Exception ex)
-            {
-                return new AppResponse<bool>(false, ex.Message, 500, false);
-            }
-    }
 
     public async Task<AppResponse<bool>> DeleteDish(int id)
     {
@@ -151,67 +91,39 @@ public class RestaurantMenuService : IRestaurantMenuService
             }
     }
 
-    public async Task<AppResponse<List<CategoryDto>>> GetCategories(int restaurantId)
+
+    public async Task<AppResponse<DishDto>> GetDishById(int id)
     {
         try
             {
-                var categories = await _context.Categories
-                    .Include(c => c.Restaurant)
-                    .Include(c => c.Dishes)
-                    .Where(c => c.RestaurantId == restaurantId)
-                    .ToListAsync();
-
-                if (!categories.Any())
+                var dish = await _context.Dishes.FindAsync(id);
+                if (dish == null)
                 {
-                    return new AppResponse<List<CategoryDto>>(null, "No categories found for this restaurant", 404, false);
+                    return new AppResponse<DishDto>(null, "Dish not found", 404, false);
                 }
 
-                var categoryDtos = categories.Select(c => new CategoryDto
+                var dishDto = new DishDto
                 {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Description = c.Description,
-                    ImageUrl = c.ImageUrl,
-                    RestaurantId = c.RestaurantId,
-                    RestaurantName = c.Restaurant.Name,
-                    Dishes = c.Dishes.Select(d => new DishDto
-                    {
-                        Id = d.Id,
-                        Name = d.Name,
-                        Description = d.Description,
-                        Quantity = d.Quantity,
-                        Price = d.Price,
-                        ImageUrl = d.ImageUrl,
-                        RestaurantId = d.RestaurantId,
-                        RestaurantName = d.Restaurant.Name,
-                        CategoryId = d.CategoryId,
-                        CategoryName = d.Category?.Name
-                    }).ToList()
-                }).ToList();
+                    Id = dish.Id,
+                    Name = dish.Name,
+                    Description = dish.Description,
+                    Quantity = dish.Quantity,
+                    Price = dish.Price,
+                    ImageUrl = dish.ImageUrl,
+                    RestaurantId = dish.RestaurantId,
+                    RestaurantName = dish.Restaurant.Name, 
+                    CategoryId = dish.CategoryId,
+                    CategoryName = dish.Category?.Name
+                };
 
-                return new AppResponse<List<CategoryDto>>(categoryDtos, "Categories retrieved successfully", 200, true);
+                return new AppResponse<DishDto>(dishDto, "Dish retrieved successfully", 200, true);
             }
             catch (Exception ex)
             {
-                return new AppResponse<List<CategoryDto>>(null, ex.Message, 500, false);
+                return new AppResponse<DishDto>(null, ex.Message, 500, false);
             }
     }
-
-    public Task<AppResponse<CategoryDto>> GetCategoryById(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<AppResponse<CategoryDto>> GetCategoryByRestaurantId(int restaurantId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<AppResponse<DishDto>> GetDishById(int id)
-    {
-        throw new NotImplementedException();
-    }
-
+    
     public async Task<AppResponse<List<DishDto>>> GetDishes(int restaurantId)
     {
         try
@@ -249,47 +161,44 @@ public class RestaurantMenuService : IRestaurantMenuService
             }
     }
 
-    public Task<AppResponse<List<DishDto>>> GetDishesByCategory(int categoryId)
+    public async Task<AppResponse<List<DishDto>>> GetDishesByCategory(int categoryId)
     {
-        throw new NotImplementedException();
-    }
-
-    public async Task<AppResponse<CategoryDto>> UpdateCategory(int id, UpdateCategoryDto categoryDto)
-    {
-            try
+        try
             {
-                var category = await _context.Categories
-                    .Include(c => c.Restaurant)
-                    .FirstOrDefaultAsync(c => c.Id == id);
+                var dishes = await _context.Dishes
+                    .Include(d => d.Restaurant)
+                    .Include(d => d.Category)
+                    .Where(d => d.CategoryId == categoryId)
+                    .ToListAsync();
 
-                if (category == null)
+                if (!dishes.Any())
                 {
-                    return new AppResponse<CategoryDto>(null, "Category not found", 404, false);
+                    return new AppResponse<List<DishDto>>(null, "No dishes found for this category", 404, false);
                 }
 
-                if (categoryDto.Name != null) category.Name = categoryDto.Name;
-                if (categoryDto.Description != null) category.Description = categoryDto.Description;
-                if (categoryDto.ImageUrl != null) category.ImageUrl = categoryDto.ImageUrl;
-
-                await _context.SaveChangesAsync();
-
-                var responseDto = new CategoryDto
+                var dishDtos = dishes.Select(d => new DishDto
                 {
-                    Id = category.Id,
-                    Name = category.Name,
-                    Description = category.Description,
-                    ImageUrl = category.ImageUrl,
-                    RestaurantId = category.RestaurantId,
-                    RestaurantName = category.Restaurant.Name
-                };
+                    Id = d.Id,
+                    Name = d.Name,
+                    Description = d.Description,
+                    Quantity = d.Quantity,
+                    Price = d.Price,
+                    ImageUrl = d.ImageUrl,
+                    RestaurantId = d.RestaurantId,
+                    RestaurantName = d.Restaurant.Name,
+                    CategoryId = d.CategoryId,
+                    CategoryName = d.Category?.Name
+                }).ToList();
 
-                return new AppResponse<CategoryDto>(responseDto, "Category updated successfully", 200, true);
+                return new AppResponse<List<DishDto>>(dishDtos, "Dishes retrieved successfully", 200, true);
+        
             }
             catch (Exception ex)
             {
-                return new AppResponse<CategoryDto>(null, ex.Message, 500, false);
+                return new AppResponse<List<DishDto>>(null, ex.Message, 500, false);
             }
     }
+
 
     public async Task<AppResponse<DishDto>> UpdateDish(int id, UpdateDishDto dishDto)
     {
@@ -344,3 +253,6 @@ public class RestaurantMenuService : IRestaurantMenuService
             }
     }
 }
+
+    
+        

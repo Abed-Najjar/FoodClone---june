@@ -20,12 +20,15 @@ namespace API.Extensions
 
             // Service Registration
             services.AddScoped<ITokenService, TokenService>();
+            services.AddHttpContextAccessor();
             services.AddScoped<IArgonHashing, ArgonHashing>();
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IAdminService, AdminService>();
-            //services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IDishManagementService, DishManagementService>();
+            services.AddScoped<IOrderManagementService, OrderManagementService>();
+            services.AddScoped<IUserManagementService, UserManagementService>();
+            services.AddScoped<IRestaurantManagement, RestaurantManagement>();
+            services.AddScoped<IUserService, UserService>();
 
-            
             return services;
         }
     }

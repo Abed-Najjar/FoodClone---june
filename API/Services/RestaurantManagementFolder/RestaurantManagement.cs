@@ -2,22 +2,16 @@ using API.AppResponse;
 using API.Data;
 using API.DTOs;
 using API.Models;
-using API.Services.Argon;
-using API.Services.TokenServiceFolder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-class AdminService : IAdminService
+public class RestaurantManagement : IRestaurantManagement
 {
     private readonly AppDbContext _context;
-    private readonly IArgonHashing _argonHashing;
-    private readonly ITokenService _tokenService;
 
-    public AdminService(AppDbContext context, IArgonHashing argonHashing, ITokenService tokenService)
+    public RestaurantManagement(AppDbContext context)
     {
         _context = context;
-        _argonHashing = argonHashing;
-        _tokenService = tokenService;
     }
 
     public async Task<AppResponse<RestaurantDto>> CreateRestaurant([FromBody] RestaurantCreateDto dto)
@@ -82,48 +76,6 @@ class AdminService : IAdminService
     
     }
 
-    public async Task<AppResponse<UserDto>> CreateUser([FromBody] UserInputDto dto)
-    {
-        try
-            {
-                var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == dto.Email);
-
-                if (existingUser != null)
-                {
-                    return new AppResponse<UserDto>(null, "User already exists", 404, false);
-                }
-
-                var user = new User
-                {
-                    UserName = dto.Username,
-                    Email = dto.Email,
-                    Address = dto.Address,
-                    PasswordHash = await _argonHashing.HashPasswordAsync(dto.Password),
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                await _context.Users.AddAsync(user);
-                await _context.SaveChangesAsync();
-
-
-                var userDto = new UserDto
-                {
-                    Id = user.Id,
-                    Username = user.UserName,
-                    Email = user.Email,
-                    Rolename = user.Role.ToString(),
-                    Token = _tokenService.CreateToken(user)
-                };
-
-                return new AppResponse<UserDto>(userDto, "User created successfully", 201, true);
-            }
-            catch (Exception ex)
-            {
-                return new AppResponse<UserDto>(null, ex.Message, 500, false);
-            }
-    }
-
     public async Task<AppResponse<RestaurantDto>> DeleteRestaurant(int id)
     {
         try
@@ -168,65 +120,6 @@ class AdminService : IAdminService
             }
     }
 
-    public async Task<AppResponse<bool>> DeleteUser(int id)
-    {
-        try
-            {
-                var user = await _context.Users.FindAsync(id);
-
-                if (user == null)
-                {
-                    return new AppResponse<bool>(false, "User not found", 404, false);
-                }
-
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
-
-                return new AppResponse<bool>(true, "User deleted successfully", 200, true);
-
-            }
-            catch (Exception ex)
-            {
-                return new AppResponse<bool>(false, ex.Message, 500, false);
-            }
-    }
-
-    public async Task<AppResponse<List<OrderDto>>> GetAllOrders()
-    {
-        try
-            {
-                var orders = await _context.Orders
-                    .Include(o => o.User)
-                    .Include(o => o.Restaurant)
-                    .ToListAsync();
-
-                if (orders == null || !orders.Any())
-                {
-                    return new AppResponse<List<OrderDto>>(null, "No orders found", 404, false);
-                }
-
-                var orderDtos = orders.Select(order => new OrderDto
-                {
-                    Id = order.Id,
-                    TotalAmount = order.TotalAmount,
-                    PaymentMethod = order.PaymentMethod,
-                    Status = order.Status,
-                    UserId = order.UserId,
-                    RestaurantId = order.RestaurantId,
-                    EmployeeId = order.EmployeeId ?? 0,
-                    UserName = order.User.UserName,
-                    RestaurantName = order.Restaurant.Name
-                }).ToList();
-
-                return new AppResponse<List<OrderDto>>(orderDtos, "Orders retrieved successfully", 200, true);
-            }
-            catch (Exception ex)
-            {
-                return new AppResponse<List<OrderDto>>(null, ex.Message, 500, false);
-            }
-
-    }
-
     public async Task<AppResponse<List<RestaurantDto>>> GetAllRestaurants()
     {
         try
@@ -267,70 +160,6 @@ class AdminService : IAdminService
             }
     }
 
-    public async Task<AppResponse<List<UserDto>>> GetAllUsers()
-    {
-        try
-            {
-                var users = await _context.Users
-                .Where(u => u.Role != API.Enums.Roles.Admin)
-                .ToListAsync();
-
-                if (users == null || !users.Any())
-                {
-                    return new AppResponse<List<UserDto>>(null, "No users found", 404, false);
-                }
-
-                var userDtos = users.Select(user => new UserDto
-                {
-                    Id = user.Id,
-                    Username = user.UserName,
-                    Email = user.Email,
-                    Rolename = user.Role.ToString(),
-                    Token = _tokenService.CreateToken(user)
-                }).ToList();
-
-                return new AppResponse<List<UserDto>>(userDtos, "Users retrieved successfully", 200, true);
-            }
-            catch (Exception ex)
-            {
-                return new AppResponse<List<UserDto>>(null, ex.Message, 500, false);
-            }
-    }
-
-    public async Task<AppResponse<OrderDto>> GetOrder(int id)
-    {
-        try
-            {
-                var order = await _context.Orders
-                    .Include(o => o.User)
-                    .Include(o => o.Restaurant)
-                    .FirstOrDefaultAsync(o => o.Id == id);
-
-                if (order == null)
-                {
-                    return new AppResponse<OrderDto>(null, "Order not found", 404, false);
-                }
-
-                var orderDto = new OrderDto
-                {
-                    Id = order.Id,
-                    TotalAmount = order.TotalAmount,
-                    PaymentMethod = order.PaymentMethod,
-                    Status = order.Status,
-                    UserId = order.UserId,
-                    RestaurantId = order.RestaurantId,
-                    EmployeeId = order.EmployeeId ?? 0,
-                    UserName = order.User.UserName,
-                    RestaurantName = order.Restaurant.Name
-                };
-
-                return new AppResponse<OrderDto>(orderDto, "Order retrieved successfully", 200, true);
-            }
-            catch (Exception ex)
-            {
-                return new AppResponse<OrderDto>(null, ex.Message, 500, false);
-            }
-    }
 
     public async Task<AppResponse<RestaurantDto>> GetRestaurant(int id)
     {
@@ -371,35 +200,6 @@ class AdminService : IAdminService
                 return new AppResponse<RestaurantDto>(null, ex.Message, 500, false);
             }
     }
-
-    public async Task<AppResponse<UserDto>> GetUser(int id)
-    {
-        try
-            {
-                var user = await _context.Users.FindAsync(id);
-
-                if (user == null)
-                {
-                    return new AppResponse<UserDto>(null, "User not found", 404, false);
-                }
-
-                var userDto = new UserDto
-                {
-                    Id = user.Id,
-                    Username = user.UserName,
-                    Email = user.Email,
-                    Rolename = user.Role.ToString(),
-                    Token = _tokenService.CreateToken(user)
-                };
-
-                return new AppResponse<UserDto>(userDto, "User retrieved successfully", 200, true);
-            }
-            catch (Exception ex)
-            {
-                return new AppResponse<UserDto>(null, ex.Message, 500, false);
-            }
-    }
-
     public async Task<AppResponse<bool>> SuspendRestaurant(int id)
     {
         try
@@ -422,6 +222,7 @@ class AdminService : IAdminService
                 return new AppResponse<bool>(false, ex.Message, 500, false);
             }
     }
+
 
     public async Task<AppResponse<bool>> UnsuspendRestaurant(int id)
     {
@@ -538,43 +339,5 @@ class AdminService : IAdminService
         }
     }
 
-    public async Task<AppResponse<UserDto>> UpdateUser(int id, [FromBody] UserInputDto dto)
-    {
-        try
-            {
-                var user = await _context.Users.FindAsync(id);
-
-                if (user == null)
-                {
-                    return new AppResponse<UserDto>(null, "User not found", 404, false);
-                }
-
-                user.UserName = dto.Username;
-                user.Email = dto.Email;
-                user.Address = dto.Address;
-                user.Role = dto.Role != null ? (API.Enums.Roles)Enum.Parse(typeof(API.Enums.Roles), dto.Role) : user.Role;
-                user.PasswordHash = await _argonHashing.HashPasswordAsync(dto.Password);
-
-                _context.Users.Update(user);
-                await _context.SaveChangesAsync();
-
-                var userDto = new UserDto
-                {
-                    Id = user.Id,
-                    Username = user.UserName,
-                    Email = user.Email,
-                    Address = user.Address,
-                    Rolename = user.Role.ToString(),
-                    Token = _tokenService.CreateToken(user),
-                    Createdat = user.CreatedAt
-                    
-                };
-
-                return new AppResponse<UserDto>(userDto, "User updated successfully", 200, true);
-            }
-            catch (Exception ex)
-            {
-                return new AppResponse<UserDto>(null, ex.Message, 500, false);
-            }
-    }
 }
+
