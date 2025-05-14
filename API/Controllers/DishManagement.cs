@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Provider")]
+    [Authorize(Roles = "Provider,Admin")]
     [Route("api/[controller]")]
     public class DishManagement : ControllerBase
     {

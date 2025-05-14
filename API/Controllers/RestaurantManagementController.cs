@@ -18,32 +18,33 @@ namespace API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<AppResponse<RestaurantDto>> CreateRestaurant([FromBody] RestaurantCreateDto dto)
+        public async Task<AppResponse<AdminRestaurantDto>> CreateRestaurant([FromBody] RestaurantCreateDto dto)
         {
             return await _restaurantManagementService.CreateRestaurant(dto);
         }
 
-        [Authorize(Roles = "Admin,User")]
+        [Authorize(Roles = "User,Admin")]
         [HttpGet("getAll")]
-        public async Task<AppResponse<List<RestaurantDto>>> GetAllRestaurants()
+        public async Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurants()
         {
             return await _restaurantManagementService.GetAllRestaurants();
         }
 
+        [Authorize(Roles = "Admin,User")]
         [HttpGet("get/{id}")]
-        public async Task<AppResponse<RestaurantDto>> GetRestaurant(int id)
+        public async Task<AppResponse<AdminRestaurantDto>> GetRestaurant(int id)
         {
             return await _restaurantManagementService.GetRestaurant(id);
         }
 
         [HttpPut("update/{id}")]
-        public async Task<AppResponse<RestaurantDto>> UpdateRestaurant(int id, [FromBody] RestaurantUpdateDto dto)
+        public async Task<AppResponse<AdminRestaurantDto>> UpdateRestaurant(int id, [FromBody] RestaurantUpdateDto dto)
         {
             return await _restaurantManagementService.UpdateRestaurant(id, dto);
         }
 
         [HttpDelete("delete/{id}")]
-        public async Task<AppResponse<RestaurantDto>> DeleteRestaurant(int id)
+        public async Task<AppResponse<AdminRestaurantDto>> DeleteRestaurant(int id)
         {
             return await _restaurantManagementService.DeleteRestaurant(id);
         }
@@ -59,7 +60,22 @@ namespace API.Controllers
         {
             return await _restaurantManagementService.UnsuspendRestaurant(id);
         }
+
+
+        [Authorize(Roles = "Provider")]
+        [HttpPut("open/{id}")]
+        public async Task<AppResponse<AdminRestaurantDto>> OpenRestaurant(int id)
+        {
+            return await _restaurantManagementService.OpenRestaurant(id);
+        }
+
+        [Authorize(Roles = "Provider")]
+        [HttpPut("close/{id}")]
+        public async Task<AppResponse<AdminRestaurantDto>> CloseRestaurant(int id)
+        {
+            return await _restaurantManagementService.CloseRestaurant(id);
         
+        }
     }
 }
 

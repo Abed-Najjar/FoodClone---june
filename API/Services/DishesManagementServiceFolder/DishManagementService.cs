@@ -130,6 +130,7 @@ public class DishManagementService : IDishManagementService
             {
                 var dishes = await _context.Dishes
                     .Include(d => d.Restaurant)
+                    .ThenInclude(r => r.Categories)
                     .Include(d => d.Category)
                     .Where(d => d.RestaurantId == restaurantId)
                     .ToListAsync();

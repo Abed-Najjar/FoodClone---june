@@ -7,7 +7,7 @@ using API.Services.UserServiceFolder;
 
 namespace API.Controllers
 {
-    [Authorize(Roles = "User")]
+    [Authorize(Roles = "Admin,User")]
     [ApiController]
     [Route("api/[controller]")]
     public class UserController : ControllerBase
@@ -28,9 +28,9 @@ namespace API.Controllers
         }
 
         [HttpGet("restaurants")]
-        public async Task<AppResponse<List<RestaurantDto>>> GetAllRestaurants()
+        public async Task<AppResponse<List<UserRestaurantDto>>> GetAllRestaurants()
         {
-            return await _restaurantManagement.GetAllRestaurants();
+            return await _userService.GetAllRestaurants();
         }
 
     }

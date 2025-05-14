@@ -27,6 +27,8 @@ namespace API.Extensions
             services.AddScoped<IOrderManagementService, OrderManagementService>();
             services.AddScoped<IUserManagementService, UserManagementService>();
             services.AddScoped<IRestaurantManagement, RestaurantManagement>();
+            services.AddScoped<ICategoryManagementService, CategoryManagementService>();
+            
             services.AddScoped<IUserService, UserService>();
 
             return services;

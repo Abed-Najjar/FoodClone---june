@@ -9,7 +9,7 @@ namespace API.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public decimal TotalAmount { get; set; } = 0;
         public string PaymentMethod { get; set; } = string.Empty;
-        public string Status { get; set; } = "Pending"; // Set a default status
+        public string Status { get; set; } = "Pending"; // Change to ENUM Later.
 
         public int UserId { get; set; }
         public virtual User User { get; set; } = null!; // Navigation property to User (Customer)

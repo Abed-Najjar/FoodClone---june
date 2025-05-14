@@ -12,13 +12,11 @@ namespace API.Services.UserServiceFolder
     public class UserService : IUserService
     {
         private readonly AppDbContext _context;
-        private readonly ITokenService _tokenService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserService(AppDbContext context, ITokenService tokenService, IHttpContextAccessor httpContextAccessor)
+        public UserService(AppDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
-            _tokenService = tokenService;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -163,6 +161,43 @@ namespace API.Services.UserServiceFolder
                 return new AppResponse<OrderDto>(null, $"An error occurred while creating the order: {ex.Message}", 500, false);
             }
         }
+
+        public async Task<AppResponse<List<UserRestaurantDto>>> GetAllRestaurants()
+        {
+            try
+            {
+                var restaurants = await _context.Restaurants
+                    .Include(r => r.Categories)
+                    .ToListAsync();
+
+                if (restaurants == null || !restaurants.Any())
+                {
+                    return new AppResponse<List<UserRestaurantDto>>(null, "No restaurants found", 404, false);
+                }
+
+                var UserRestaurantDtos = restaurants.Select(restaurant => new UserRestaurantDto
+                {
+                    Id = restaurant.Id,
+                    Name = restaurant.Name,
+                    Description = restaurant.Description,
+                    LogoUrl = restaurant.LogoUrl,
+                    CoverImageUrl = restaurant.CoverImageUrl,
+                    Address = restaurant.Address,
+                    PhoneNumber = restaurant.PhoneNumber,
+                    OpeningHours = restaurant.OpeningHours,
+                    Rating = restaurant.Rating,
+                    ReviewCount = restaurant.ReviewCount,
+                    IsOpen = restaurant.IsOpen,
+                }).ToList();
+
+                return new AppResponse<List<UserRestaurantDto>>(UserRestaurantDtos, "Restaurants retrieved successfully", 200, true);
+            }
+            catch (Exception ex)
+            {
+                return new AppResponse<List<UserRestaurantDto>>(null, ex.Message, 500, false);
+            }
+        }
+
 
         private int GetUserIdFromToken()
         {

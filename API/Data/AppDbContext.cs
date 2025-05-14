@@ -14,7 +14,8 @@ namespace API.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Dish> Dishes { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderDish> OrderDishes { get; set; } // Fixed: Changed from OrderDish (singular) to OrderDishes (plural)
+        public DbSet<OrderDish> OrderDishes { get; set; }
+        public DbSet<RestaurantsCategories> RestaurantsCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -55,6 +56,20 @@ namespace API.Data
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Restaurants)
                 .WithMany(r => r.Users);
+                
+            // Configure many-to-many relationship between Restaurant and Category using the join entity
+            modelBuilder.Entity<RestaurantsCategories>()
+                .HasKey(rc => new { rc.RestaurantId, rc.CategoryId });
+                
+            modelBuilder.Entity<RestaurantsCategories>()
+                .HasOne(rc => rc.Restaurant)
+                .WithMany(r => r.RestaurantsCategories)
+                .HasForeignKey(rc => rc.RestaurantId);
+                
+            modelBuilder.Entity<RestaurantsCategories>()
+                .HasOne(rc => rc.Category)
+                .WithMany(c => c.RestaurantsCategories)
+                .HasForeignKey(rc => rc.CategoryId);
 
             // Configure OrderDish entity explicitly to ensure consistent table naming
             modelBuilder.Entity<OrderDish>().ToTable("OrderDishes");
@@ -74,10 +89,11 @@ namespace API.Data
         3. Restaurant - Order (One-to-Many)
            - A Restaurant can have multiple Orders
            - Each Order belongs to exactly one Restaurant
-
-        4. Restaurant - Category (One-to-Many)
+           
+        4. Restaurant - Category (Many-to-Many)
            - A Restaurant can have multiple Categories
-           - Each Category belongs to exactly one Restaurant
+           - A Category can belong to multiple Restaurants
+           - RestaurantsCategories serves as the join table
 
         5. Restaurant - Dish (One-to-Many)
            - A Restaurant can have multiple Dishes

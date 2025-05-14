@@ -21,8 +21,6 @@ namespace API.Models
         public DateTime CreatedAt { get; set; }
         public bool IsSupended { get; set; } = false;
 
-
-
         // Navigation property for many-to-many relationship with Category
         public virtual List<Category> Categories { get; set; } = new List<Category>();
 
@@ -34,5 +32,9 @@ namespace API.Models
 
         // Collection navigation property for Dishes offered by the restaurant
         public virtual List<Dish> Dishes { get; set; } = new List<Dish>();
+
+        // Collection navigation property for restaurant categories
+        // This is the many-to-many relationship with Category
+        public ICollection<RestaurantsCategories> RestaurantsCategories { get; set; } = new List<RestaurantsCategories>();
     }
 }

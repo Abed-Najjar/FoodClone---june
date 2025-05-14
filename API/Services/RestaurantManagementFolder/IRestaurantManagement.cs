@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 
 public interface IRestaurantManagement
 {
-    Task<AppResponse<RestaurantDto>> CreateRestaurant([FromBody] RestaurantCreateDto dto);
-    Task<AppResponse<List<RestaurantDto>>> GetAllRestaurants();
-    Task<AppResponse<RestaurantDto>> GetRestaurant(int id);
-    Task<AppResponse<RestaurantDto>> UpdateRestaurant(int id, [FromBody] RestaurantUpdateDto dto);
-    Task<AppResponse<RestaurantDto>> DeleteRestaurant(int id);
+    Task<AppResponse<AdminRestaurantDto>> CreateRestaurant([FromBody] RestaurantCreateDto dto);
+    Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurants();
+    Task<AppResponse<AdminRestaurantDto>> GetRestaurant(int id);
+    Task<AppResponse<AdminRestaurantDto>> UpdateRestaurant(int id, [FromBody] RestaurantUpdateDto dto);
+    Task<AppResponse<AdminRestaurantDto>> DeleteRestaurant(int id);
     Task<AppResponse<bool>> SuspendRestaurant(int id);
     Task<AppResponse<bool>> UnsuspendRestaurant(int id);
+    Task<AppResponse<AdminRestaurantDto>> OpenRestaurant(int id);
+    Task<AppResponse<AdminRestaurantDto>> CloseRestaurant(int id);
 }
