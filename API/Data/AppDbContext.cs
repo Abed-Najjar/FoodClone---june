@@ -73,39 +73,68 @@ namespace API.Data
 
             // Configure OrderDish entity explicitly to ensure consistent table naming
             modelBuilder.Entity<OrderDish>().ToTable("OrderDishes");
+            
+            // Enhancement 1: Add direct relationship between Restaurant and Dishes
+            modelBuilder.Entity<Restaurant>()
+                .HasMany(r => r.Dishes)
+                .WithOne(d => d.Restaurant)
+                .HasForeignKey(d => d.RestaurantId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            // Enhancement 2: Add indexes on frequently queried foreign keys
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => o.UserId);
+                
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => o.RestaurantId);
+                
+            // Enhancement 3: Make EmployeeId nullable since an order might not be assigned immediately
+            modelBuilder.Entity<Order>()
+                .Property(o => o.EmployeeId)
+                .IsRequired(false);
+                
+            // Enhancement 4: Add uniqueness constraint for dish names within a restaurant
+            modelBuilder.Entity<Dish>()
+                .HasIndex(d => new { d.RestaurantId, d.Name })
+                .IsUnique();
+                
+            // Enhancement 5: Add timestamps for auditing
+            modelBuilder.Entity<Order>()
+                .Property<DateTime>("CreatedAt")
+                .HasDefaultValueSql("GETDATE()");
+                
+            modelBuilder.Entity<Order>()
+                .Property<DateTime>("UpdatedAt")
+                .HasDefaultValueSql("GETDATE()");
         }
-
-        // Here's a summary of the relationships in your model:
+        
         /*
-        1. User - Restaurant (Many-to-Many)
-           - Users can be associated with multiple restaurants 
-           - Restaurants can have multiple users
-
-        2. User - Order (One-to-Many, two relationships)
-           - A User can place multiple orders (as a customer)
-           - A User can deliver multiple orders (as an employee)
-           - Each Order has exactly one User as customer and one User as delivery employee
-
-        3. Restaurant - Order (One-to-Many)
-           - A Restaurant can have multiple Orders
-           - Each Order belongs to exactly one Restaurant
-           
-        4. Restaurant - Category (Many-to-Many)
-           - A Restaurant can have multiple Categories
-           - A Category can belong to multiple Restaurants
-           - RestaurantsCategories serves as the join table
-
-        5. Restaurant - Dish (One-to-Many)
-           - A Restaurant can have multiple Dishes
-           - Each Dish belongs to exactly one Restaurant
-
-        6. Order - OrderItem (One-to-Many)
-           - An Order can have multiple OrderItems
-           - Each OrderItem belongs to exactly one Order
-
-        7. Dish - OrderItem (One-to-Many)
-           - A Dish can be referenced by multiple OrderItems
-           - Each OrderItem references exactly one Dish
+        Summary of Relationships:
+        
+        User:
+        - One User -> Many Orders (as OrdersPlaced)
+        - One User -> Many Orders (as OrdersDelivered, when user is an employee)
+        - Many Users <-> Many Restaurants
+        
+        Restaurant:
+        - One Restaurant -> Many Orders
+        - Many Restaurants <-> Many Users
+        - Many Restaurants <-> Many Categories (through RestaurantsCategories join table)
+        
+        Order:
+        - One Order -> Many OrderDishes (as OrderItems)
+        - One Order <- One User (as customer)
+        - One Order <- One User (as employee/delivery person)
+        - One Order <- One Restaurant
+        
+        Dish:
+        - One Dish -> Many OrderDishes (as OrderItems)
+        
+        Category:
+        - Many Categories <-> Many Restaurants (through RestaurantsCategories join table)
+        
+        RestaurantsCategories:
+        - Join table for Many-to-Many relationship between Restaurant and Category
         */
     }
 }

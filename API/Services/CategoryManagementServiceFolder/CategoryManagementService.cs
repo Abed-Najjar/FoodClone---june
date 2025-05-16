@@ -26,7 +26,6 @@ public class CategoryManagementService : ICategoryManagementService
             var category = new Category
             {
                 Name = categoryDto.Name,
-                Description = categoryDto.Description,
                 ImageUrl = categoryDto.ImageUrl
             };
 
@@ -48,7 +47,6 @@ public class CategoryManagementService : ICategoryManagementService
             {
                 Id = category.Id,
                 Name = category.Name,
-                Description = category.Description,
                 ImageUrl = category.ImageUrl,
                 RestaurantId = restaurant.Id,
                 RestaurantName = restaurant.Name
@@ -112,16 +110,14 @@ public class CategoryManagementService : ICategoryManagementService
             {
                 Id = rc.Category.Id,
                 Name = rc.Category.Name,
-                Description = rc.Category.Description,
                 ImageUrl = rc.Category.ImageUrl,
                 RestaurantId = rc.Restaurant.Id,
                 RestaurantName = rc.Restaurant.Name,
-                Dishes = rc.Category.Dishes.Select(d => new DishDto
+                Dishes = rc.Category.Dishes.Select(d => new AdminRestaurantDishDto
                 {
                     Id = d.Id,
                     Name = d.Name,
                     Description = d.Description,
-                    Quantity = d.Quantity,
                     Price = d.Price,
                     ImageUrl = d.ImageUrl,
                     RestaurantId = d.RestaurantId,
@@ -158,7 +154,6 @@ public class CategoryManagementService : ICategoryManagementService
             {
                 Id = rc.Category.Id,
                 Name = rc.Category.Name,
-                Description = rc.Category.Description,
                 ImageUrl = rc.Category.ImageUrl,
                 RestaurantId = rc.Restaurant.Id,
                 RestaurantName = rc.Restaurant.Name
@@ -190,7 +185,6 @@ public class CategoryManagementService : ICategoryManagementService
             {
                 Id = category.Id,
                 Name = category.Name,
-                Description = category.Description,
                 ImageUrl = category.ImageUrl,
                 RestaurantId = restaurantCategory?.Restaurant?.Id ?? 0,
                 RestaurantName = restaurantCategory?.Restaurant?.Name ?? string.Empty
@@ -216,7 +210,6 @@ public class CategoryManagementService : ICategoryManagementService
             }
 
             if (categoryDto.Name != null) category.Name = categoryDto.Name;
-            if (categoryDto.Description != null) category.Description = categoryDto.Description;
             if (categoryDto.ImageUrl != null) category.ImageUrl = categoryDto.ImageUrl;
 
             var restaurantCategory = await _context.RestaurantsCategories
@@ -229,7 +222,6 @@ public class CategoryManagementService : ICategoryManagementService
             {
                 Id = category.Id,
                 Name = category.Name,
-                Description = category.Description,
                 ImageUrl = category.ImageUrl,
                 RestaurantId = restaurantCategory?.Restaurant?.Id ?? 0,
                 RestaurantName = restaurantCategory?.Restaurant?.Name ?? string.Empty

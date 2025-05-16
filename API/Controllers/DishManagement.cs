@@ -18,25 +18,25 @@ namespace API.Controllers
         }
 
         [HttpGet("restaurant/dishes/{restaurantId}")]
-        public async Task<AppResponse<List<DishDto>>> GetDishes(int restaurantId)
+        public async Task<AppResponse<List<AdminRestaurantDishDto>>> GetDishes(int restaurantId)
         {
-            return await _dishManagementService.GetDishes(restaurantId);
+            return await _dishManagementService.GetDishesInRestaurant(restaurantId);
         }
 
         [HttpGet("dishes/{id}")]
-        public async Task<AppResponse<DishDto>> GetDishById(int id)
+        public async Task<AppResponse<AdminRestaurantDishDto>> GetDishById(int id)
         {
             return await _dishManagementService.GetDishById(id);
         }
         
         [HttpPost("dishes")]
-        public async Task<AppResponse<DishDto>> CreateDish(CreateDishDto dishDto)
+        public async Task<AppResponse<AdminRestaurantDishDto>> CreateDish(CreateDishDto dishDto)
         {
             return await _dishManagementService.CreateDish(dishDto);
         }
 
         [HttpPut("dishes/{id}")]
-        public async Task<AppResponse<DishDto>> UpdateDish(int id, UpdateDishDto dishDto)
+        public async Task<AppResponse<AdminRestaurantDishDto>> UpdateDish(int id, UpdateDishDto dishDto)
         {
             return await _dishManagementService.UpdateDish(id, dishDto);
         }

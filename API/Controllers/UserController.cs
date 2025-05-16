@@ -14,7 +14,7 @@ namespace API.Controllers
     {
         private readonly IUserService _userService;
         private readonly IRestaurantManagement _restaurantManagement;
-        
+
         public UserController(IUserService userService, IRestaurantManagement restaurantManagement)
         {
             _userService = userService;
@@ -31,6 +31,18 @@ namespace API.Controllers
         public async Task<AppResponse<List<UserRestaurantDto>>> GetAllRestaurants()
         {
             return await _userService.GetAllRestaurants();
+        }
+
+        [HttpGet("dishes/{restaurantId}")]
+        public async Task<AppResponse<List<UserRestaurantDishesDto>>> GetDishesByRestaurantId(int restaurantId)
+        {
+            return await _userService.GetAllRestaurantDishes(restaurantId);
+        }
+        
+        [HttpGet("categories/{restaurantId}")]
+        public async Task<AppResponse<List<UserRestaurantCategoriesDto>>> GetCategoriesByRestaurantId(int restaurantId)
+        {
+            return await _userService.GetAllRestaurantCategories(restaurantId);
         }
 
     }

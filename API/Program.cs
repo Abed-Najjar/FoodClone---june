@@ -41,6 +41,9 @@ builder.Services.AddControllers();
 // Add application services from extension methods
 builder.Services.AddApplicationServices(builder.Configuration);
 
+// Register repositories
+builder.Services.AddScoped<API.Repositories.Interfaces.IDishRepository, API.Repositories.Implementations.DishRepository>();
+
 // Add Swagger services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => 

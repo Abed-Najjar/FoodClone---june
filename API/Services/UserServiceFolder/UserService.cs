@@ -45,11 +45,11 @@ namespace API.Services.UserServiceFolder
                     return new AppResponse<OrderDto>(null, "Please add a delivery address before placing an order", 400, false);
                 }
 
-                // Validate restaurant
                 var restaurant = await _context.Restaurants
                     .Include(r => r.Dishes)
                     .FirstOrDefaultAsync(r => r.Id == orderCreateDto.RestaurantId);
 
+                // Validate restaurant exists
                 if (restaurant == null)
                 {
                     return new AppResponse<OrderDto>(null, "Restaurant not found", 404, false);
@@ -199,11 +199,82 @@ namespace API.Services.UserServiceFolder
         }
 
 
+        public async Task<AppResponse<List<UserRestaurantDishesDto>>> GetAllRestaurantDishes(int restaurantId)
+        {
+            try
+            {
+                var dishes = await _context.Dishes
+                .Include(d => d.Restaurant)
+                .ThenInclude(d => d.Dishes)
+                .Where(d => d.RestaurantId == restaurantId)
+                .ToListAsync();
+
+                if (!dishes.Any())
+                {
+                    return new AppResponse<List<UserRestaurantDishesDto>>(null, "No dishes found", 404, false);
+                }
+
+                var dishDtos = dishes.Select(d => new UserRestaurantDishesDto
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    Description = d.Description,
+                    Price = d.Price,
+                    ImageUrl = d.ImageUrl,
+                    RestaurantId = d.RestaurantId,
+                    RestaurantName = d.Restaurant.Name,
+                    CategoryId = d.CategoryId,
+                }).ToList();
+
+                return new AppResponse<List<UserRestaurantDishesDto>>(dishDtos, "Dishes retrieved successfully", 200, true);
+            }
+            catch (Exception ex)
+            {
+                return new AppResponse<List<UserRestaurantDishesDto>>(null, ex.Message, 500, false);
+            }
+        }
+
+
+        public async Task<AppResponse<List<UserRestaurantCategoriesDto>>> GetAllRestaurantCategories(int restaurantId)
+        {
+            try
+            {
+
+                var RestaurantsCategories = await _context.RestaurantsCategories
+                    .Include(c => c.Restaurant)
+                    .Include(c => c.Category)
+                    .Where(c => c.RestaurantId == restaurantId)
+                    .ToListAsync();
+
+                if (RestaurantsCategories == null || !RestaurantsCategories.Any())
+                {
+                    return new AppResponse<List<UserRestaurantCategoriesDto>>(null, "No categories found", 404, false);
+                }
+                var categoryDtos = RestaurantsCategories.Select(c => new UserRestaurantCategoriesDto
+                {
+                    Id = c.CategoryId,
+                    Name = c.Category.Name,
+                    ImageUrl = c.Category.ImageUrl,
+                    RestaurantId = c.RestaurantId,
+                    RestaurantName = c.Restaurant.Name,
+                }).ToList();
+
+                return new AppResponse<List<UserRestaurantCategoriesDto>>(categoryDtos, "Categories retrieved successfully", 200, true);
+            }
+            catch (Exception ex)
+            {
+                return new AppResponse<List<UserRestaurantCategoriesDto>>(null, ex.Message, 500, false);
+            }
+        }
+
+
+
+        // Helper method to extract user ID from the token
         private int GetUserIdFromToken()
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null) return 0;
-            
+
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
             {

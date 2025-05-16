@@ -1,4 +1,6 @@
 using API.Data;
+using API.Repositories.Implementations;
+using API.Repositories.Interfaces;
 using API.Services.Argon;
 using API.Services.TokenServiceFolder;
 using API.Services.TokenServiceFolder.AuthService;
@@ -28,8 +30,14 @@ namespace API.Extensions
             services.AddScoped<IUserManagementService, UserManagementService>();
             services.AddScoped<IRestaurantManagement, RestaurantManagement>();
             services.AddScoped<ICategoryManagementService, CategoryManagementService>();
-            
             services.AddScoped<IUserService, UserService>();
+
+
+            // Register repositories
+            services.AddScoped<IRestaurantRepository, RestaurantRepository>();
+            services.AddScoped<IDishRepository, DishRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            
 
             return services;
         }
