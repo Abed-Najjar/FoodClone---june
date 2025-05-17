@@ -1,0 +1,82 @@
+<div class="container">
+  <h1 class="mb-4">Your Cart</h1>
+
+  <div *ngIf="cartItems.length === 0" class="text-center py-5">
+    <i class="bi bi-cart-x display-1 text-muted mb-3"></i>
+    <h3>Your cart is empty</h3>
+    <p>Looks like you haven't added any items to your cart yet.</p>
+    <a routerLink="/restaurants" class="btn btn-primary mt-3">Browse Restaurants</a>
+  </div>
+
+  <div *ngIf="cartItems.length > 0">
+    <div class="card mb-4">
+      <div class="card-header bg-white">
+        <h5 class="mb-0">Order Items ({{ cartItems.length }})</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of cartItems">
+                <td class="align-middle">
+                  <div class="d-flex align-items-center">
+                    <img [src]="item.dish.imageUrl || 'https://via.placeholder.com/60x60?text=Food'" 
+                         class="item-image me-3" alt="{{ item.dish.name }}">
+                    <div>
+                      <h6 class="mb-0">{{ item.dish.name }}</h6>
+                      <small class="text-muted">{{ item.dish.restaurantName }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td class="align-middle">${{ item.dish.price.toFixed(2) }}</td>
+                <td class="align-middle" style="width: 150px">
+                  <div class="input-group">
+                    <button class="btn btn-outline-secondary" 
+                            (click)="updateQuantity(item.dish.id, item.quantity - 1)">-</button>
+                    <input type="number" class="form-control text-center" min="1" max="10"
+                          [(ngModel)]="item.quantity" 
+                          (change)="updateQuantity(item.dish.id, item.quantity)">
+                    <button class="btn btn-outline-secondary" 
+                            (click)="updateQuantity(item.dish.id, item.quantity + 1)">+</button>
+                  </div>
+                </td>
+                <td class="align-middle">${{ (item.dish.price * item.quantity).toFixed(2) }}</td>
+                <td class="align-middle">
+                  <button class="btn btn-sm btn-outline-danger" (click)="removeItem(item.dish.id)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+          <button class="btn btn-outline-secondary" (click)="clearCart()">
+            <i class="bi bi-trash"></i> Clear Cart
+          </button>
+          <span class="h5 mb-0">Total: ${{ totalPrice.toFixed(2) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end">
+      <a routerLink="/restaurants" class="btn btn-outline-primary me-2">
+        <i class="bi bi-arrow-left"></i> Continue Shopping
+      </a>
+      <a routerLink="/checkout" class="btn btn-success">
+        <i class="bi bi-credit-card"></i> Proceed to Checkout
+      </a>
+    </div>
+  </div>
+</div>

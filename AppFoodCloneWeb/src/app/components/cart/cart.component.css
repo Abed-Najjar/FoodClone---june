@@ -1,0 +1,15 @@
+.item-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table th, .table td {
+  padding: 15px;
+}
+
+.input-group .form-control {
+  max-width: 60px;
+}

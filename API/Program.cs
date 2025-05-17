@@ -9,9 +9,41 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add CORS before other service configurations
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularApp", policy =>
+    {
+        // In development, allow any origin for easier debugging
+        policy.SetIsOriginAllowed(origin => true) // Allow any origin
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+
+    options.AddPolicy("AllowFlutterWeb", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000", "http://localhost", "http://127.0.0.1:3000")
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials();
+    });
+});
 
 // Add authentication configuration
 builder.Services.AddAuthentication(options =>
@@ -88,10 +120,12 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Enable CORS - this must be called before other middleware
+app.UseCors("AllowAll");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI(c => 
     {
@@ -101,6 +135,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Use CORS before authentication and authorization
+app.UseCors("AllowFlutterWeb");
 
 // Add authentication middleware before authorization middleware
 app.UseAuthentication();
@@ -117,12 +154,11 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<AppDbContext>();
         var argonHashing = services.GetRequiredService<IArgonHashing>();
         var logger = services.GetRequiredService<ILogger<Program>>();
-        
-        // Apply any pending migrations
+          // Apply any pending migrations
         await context.Database.MigrateAsync();
         
-        // Seed admin user
-        await Seed.SeedAdminUser(context, argonHashing, logger);
+        // Seed data (admin user and restaurants)
+        await Seed.SeedData(context, argonHashing, logger);
         
         logger.LogInformation("Database seeding completed successfully");
     }

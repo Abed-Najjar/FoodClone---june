@@ -2,14 +2,20 @@ using API.AppResponse;
 using API.Data;
 using API.DTOs;
 using API.Models;
+using API.Repositories.Interfaces;
 using API.Services.Argon;
 using API.Services.TokenServiceFolder.AuthServiceFolder;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Services.TokenServiceFolder.AuthService
 {
-    public class AuthService(AppDbContext context, ITokenService tokenService, IArgonHashing argonHashing) : IAuthService
+    public class AuthService(
+        AppDbContext context,
+         ITokenService tokenService,
+          IArgonHashing argonHashing,
+          IUserRepository userRepository) : IAuthService
     {
+        private readonly IUserRepository _userRepository = userRepository;
         private readonly AppDbContext _context = context;
         private readonly ITokenService _tokenService = tokenService;
         private readonly IArgonHashing _argonHashing = argonHashing;
@@ -18,7 +24,7 @@ namespace API.Services.TokenServiceFolder.AuthService
         {
             try
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+                var user = await _userRepository.GetUserByEmailAsync(dto.Email);
                 if (user == null)
                 {
                     return new AppResponse<PasswordResetDto>(null, "User not found", 404, false);
@@ -45,7 +51,7 @@ namespace API.Services.TokenServiceFolder.AuthService
         {
             try
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+                var user = await _userRepository.GetUserByEmailAsync(dto.Email);
                 if (user == null || !await _argonHashing.VerifyHashedPasswordAsync(user.PasswordHash, dto.Password))
                 {
                     return new AppResponse<UserDto>(null, "Invalid credentials", 401, false);
@@ -73,10 +79,36 @@ namespace API.Services.TokenServiceFolder.AuthService
         {
             try
             {
-                var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+                // Validate input
+                if (dto == null)
+                {
+                    return new AppResponse<UserDto>(null, "Registration data is missing", 400, false);
+                }
+
+                if (string.IsNullOrEmpty(dto.Username))
+                {
+                    return new AppResponse<UserDto>(null, "Username is required", 400, false);
+                }
+
+                if (string.IsNullOrEmpty(dto.Email))
+                {
+                    return new AppResponse<UserDto>(null, "Email is required", 400, false);
+                }
+
+                if (string.IsNullOrEmpty(dto.Password))
+                {
+                    return new AppResponse<UserDto>(null, "Password is required", 400, false);
+                }
+
+                if (dto.Address == null || !dto.Address.Any())
+                {
+                    return new AppResponse<UserDto>(null, "Address is required", 400, false);
+                }
+
+                var existingUser = await _userRepository.GetUserByEmailAsync(dto.Email);
                 if (existingUser != null)
                 {
-                    return new AppResponse<UserDto>(null, "User already exists", 404, false);
+                    return new AppResponse<UserDto>(null, "User with this email already exists", 409, false);
                 }
 
                 var user = new User
@@ -84,10 +116,21 @@ namespace API.Services.TokenServiceFolder.AuthService
                     UserName = dto.Username,
                     Email = dto.Email,
                     Address = dto.Address,
-                    PasswordHash = await _argonHashing.HashPasswordAsync(dto.Password), 
+                    PasswordHash = await _argonHashing.HashPasswordAsync(dto.Password),
                     CreatedAt = DateTime.UtcNow
                 };
 
+                // Save user first to ensure it gets an ID
+                await _userRepository.CreateUserAsync(user);
+                await _context.SaveChangesAsync();
+
+                // Check if user was created successfully
+                if (user.Id <= 0)
+                {
+                    return new AppResponse<UserDto>(null, "Failed to create user account", 500, false);
+                }
+
+                // Create DTO after user is saved
                 var userDto = new UserDto
                 {
                     Id = user.Id,
@@ -95,11 +138,9 @@ namespace API.Services.TokenServiceFolder.AuthService
                     Email = user.Email,
                     Rolename = user.Role.ToString(),
                     Token = _tokenService.CreateToken(user),
-                    Address = user.Address
+                    Address = user.Address,
+                    Createdat = user.CreatedAt
                 };
-                
-                await _context.Users.AddAsync(user);
-                await _context.SaveChangesAsync();
                 return new AppResponse<UserDto>(userDto, "User registered successfully", 200, true);
             }
             catch (Exception ex)

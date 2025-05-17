@@ -1,0 +1,80 @@
+<div class="container" *ngIf="restaurant; else loadingTemplate">
+  <!-- Restaurant header -->
+  <div class="restaurant-header">
+    <div class="restaurant-cover" [style.background-image]="'url(' + (restaurant.coverImageUrl || 'https://via.placeholder.com/1200x400?text=Restaurant') + ')'">
+      <div class="overlay"></div>
+      <div class="restaurant-info">
+        <img [src]="restaurant.logoUrl || 'https://via.placeholder.com/150x150?text=Logo'" alt="{{ restaurant.name }} logo" class="restaurant-logo">
+        <div class="restaurant-details">
+          <h1>{{ restaurant.name }}</h1>
+          <p class="description">{{ restaurant.description }}</p>
+          <div class="details-row">
+            <span class="rating">
+              <i class="bi bi-star-fill"></i> {{ restaurant.rating }}
+              <small>({{ restaurant.reviewCount }} reviews)</small>
+            </span>
+            <span class="status" [ngClass]="restaurant.isOpen ? 'open' : 'closed'">
+              {{ restaurant.isOpen ? 'Open' : 'Closed' }}
+            </span>
+          </div>
+          <div class="details-row">
+            <span><i class="bi bi-geo-alt"></i> {{ restaurant.address }}</span>
+          </div>
+          <div class="details-row">
+            <span><i class="bi bi-clock"></i> {{ restaurant.openingHours }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories navigation -->
+  <div class="category-nav">
+    <button class="btn" (click)="setActiveCategory(null)" 
+            [ngClass]="activeCategory === null ? 'btn-primary' : 'btn-outline-primary'">
+      All
+    </button>
+    <button *ngFor="let category of categories" 
+            class="btn" 
+            [ngClass]="activeCategory === category.id ? 'btn-primary' : 'btn-outline-primary'"
+            (click)="setActiveCategory(category.id)">
+      {{ category.name }}
+    </button>
+  </div>
+
+  <!-- Dishes list -->
+  <div class="row">
+    <div *ngFor="let dish of filteredDishes" class="col-md-6 col-lg-4 mb-4">
+      <div class="card dish-card">
+        <img [src]="dish.imageUrl || 'https://via.placeholder.com/300x200?text=Dish'" 
+             class="card-img-top dish-image" 
+             alt="{{ dish.name }}">
+        <div class="card-body">
+          <h5 class="card-title">{{ dish.name }}</h5>
+          <p class="card-text small text-truncate">{{ dish.description }}</p>
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="price">${{ dish.price.toFixed(2) }}</span>
+            <button class="btn btn-sm btn-success" (click)="addToCart(dish)">
+              <i class="bi bi-cart-plus"></i> Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="filteredDishes.length === 0" class="col-12 text-center py-5">
+      <p class="text-muted">No dishes available in this category.</p>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingTemplate>
+  <div class="container text-center py-5">
+    <div *ngIf="loading" class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <div *ngIf="error" class="alert alert-danger">
+      {{ error }}
+    </div>
+  </div>
+</ng-template>

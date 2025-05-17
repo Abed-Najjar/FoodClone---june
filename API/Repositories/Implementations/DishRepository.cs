@@ -17,8 +17,8 @@ public class DishRepository : IDishRepository
 
     public async Task<Dish> AddDishAsync(Dish dish)
     {
-        var result = await _context.Dishes.AddAsync(dish);
-        return result.Entity;
+        await _context.Dishes.AddAsync(dish);
+        return dish;
     }
 
     public async Task<Dish> GetDishByIdAsync(int id)

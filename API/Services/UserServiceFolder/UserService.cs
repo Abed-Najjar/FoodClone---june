@@ -196,22 +196,32 @@ namespace API.Services.UserServiceFolder
             {
                 return new AppResponse<List<UserRestaurantDto>>(null, ex.Message, 500, false);
             }
-        }
-
-
-        public async Task<AppResponse<List<UserRestaurantDishesDto>>> GetAllRestaurantDishes(int restaurantId)
+        }        public async Task<AppResponse<List<UserRestaurantDishesDto>>> GetAllRestaurantDishes(int restaurantId)
         {
             try
             {
+                // First, check if the restaurant exists
+                var restaurantExists = await _context.Restaurants.AnyAsync(r => r.Id == restaurantId);
+                if (!restaurantExists)
+                {
+                    return new AppResponse<List<UserRestaurantDishesDto>>(null, $"Restaurant with ID {restaurantId} not found", 404, false);
+                }
+                
                 var dishes = await _context.Dishes
-                .Include(d => d.Restaurant)
-                .ThenInclude(d => d.Dishes)
-                .Where(d => d.RestaurantId == restaurantId)
-                .ToListAsync();
+                    .Include(d => d.Restaurant)
+                    .Where(d => d.RestaurantId == restaurantId)
+                    .ToListAsync();
 
                 if (!dishes.Any())
                 {
-                    return new AppResponse<List<UserRestaurantDishesDto>>(null, "No dishes found", 404, false);
+                    // Return empty list with success=true instead of an error
+                    // This is more RESTful and allows the frontend to handle empty results
+                    return new AppResponse<List<UserRestaurantDishesDto>>(
+                        new List<UserRestaurantDishesDto>(), 
+                        "No dishes found for this restaurant", 
+                        200, 
+                        true
+                    );
                 }
 
                 var dishDtos = dishes.Select(d => new UserRestaurantDishesDto
@@ -230,16 +240,22 @@ namespace API.Services.UserServiceFolder
             }
             catch (Exception ex)
             {
-                return new AppResponse<List<UserRestaurantDishesDto>>(null, ex.Message, 500, false);
+                // Log the exception details
+                Console.WriteLine($"Error retrieving dishes: {ex}");
+                return new AppResponse<List<UserRestaurantDishesDto>>(null, $"An error occurred: {ex.Message}", 500, false);
             }
-        }
-
-
-        public async Task<AppResponse<List<UserRestaurantCategoriesDto>>> GetAllRestaurantCategories(int restaurantId)
+        }public async Task<AppResponse<List<UserRestaurantCategoriesDto>>> GetAllRestaurantCategories(int restaurantId)
         {
             try
             {
+                // First, check if the restaurant exists
+                var restaurantExists = await _context.Restaurants.AnyAsync(r => r.Id == restaurantId);
+                if (!restaurantExists)
+                {
+                    return new AppResponse<List<UserRestaurantCategoriesDto>>(null, $"Restaurant with ID {restaurantId} not found", 404, false);
+                }
 
+                // Then get the categories
                 var RestaurantsCategories = await _context.RestaurantsCategories
                     .Include(c => c.Restaurant)
                     .Include(c => c.Category)
@@ -248,12 +264,19 @@ namespace API.Services.UserServiceFolder
 
                 if (RestaurantsCategories == null || !RestaurantsCategories.Any())
                 {
-                    return new AppResponse<List<UserRestaurantCategoriesDto>>(null, "No categories found", 404, false);
-                }
-                var categoryDtos = RestaurantsCategories.Select(c => new UserRestaurantCategoriesDto
+                    // Return empty list with success=true instead of an error
+                    // This is more RESTful and allows the frontend to handle empty results
+                    return new AppResponse<List<UserRestaurantCategoriesDto>>(
+                        new List<UserRestaurantCategoriesDto>(), 
+                        "No categories found for this restaurant", 
+                        200, 
+                        true
+                    );
+                }                var categoryDtos = RestaurantsCategories.Select(c => new UserRestaurantCategoriesDto
                 {
                     Id = c.CategoryId,
                     Name = c.Category.Name,
+                    Description = c.Category.Description,
                     ImageUrl = c.Category.ImageUrl,
                     RestaurantId = c.RestaurantId,
                     RestaurantName = c.Restaurant.Name,
@@ -263,7 +286,9 @@ namespace API.Services.UserServiceFolder
             }
             catch (Exception ex)
             {
-                return new AppResponse<List<UserRestaurantCategoriesDto>>(null, ex.Message, 500, false);
+                // Log the exception details
+                Console.WriteLine($"Error retrieving categories: {ex}");
+                return new AppResponse<List<UserRestaurantCategoriesDto>>(null, $"An error occurred: {ex.Message}", 500, false);
             }
         }
 

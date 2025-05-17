@@ -1,0 +1,24 @@
+.jumbotron {
+  background-size: cover;
+  background-position: center;
+  color: #343a40;
+  position: relative;
+}
+
+.card {
+  transition: transform 0.2s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card-img-top {
+  height: 180px;
+  object-fit: cover;
+}
+
+.badge {
+  font-weight: 500;
+}

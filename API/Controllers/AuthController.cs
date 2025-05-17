@@ -33,5 +33,12 @@ namespace API.Controllers
         {
             return await _authService.ForgotPassword(dto);
         }
+
+        // Add a ping endpoint for connection testing
+        [HttpGet("ping")]
+        public IActionResult Ping()
+        {
+            return Ok(new { message = "API is running", timestamp = DateTime.UtcNow });
+        }
     }
 }

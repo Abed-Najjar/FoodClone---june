@@ -17,6 +17,13 @@ namespace API.Controllers
             _restaurantManagementService = restaurantManagementService;
         }
 
+        [AllowAnonymous]
+        [HttpGet("")]
+        public async Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurantsRoot()
+        {
+            return await _restaurantManagementService.GetAllRestaurants();
+        }
+
         [HttpPost("create")]
         public async Task<AppResponse<AdminRestaurantDto>> CreateRestaurant([FromBody] RestaurantCreateDto dto)
         {

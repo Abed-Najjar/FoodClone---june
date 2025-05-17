@@ -2,15 +2,18 @@ using API.AppResponse;
 using API.Data;
 using API.DTOs;
 using API.Models;
+using API.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 public class RestaurantManagement : IRestaurantManagement
 {
+    private readonly IRestaurantRepository _restaurantRepository;
     private readonly AppDbContext _context;
 
-    public RestaurantManagement(AppDbContext context)
+    public RestaurantManagement(AppDbContext context, IRestaurantRepository restaurantRepository)
     {
+        _restaurantRepository = restaurantRepository;
         _context = context;
     }
 
@@ -18,6 +21,11 @@ public class RestaurantManagement : IRestaurantManagement
     {
         try
         {
+            if (dto == null)
+            {
+                return new AppResponse<AdminRestaurantDto>(null, "Invalid data", 400, false);
+            }
+
             var restaurant = new Restaurant
             {
                 Name = dto.Name,
@@ -28,33 +36,9 @@ public class RestaurantManagement : IRestaurantManagement
                 PhoneNumber = dto.PhoneNumber,
                 Email = dto.Email,
                 OpeningHours = dto.OpeningHours,
-                CreatedAt = DateTime.UtcNow
             };
 
-            // Convert List<string> Categories to List<Section>
-            if (dto.Categories != null && dto.Categories.Any())
-            {
-                foreach (var categoryName in dto.Categories)
-                {
-                    var category = new Category
-                    {
-                        Name = categoryName
-                    };
-                    _context.Categories.Add(category);
-
-                    // Fix the object initialization by including required properties
-                    var restaurantCategory = new RestaurantsCategories
-                    {
-                        RestaurantId = restaurant.Id,
-                        CategoryId = category.Id,
-                        Restaurant = restaurant,
-                        Category = category
-                    };
-                    _context.RestaurantsCategories.Add(restaurantCategory);
-                }
-            }
-
-            await _context.Restaurants.AddAsync(restaurant);
+            await _restaurantRepository.CreateRestaurantAsync(restaurant);
             await _context.SaveChangesAsync();
 
             var AdminRestaurantDto = new AdminRestaurantDto
@@ -64,7 +48,7 @@ public class RestaurantManagement : IRestaurantManagement
                 Description = restaurant.Description,
                 LogoUrl = restaurant.LogoUrl,
                 CoverImageUrl = restaurant.CoverImageUrl,
-                Categories = restaurant.Categories.Select(s => s.Name).ToList(),
+                Categories = restaurant.Categories.Select(c => c.Name).ToList(),
                 Address = restaurant.Address,
                 PhoneNumber = restaurant.PhoneNumber,
                 Email = restaurant.Email,
