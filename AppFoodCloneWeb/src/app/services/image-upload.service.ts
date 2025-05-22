@@ -13,10 +13,9 @@ export class ImageUploadService {
 
   uploadImage(file: File): Observable<{ url: string }> {
     const formData = new FormData();
-    formData.append('file', file);
-
-    // Use proper URL construction and add error handling
-    return this.http.post<{ url: string }>(`${this.baseUrl}/api/cloudinary/upload-image`, formData)
+    formData.append('file', file);    // Use proper URL construction and add error handling
+    // Remove extra /api if baseUrl already includes it
+    return this.http.post<{ url: string }>(`${this.baseUrl}/cloudinary/upload-image`, formData)
       .pipe(
         tap(response => console.log('Upload successful:', response)),
         catchError(this.handleError)
