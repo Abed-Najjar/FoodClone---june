@@ -1,3 +1,246 @@
 .navbar {
-  margin-bottom: 20px;
+  padding: 15px 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+}
+
+.navbar.scrolled {
+  padding: 8px 0;
+  background-color: rgba(255, 255, 255, 0.97) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--primary-color);
+}
+
+.navbar-brand img {
+  height: 40px;
+  margin-right: 10px;
+  transition: all 0.3s ease;
+  border: 2px solid var(--primary-color);
+}
+
+.scrolled .navbar-brand img {
+  height: 35px;
+}
+
+.navbar-brand span {
+  color: var(--secondary-color);
+}
+
+.nav-link {
+  font-weight: 500;
+  padding: 8px 15px !important;
+  margin: 0 5px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  background-color: rgba(0, 165, 153, 0.1);
+  color: var(--primary-color) !important;
+}
+
+.cart-link {
+  position: relative;
+  padding-right: 20px !important;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--secondary-color);
+  color: white;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  padding: 0 5px;
+}
+
+.navbar-nav .nav-item {
+  display: flex;
+  align-items: center;
+}
+
+.btn-auth {
+  padding: 8px 20px;
+  border-radius: 20px;
+  margin-left: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-login {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+.btn-login:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-register {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.btn-register:hover {
+  background-color: #008c83;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 165, 153, 0.3);
+}
+
+.user-dropdown {
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  border-radius: 30px;
+  padding: 5px 10px !important;
+}
+
+.user-dropdown:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.user-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin-right: 8px;
+  object-fit: cover;
+  border: 2px solid var(--primary-color);
+  transition: transform 0.3s ease;
+}
+
+.user-dropdown:hover .user-avatar {
+  transform: scale(1.05);
+}
+
+.location-selector {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+  padding: 5px 15px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.location-selector i {
+  color: var(--primary-color);
+  margin-right: 5px;
+}
+
+/* Enhanced dropdown menu styling */
+.dropdown-menu {
+  border-radius: 12px;
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
+  border: none;
+  padding: 10px;
+  margin-top: 10px;
+  min-width: 220px;
+}
+
+.dropdown-item {
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(0, 165, 153, 0.1);
+  transform: translateX(5px);
+}
+
+.dropdown-item i {
+  color: var(--primary-color);
+}
+
+.dropdown-item.text-danger i {
+  color: var(--danger);
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 20px;
+  padding: 5px 15px !important;
+  transition: all 0.3s ease;
+}
+
+.user-info:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.btn-outline-danger {
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.logout-item {
+  color: #dc3545;
+  transition: all 0.2s ease;
+}
+
+.logout-item:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+.logout-item i.bi-arrow-right {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+}
+
+.logout-item:hover i.bi-arrow-right {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (max-width: 991px) {
+  .navbar-nav {
+    padding: 15px 0;
+  }
+
+  .nav-link {
+    margin: 5px 0;
+  }
+
+  .btn-auth {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+  }
+
+  .user-info {
+    margin-bottom: 10px;
+  }
 }

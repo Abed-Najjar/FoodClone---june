@@ -46,12 +46,7 @@ namespace API.Controllers
         public async Task<AppResponse<bool>> DeleteDish(int id)
         {
             return await _dishManagementService.DeleteDish(id);
-        }
-
-        
-        
-        
-        
+        }     
         
         
     }

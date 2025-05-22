@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Restaurant } from '../../models/restaurant.model';
@@ -16,6 +16,7 @@ export class RestaurantListComponent implements OnInit {
   filteredRestaurants: Restaurant[] = [];
   loading = true;
   error = '';
+  @ViewChild('searchInput') searchInput!: ElementRef;
 
   constructor(private restaurantService: RestaurantService) {}
 
@@ -49,11 +50,19 @@ export class RestaurantListComponent implements OnInit {
       this.filteredRestaurants = this.restaurants;
       return;
     }
-    
+
     const filterText = filterValue.toLowerCase().trim();
-    this.filteredRestaurants = this.restaurants.filter(restaurant => 
-      restaurant.name.toLowerCase().includes(filterText) || 
+    this.filteredRestaurants = this.restaurants.filter(restaurant =>
+      restaurant.name.toLowerCase().includes(filterText) ||
       restaurant.description.toLowerCase().includes(filterText)
     );
+  }
+
+  // Reset all filters and search
+  resetFilters(): void {
+    this.filteredRestaurants = this.restaurants;
+    if (this.searchInput) {
+      this.searchInput.nativeElement.value = '';
+    }
   }
 }

@@ -1,0 +1,41 @@
+/* These are placeholder SVG images for the food delivery app */
+
+.hero-banner {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400' viewBox='0 0 800 400'%3E%3Crect width='800' height='400' fill='%2300a599'/%3E%3Cpath d='M0,200 Q200,50 400,200 T800,200' fill='none' stroke='%23ffffff' stroke-width='10'/%3E%3Ccircle cx='400' cy='200' r='100' fill='%23ff5a5f'/%3E%3Ctext x='400' y='210' font-family='Arial' font-size='30' fill='white' text-anchor='middle'%3ECareem Food%3C/text%3E%3C/svg%3E");
+}
+
+.restaurant-1 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f8f9fa'/%3E%3Ccircle cx='150' cy='100' r='70' fill='%23ffb400'/%3E%3Crect x='80' y='80' width='140' height='10' fill='%23fff'/%3E%3Crect x='100' y='100' width='100' height='10' fill='%23fff'/%3E%3Crect x='120' y='120' width='60' height='10' fill='%23fff'/%3E%3Ctext x='150' y='170' font-family='Arial' font-size='16' fill='%23343a40' text-anchor='middle'%3ERestaurant 1%3C/text%3E%3C/svg%3E");
+}
+
+.restaurant-2 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f8f9fa'/%3E%3Ccircle cx='150' cy='100' r='70' fill='%2300a599'/%3E%3Cpath d='M120,80 L180,120 M120,120 L180,80' stroke='%23fff' stroke-width='8'/%3E%3Ctext x='150' y='170' font-family='Arial' font-size='16' fill='%23343a40' text-anchor='middle'%3ERestaurant 2%3C/text%3E%3C/svg%3E");
+}
+
+.restaurant-3 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f8f9fa'/%3E%3Ccircle cx='150' cy='100' r='70' fill='%23ff5a5f'/%3E%3Crect x='130' y='70' width='40' height='60' fill='%23fff'/%3E%3Ctext x='150' y='170' font-family='Arial' font-size='16' fill='%23343a40' text-anchor='middle'%3ERestaurant 3%3C/text%3E%3C/svg%3E");
+}
+
+.dish-1 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f8f9fa'/%3E%3Ccircle cx='150' cy='100' r='70' fill='%23ffb400'/%3E%3Ccircle cx='150' cy='100' r='50' fill='%23ff5a5f'/%3E%3Ccircle cx='150' cy='100' r='30' fill='%2300a599'/%3E%3Ctext x='150' y='170' font-family='Arial' font-size='16' fill='%23343a40' text-anchor='middle'%3EDish 1%3C/text%3E%3C/svg%3E");
+}
+
+.dish-2 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f8f9fa'/%3E%3Crect x='80' y='70' width='140' height='60' rx='10' ry='10' fill='%2300a599'/%3E%3Ctext x='150' y='170' font-family='Arial' font-size='16' fill='%23343a40' text-anchor='middle'%3EDish 2%3C/text%3E%3C/svg%3E");
+}
+
+.category-1 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23f8f9fa'/%3E%3Ccircle cx='50' cy='50' r='35' fill='%23ff5a5f'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='12' fill='white' text-anchor='middle'%3ECategory 1%3C/text%3E%3C/svg%3E");
+}
+
+.category-2 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23f8f9fa'/%3E%3Ccircle cx='50' cy='50' r='35' fill='%2300a599'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='12' fill='white' text-anchor='middle'%3ECategory 2%3C/text%3E%3C/svg%3E");
+}
+
+.logo-1 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='white'/%3E%3Ccircle cx='50' cy='50' r='40' fill='%2300a599'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='14' fill='white' text-anchor='middle'%3ELogo 1%3C/text%3E%3C/svg%3E");
+}
+
+.logo-2 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='white'/%3E%3Ccircle cx='50' cy='50' r='40' fill='%23ff5a5f'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='14' fill='white' text-anchor='middle'%3ELogo 2%3C/text%3E%3C/svg%3E");
+}

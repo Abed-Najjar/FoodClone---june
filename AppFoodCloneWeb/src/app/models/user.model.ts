@@ -5,6 +5,9 @@ export interface User {
   token: string;
   rolename: string;
   address: string[];
+  created?: Date;
+  lastLogin?: Date;
+  isActive?: boolean;
 }
 
 export interface UserLogin {

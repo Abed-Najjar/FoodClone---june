@@ -1,80 +1,126 @@
-<div class="container" *ngIf="restaurant; else loadingTemplate">
+<div class="restaurant-page" *ngIf="restaurant; else loadingTemplate">
   <!-- Restaurant header -->
   <div class="restaurant-header">
-    <div class="restaurant-cover" [style.background-image]="'url(' + (restaurant.coverImageUrl || 'https://via.placeholder.com/1200x400?text=Restaurant') + ')'">
+    <div class="restaurant-cover" [style.background-image]="'url(' + (restaurant.coverImageUrl || '/assets/images/restaurant-cover-' + (restaurant.id % 4 + 1) + '.jpg') + ')'">
       <div class="overlay"></div>
+      <button class="go-back-button" routerLink="/restaurants">
+        <i class="bi bi-arrow-left"></i> Back
+      </button>
       <div class="restaurant-info">
-        <img [src]="restaurant.logoUrl || 'https://via.placeholder.com/150x150?text=Logo'" alt="{{ restaurant.name }} logo" class="restaurant-logo">
+        <img [src]="restaurant.logoUrl || '/assets/images/restaurant-logo-' + (restaurant.id % 4 + 1) + '.jpg'" alt="{{ restaurant.name }} logo" class="restaurant-logo">
         <div class="restaurant-details">
           <h1>{{ restaurant.name }}</h1>
           <p class="description">{{ restaurant.description }}</p>
           <div class="details-row">
             <span class="rating">
               <i class="bi bi-star-fill"></i> {{ restaurant.rating }}
-              <small>({{ restaurant.reviewCount }} reviews)</small>
+              <small class="ms-1">({{ restaurant.reviewCount }} reviews)</small>
             </span>
             <span class="status" [ngClass]="restaurant.isOpen ? 'open' : 'closed'">
-              {{ restaurant.isOpen ? 'Open' : 'Closed' }}
+              <i class="bi" [ngClass]="restaurant.isOpen ? 'bi-check-circle' : 'bi-x-circle'"></i>
+              {{ restaurant.isOpen ? 'Open Now' : 'Closed' }}
             </span>
           </div>
           <div class="details-row">
-            <span><i class="bi bi-geo-alt"></i> {{ restaurant.address }}</span>
+            <span><i class="bi bi-geo-alt details-icon"></i> {{ restaurant.address }}</span>
+            <span><i class="bi bi-clock details-icon"></i> {{ restaurant.openingHours }}</span>
           </div>
-          <div class="details-row">
-            <span><i class="bi bi-clock"></i> {{ restaurant.openingHours }}</span>
+
+          <div class="restaurant-stats">
+            <div class="stat-item">
+              <i class="bi bi-bicycle"></i> Free delivery
+            </div>
+            <div class="stat-item">
+              <i class="bi bi-stopwatch"></i> 15–30 min
+            </div>
+            <div class="stat-item">
+              <i class="bi bi-currency-dollar"></i> Min $10.00
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Categories navigation -->
-  <div class="category-nav">
-    <button class="btn" (click)="setActiveCategory(null)" 
-            [ngClass]="activeCategory === null ? 'btn-primary' : 'btn-outline-primary'">
-      All
-    </button>
-    <button *ngFor="let category of categories" 
-            class="btn" 
-            [ngClass]="activeCategory === category.id ? 'btn-primary' : 'btn-outline-primary'"
-            (click)="setActiveCategory(category.id)">
-      {{ category.name }}
-    </button>
-  </div>
+  <div class="container content-container">
+    <h2 class="menu-section-title">Menu</h2>
 
+    <!-- Categories navigation -->
+    <div class="category-nav">
+      <button class="btn" (click)="setActiveCategory(null)"
+              [ngClass]="activeCategory === null ? 'btn-primary' : 'btn-outline-primary'">
+        <i class="bi bi-grid-3x3-gap me-1"></i> All Items
+      </button>
+      <button *ngFor="let category of categories"
+              class="btn"
+              [ngClass]="activeCategory === category.id ? 'btn-primary' : 'btn-outline-primary'"
+              (click)="setActiveCategory(category.id)">
+        {{ category.name }}
+      </button>
+    </div>
   <!-- Dishes list -->
-  <div class="row">
-    <div *ngFor="let dish of filteredDishes" class="col-md-6 col-lg-4 mb-4">
-      <div class="card dish-card">
-        <img [src]="dish.imageUrl || 'https://via.placeholder.com/300x200?text=Dish'" 
-             class="card-img-top dish-image" 
-             alt="{{ dish.name }}">
-        <div class="card-body">
-          <h5 class="card-title">{{ dish.name }}</h5>
-          <p class="card-text small text-truncate">{{ dish.description }}</p>
-          <div class="d-flex justify-content-between align-items-center">
-            <span class="price">${{ dish.price.toFixed(2) }}</span>
-            <button class="btn btn-sm btn-success" (click)="addToCart(dish)">
-              <i class="bi bi-cart-plus"></i> Add to Cart
+    <div class="row">
+      <div *ngFor="let dish of filteredDishes; let i = index" class="col-md-6 col-lg-4 mb-4">
+        <div class="card dish-card fade-in">
+          <div class="position-relative">
+            <img [src]="dish.imageUrl || '/assets/images/dish-' + ((i % 8) + 1) + '.jpg'"
+                class="card-img-top dish-image"
+                alt="{{ dish.name }}">
+            <span *ngIf="i % 5 === 0" class="dish-badge">Popular</span>
+            <span *ngIf="i % 7 === 0" class="dish-badge">New</span>
+          </div>
+          <div class="card-body">
+            <span class="dish-category">{{ getCategoryName(dish.categoryId) }}</span>
+            <h5 class="card-title">{{ dish.name }}</h5>
+            <p class="card-text">{{ dish.description }}</p>
+
+            <div class="dish-options" *ngIf="i % 3 === 0">
+              <div class="dish-option">
+                <i class="bi bi-check-circle-fill text-success"></i> Vegetarian
+              </div>
+            </div>
+            <div class="dish-options" *ngIf="i % 4 === 0">
+              <div class="dish-option">
+                <i class="bi bi-fire text-danger"></i> Spicy
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <span class="price">${{ dish.price.toFixed(2) }}</span>
+              <div class="quantity-control">
+                <div class="quantity-btn" (click)="decreaseQuantity(dish)">-</div>
+                <span class="quantity-value">{{ getQuantity(dish) }}</span>
+                <div class="quantity-btn" (click)="increaseQuantity(dish)">+</div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary w-100 mt-3" (click)="addToCart(dish)">
+              <i class="bi bi-cart-plus me-2"></i> Add to Cart
             </button>
           </div>
         </div>
       </div>
-    </div>
 
-    <div *ngIf="filteredDishes.length === 0" class="col-12 text-center py-5">
-      <p class="text-muted">No dishes available in this category.</p>
+      <div *ngIf="filteredDishes.length === 0" class="col-12 text-center py-5">
+        <img src="/assets/images/empty-cart.jpg" alt="No dishes" style="max-width: 200px; opacity: 0.7;">
+        <h4 class="mt-3">No dishes available</h4>
+        <p class="text-muted">We couldn't find any dishes in this category.</p>
+        <button class="btn btn-outline-primary" (click)="setActiveCategory(null)">View all dishes</button>
+      </div>
     </div>
   </div>
 </div>
 
 <ng-template #loadingTemplate>
   <div class="container text-center py-5">
-    <div *ngIf="loading" class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+    <div *ngIf="loading" class="text-center">
+      <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="text-muted">Loading restaurant details...</p>
     </div>
     <div *ngIf="error" class="alert alert-danger">
-      {{ error }}
+      <i class="bi bi-exclamation-triangle me-2"></i> {{ error }}
     </div>
   </div>
 </ng-template>

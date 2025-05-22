@@ -10,4 +10,5 @@ export interface Restaurant {
   rating: number;
   reviewCount: number;
   isOpen: boolean;
+  email: string;
 }

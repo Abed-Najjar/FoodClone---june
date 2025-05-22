@@ -6,27 +6,26 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using API.Services;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add CORS before other service configurations
+// Add services to the container.
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
+
+// Add CORS services - unified configuration
 builder.Services.AddCors(options =>
 {
+    // General policy for all origins
     options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
-});
-
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-// Add CORS services
-builder.Services.AddCors(options =>
-{
+    
     options.AddPolicy("AllowAngularApp", policy =>
     {
         // In development, allow any origin for easier debugging
@@ -73,8 +72,6 @@ builder.Services.AddControllers();
 // Add application services from extension methods
 builder.Services.AddApplicationServices(builder.Configuration);
 
-// Register repositories
-builder.Services.AddScoped<API.Repositories.Interfaces.IDishRepository, API.Repositories.Implementations.DishRepository>();
 
 // Add Swagger services
 builder.Services.AddEndpointsApiExplorer();
@@ -118,10 +115,10 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-var app = builder.Build();
+// Register the CloudinaryService as a singleton
+builder.Services.AddSingleton<API.Services.CmsServiceFolder.CloudinaryService>();
 
-// Enable CORS - this must be called before other middleware
-app.UseCors("AllowAll");
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -136,8 +133,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Use CORS before authentication and authorization
-app.UseCors("AllowFlutterWeb");
+// Enable CORS - this must be called before authentication middleware
+app.UseCors("AllowAngularApp"); // Use the Angular policy for all web clients
 
 // Add authentication middleware before authorization middleware
 app.UseAuthentication();

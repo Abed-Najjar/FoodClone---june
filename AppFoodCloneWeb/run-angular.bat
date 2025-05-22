@@ -1,0 +1,3 @@
+@echo off
+echo Running Angular commands...
+cmd /c "npm run ng -- %*"

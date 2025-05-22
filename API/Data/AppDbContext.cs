@@ -79,7 +79,7 @@ namespace API.Data
                 .HasMany(r => r.Dishes)
                 .WithOne(d => d.Restaurant)
                 .HasForeignKey(d => d.RestaurantId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
                 
             // Enhancement 2: Add indexes on frequently queried foreign keys
             modelBuilder.Entity<Order>()

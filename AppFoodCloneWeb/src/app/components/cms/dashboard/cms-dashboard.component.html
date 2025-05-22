@@ -1,0 +1,30 @@
+<div class="cms-dashboard">
+  <div class="dashboard-layout">
+    <nav class="sidebar">
+      <ul>
+        <li [class.active]="selectedTab === 'categories'" (click)="selectTab('categories')">
+          <i class="bi bi-tags"></i> Categories
+        </li>
+        <li [class.active]="selectedTab === 'restaurants'" (click)="selectTab('restaurants')">
+          <i class="bi bi-shop"></i> Restaurants
+        </li>
+        <li [class.active]="selectedTab === 'dishes'" (click)="selectTab('dishes')">
+          <i class="bi bi-egg-fried"></i> Dishes
+        </li>
+        <li [class.active]="selectedTab === 'users'" (click)="selectTab('users')">
+          <i class="bi bi-people"></i> Users
+        </li>
+        <li [class.active]="selectedTab === 'orders'" (click)="selectTab('orders')">
+          <i class="bi bi-receipt"></i> Orders
+        </li>
+      </ul>
+    </nav>
+    <main class="dashboard-content">
+      <app-categories *ngIf="selectedTab === 'categories'"></app-categories>
+      <app-restaurants *ngIf="selectedTab === 'restaurants'"></app-restaurants>
+      <app-dishes *ngIf="selectedTab === 'dishes'"></app-dishes>
+      <app-users *ngIf="selectedTab === 'users'"></app-users>
+      <app-orders *ngIf="selectedTab === 'orders'"></app-orders>
+    </main>
+  </div>
+</div>

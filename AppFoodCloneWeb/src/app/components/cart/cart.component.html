@@ -1,82 +1,138 @@
-<div class="container">
-  <h1 class="mb-4">Your Cart</h1>
-
-  <div *ngIf="cartItems.length === 0" class="text-center py-5">
-    <i class="bi bi-cart-x display-1 text-muted mb-3"></i>
-    <h3>Your cart is empty</h3>
-    <p>Looks like you haven't added any items to your cart yet.</p>
-    <a routerLink="/restaurants" class="btn btn-primary mt-3">Browse Restaurants</a>
-  </div>
-
-  <div *ngIf="cartItems.length > 0">
-    <div class="card mb-4">
-      <div class="card-header bg-white">
-        <h5 class="mb-0">Order Items ({{ cartItems.length }})</h5>
-      </div>
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Total</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of cartItems">
-                <td class="align-middle">
-                  <div class="d-flex align-items-center">
-                    <img [src]="item.dish.imageUrl || 'https://via.placeholder.com/60x60?text=Food'" 
-                         class="item-image me-3" alt="{{ item.dish.name }}">
-                    <div>
-                      <h6 class="mb-0">{{ item.dish.name }}</h6>
-                      <small class="text-muted">{{ item.dish.restaurantName }}</small>
-                    </div>
-                  </div>
-                </td>
-                <td class="align-middle">${{ item.dish.price.toFixed(2) }}</td>
-                <td class="align-middle" style="width: 150px">
-                  <div class="input-group">
-                    <button class="btn btn-outline-secondary" 
-                            (click)="updateQuantity(item.dish.id, item.quantity - 1)">-</button>
-                    <input type="number" class="form-control text-center" min="1" max="10"
-                          [(ngModel)]="item.quantity" 
-                          (change)="updateQuantity(item.dish.id, item.quantity)">
-                    <button class="btn btn-outline-secondary" 
-                            (click)="updateQuantity(item.dish.id, item.quantity + 1)">+</button>
-                  </div>
-                </td>
-                <td class="align-middle">${{ (item.dish.price * item.quantity).toFixed(2) }}</td>
-                <td class="align-middle">
-                  <button class="btn btn-sm btn-outline-danger" (click)="removeItem(item.dish.id)">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="card-footer bg-white">
-        <div class="d-flex justify-content-between align-items-center">
-          <button class="btn btn-outline-secondary" (click)="clearCart()">
-            <i class="bi bi-trash"></i> Clear Cart
-          </button>
-          <span class="h5 mb-0">Total: ${{ totalPrice.toFixed(2) }}</span>
-        </div>
-      </div>
+<div class="cart-container">
+  <div class="container">
+    <div class="cart-header">
+      <h1 class="cart-title">Your Cart</h1>
     </div>
 
-    <div class="d-flex justify-content-end">
-      <a routerLink="/restaurants" class="btn btn-outline-primary me-2">
-        <i class="bi bi-arrow-left"></i> Continue Shopping
+    <!-- Empty Cart State -->
+    <div *ngIf="cartItems.length === 0" class="empty-cart">
+      <img src="/assets/images/empty-cart.jpg" alt="Empty Cart" class="img-fluid mb-4" style="max-height: 200px;">
+      <h3>Your cart is empty</h3>
+      <p class="text-muted">Looks like you haven't added any items to your cart yet.</p>
+      <a routerLink="/restaurants" class="btn btn-primary action-button mt-3">
+        <i class="bi bi-shop"></i> Browse Restaurants
       </a>
-      <a routerLink="/checkout" class="btn btn-success">
-        <i class="bi bi-credit-card"></i> Proceed to Checkout
-      </a>
+    </div>
+
+    <!-- Cart With Items -->
+    <div *ngIf="cartItems.length > 0" class="row">
+      <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0 fw-bold">Order Items ({{ cartItems.length }})</h5>
+              <button class="btn btn-sm btn-outline-danger" (click)="clearCart()">
+                <i class="bi bi-trash me-1"></i> Clear All
+              </button>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of cartItems" class="cart-item">
+                    <td class="align-middle">
+                      <div class="d-flex align-items-center">
+                        <img [src]="item.dish.imageUrl || '/assets/images/dish-' + ((item.dish.id % 8) + 1) + '.jpg'"
+                            class="item-image me-3" alt="{{ item.dish.name }}">
+                        <div>
+                          <h6 class="item-name">{{ item.dish.name }}</h6>
+                          <small class="item-restaurant">{{ item.dish.restaurantName || 'Restaurant' }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="align-middle">
+                      <span class="item-price">${{ item.dish.price.toFixed(2) }}</span>
+                    </td>
+                    <td class="align-middle" style="width: 130px">
+                      <div class="quantity-control">
+                        <button class="quantity-btn"
+                                [disabled]="item.quantity <= 1"
+                                (click)="updateQuantity(item.dish.id, item.quantity - 1)">−</button>
+                        <input type="number" class="quantity-input form-control" min="1" max="10"
+                              [(ngModel)]="item.quantity"
+                              (change)="updateQuantity(item.dish.id, item.quantity)">
+                        <button class="quantity-btn"
+                                [disabled]="item.quantity >= 10"
+                                (click)="updateQuantity(item.dish.id, item.quantity + 1)">+</button>
+                      </div>
+                    </td>
+                    <td class="align-middle">
+                      <span class="item-total">${{ (item.dish.price * item.quantity).toFixed(2) }}</span>
+                    </td>
+                    <td class="align-middle">
+                      <button class="remove-btn" (click)="removeItem(item.dish.id)" title="Remove item">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Order Summary</h5>
+          </div>
+          <div class="card-body">
+            <div class="total-section">
+              <div class="total-row">
+                <span class="total-label">Subtotal</span>
+                <span class="total-value">${{ totalPrice.toFixed(2) }}</span>
+              </div>
+              <div class="total-row">
+                <span class="total-label">Delivery Fee</span>
+                <span class="total-value">${{ deliveryFee.toFixed(2) }}</span>
+              </div>
+              <div class="total-row">
+                <span class="total-label">Tax</span>
+                <span class="total-value">${{ tax.toFixed(2) }}</span>
+              </div>              <div class="total-row" *ngIf="promoDiscount > 0">
+                <span class="total-label text-success">Discount</span>
+                <span class="total-value text-success">-${{ promoDiscount.toFixed(2) }}</span>
+              </div>
+              <div class="total-row">
+                <span class="total-label fw-bold">Total</span>
+                <span class="grand-total">${{ getGrandTotal().toFixed(2) }}</span>
+              </div>
+            </div>
+
+            <div class="promo-code mt-4">
+              <div class="input-group">
+                <input type="text" class="form-control" placeholder="Promo code" [(ngModel)]="promoCode">
+                <button class="btn btn-outline-secondary" type="button" (click)="applyPromoCode()">Apply</button>
+              </div>
+              <small class="text-muted mt-1">Try "WELCOME10" for 10% off or "FREE" for free delivery</small>
+            </div>
+          </div>
+          <div class="card-footer bg-white">
+            <a routerLink="/checkout" class="btn btn-primary btn-lg w-100 action-button checkout-btn">
+              <i class="bi bi-credit-card"></i> Proceed to Checkout
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 mb-4">
+        <div class="d-flex justify-content-start">
+          <a routerLink="/restaurants" class="btn btn-outline-primary action-button continue-btn">
+            <i class="bi bi-arrow-left"></i> Continue Shopping
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </div>

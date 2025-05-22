@@ -1,0 +1,84 @@
+<footer class="footer">
+  <div class="container">
+    <div class="row">
+      <!-- Logo and description -->
+      <div class="col-lg-4 mb-4 mb-lg-0">
+        <div class="footer-brand">
+          <a routerLink="/" class="footer-logo">
+            <img src="/assets/images/restaurant-logo-1.jpg" alt="Careem Food" class="footer-logo-img">
+            Careem <span class="text-accent">Food</span>
+          </a>
+        </div>
+        <p class="footer-description">
+          Order food online from your favorite restaurants with fast delivery right to your doorstep.
+          Discover the best food and drinks in your area.
+        </p>
+        <div class="social-links">
+          <a *ngFor="let social of socialLinks" [href]="social.url" target="_blank" class="social-link" [title]="social.name">
+            <i class="bi" [ngClass]="social.icon"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer menu links -->
+      <div class="col-md-6 col-lg-2 mb-4 mb-lg-0">
+        <h6 class="footer-heading">About</h6>
+        <ul class="footer-links">
+          <li *ngFor="let link of aboutLinks">
+            <a [routerLink]="link.url">{{ link.text }}</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-md-6 col-lg-2 mb-4 mb-lg-0">
+        <h6 class="footer-heading">Support</h6>
+        <ul class="footer-links">
+          <li *ngFor="let link of supportLinks">
+            <a [routerLink]="link.url">{{ link.text }}</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-md-6 col-lg-2 mb-4 mb-lg-0">
+        <h6 class="footer-heading">Legal</h6>
+        <ul class="footer-links">
+          <li *ngFor="let link of legalLinks">
+            <a [routerLink]="link.url">{{ link.text }}</a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- App download links -->
+      <div class="col-md-6 col-lg-2">
+        <h6 class="footer-heading">Get the app</h6>
+        <div class="app-badges">
+          <a href="#" class="app-badge">
+            <i class="bi bi-apple me-2"></i> App Store
+          </a>
+          <a href="#" class="app-badge">
+            <i class="bi bi-google-play me-2"></i> Google Play
+          </a>
+        </div>
+        <div class="qr-code mt-3">
+          <img src="/assets/images/restaurant-cover-1.jpg" alt="QR Code" class="qr-img">
+          <small class="d-block mt-1 text-muted">Scan to download</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom footer -->
+    <hr class="footer-divider">
+
+    <div class="bottom-footer">
+      <div class="copyright">
+        &copy; {{ currentYear }} Careem Food. All rights reserved.
+      </div>
+      <div class="payment-methods">
+        <span class="payment-icon"><i class="bi bi-credit-card"></i></span>
+        <span class="payment-icon"><i class="bi bi-paypal"></i></span>
+        <span class="payment-icon"><i class="bi bi-wallet2"></i></span>
+        <span class="payment-icon"><i class="bi bi-cash-coin"></i></span>
+      </div>
+    </div>
+  </div>
+</footer>

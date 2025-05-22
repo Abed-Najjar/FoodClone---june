@@ -1,47 +1,157 @@
-<div class="container">
-  <div class="jumbotron bg-light p-5 mb-4 rounded">
-    <h1 class="display-4">Welcome to Careem Food Clone</h1>
-    <p class="lead">Order food from your favorite restaurants with fast delivery</p>
-    <hr class="my-4">
-    <p>Explore restaurants, browse menus, and have delicious food delivered right to your doorstep.</p>
-    <a class="btn btn-primary btn-lg" routerLink="/restaurants">Browse Restaurants</a>
+<div class="container-fluid px-4 py-5">
+  <!-- Hero Section -->
+  <div class="hero-section" [ngStyle]="{'background-image': 'url(' + heroImage + ')'}">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <h1 class="hero-title">Delicious Food, Delivered Fast</h1>
+        <p class="hero-subtitle">Order from the best local restaurants with easy, online ordering and quick delivery right to your doorstep.</p>
+        <a class="btn btn-primary btn-lg hero-btn" routerLink="/restaurants">
+          <i class="bi bi-search me-2"></i> Explore Restaurants
+        </a>
+      </div>
+    </div>
   </div>
 
-  <h2 class="mb-4">Featured Restaurants</h2>
+  <!-- Search Section -->
+  <div class="search-container">
+    <div class="search-box">
+      <i class="bi bi-search search-icon"></i>
+      <input type="text" class="search-input" placeholder="Search for restaurants or dishes..." (input)="onSearch($event)">
+    </div>
+  </div>
+
+  <!-- Categories Section -->
+  <div class="categories-row">
+    <div class="category-item" (click)="filterByCategory('all')">
+      <div class="category-icon">
+        <i class="bi bi-grid-3x3-gap-fill fs-1 text-primary"></i>
+      </div>
+      <div class="category-name">All</div>
+    </div>
+    <div class="category-item" (click)="filterByCategory('burger')">
+      <div class="category-icon">
+        <img src="https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=300&q=80" alt="Burgers">
+      </div>
+      <div class="category-name">Burgers</div>
+    </div>
+    <div class="category-item" (click)="filterByCategory('pizza')">
+      <div class="category-icon">
+        <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&q=80" alt="Pizza">
+      </div>
+      <div class="category-name">Pizza</div>
+    </div>
+    <div class="category-item" (click)="filterByCategory('sushi')">
+      <div class="category-icon">
+        <img src="https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=300&q=80" alt="Sushi">
+      </div>
+      <div class="category-name">Sushi</div>
+    </div>
+    <div class="category-item" (click)="filterByCategory('dessert')">
+      <div class="category-icon">
+        <img src="https://images.unsplash.com/photo-1518133683791-0b9de5a055f0?w=300&q=80" alt="Desserts">
+      </div>
+      <div class="category-name">Desserts</div>
+    </div>
+    <!-- Added two new categories -->
+    <div class="category-item" (click)="filterByCategory('drinks')">
+      <div class="category-icon">
+        <img src="https://images.unsplash.com/photo-1553451133-8083c47243d6?w=300&q=80" alt="Drinks">
+      </div>
+      <div class="category-name">Drinks</div>
+    </div>
+    <div class="category-item" (click)="filterByCategory('vegetarian')">
+      <div class="category-icon">
+        <img src="https://images.unsplash.com/photo-1607532941433-304659e8198a?w=300&q=80" alt="Vegetarian">
+      </div>
+      <div class="category-name">Vegetarian</div>
+    </div>
+  </div>
+
+  <!-- Featured Restaurants Section -->
+  <h2 class="section-title">Featured Restaurants</h2>
   <div class="row">
-    <div *ngIf="loading" class="col-12 text-center">
+    <div *ngIf="loading" class="col-12 text-center py-5">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
+      <p class="mt-3 text-muted">Finding the best restaurants for you...</p>
     </div>
 
     <div *ngIf="error" class="col-12">
       <div class="alert alert-danger">{{ error }}</div>
     </div>
 
-    <div *ngFor="let restaurant of featuredRestaurants" class="col-md-6 col-lg-3 mb-4">
-      <div class="card h-100">
-        <img [src]="restaurant.coverImageUrl || 'https://via.placeholder.com/300x150?text=Restaurant'" 
-             class="card-img-top" alt="{{ restaurant.name }}">
+    <div *ngFor="let restaurant of featuredRestaurants" class="col-md-6 col-lg-4 col-xl-3 mb-4">
+      <div class="card h-100 fade-in restaurant-card">
+        <div class="position-relative">
+          <img [src]="getRestaurantCoverImage(restaurant)" class="card-img-top" alt="{{ restaurant.name }}">
+          <span class="position-absolute top-0 end-0 m-2 badge"
+                [ngClass]="restaurant.isOpen ? 'bg-success' : 'bg-danger'">
+            {{ restaurant.isOpen ? 'Open' : 'Closed' }}
+          </span>
+        </div>
         <div class="card-body">
-          <h5 class="card-title">{{ restaurant.name }}</h5>
-          <div class="mb-2">
-            <span class="badge bg-success me-2">{{ restaurant.rating }} ★</span>
-            <span class="text-muted">{{ restaurant.reviewCount }} reviews</span>
+          <div class="d-flex align-items-center mb-2">
+            <img [src]="getRestaurantLogoImage(restaurant)" class="me-2 rounded-circle"
+                 alt="{{ restaurant.name }} logo" style="width: 40px; height: 40px; object-fit: cover;">
+            <h5 class="card-title mb-0">{{ restaurant.name }}</h5>
           </div>
-          <p class="card-text text-truncate">{{ restaurant.description }}</p>
-          <div class="d-flex justify-content-between align-items-center">
-            <span class="badge" [ngClass]="restaurant.isOpen ? 'bg-success' : 'bg-danger'">
-              {{ restaurant.isOpen ? 'Open' : 'Closed' }}
-            </span>
-            <a [routerLink]="['/restaurants', restaurant.id]" class="btn btn-sm btn-outline-primary">View Menu</a>
+
+          <div class="rating-container">
+            <i class="bi bi-star-fill rating-star"></i>
+            <span class="me-2 fw-bold">{{ restaurant.rating }}</span>
+            <span class="text-muted">({{ restaurant.reviewCount }} reviews)</span>
           </div>
+
+          <p class="card-text text-truncate mb-2">{{ restaurant.description }}</p>
+
+          <div class="restaurant-categories">
+            <span class="restaurant-category">Fast Food</span>
+            <span class="restaurant-category">Delivery</span>
+            <span *ngIf="restaurant.id % 2 === 0" class="restaurant-category">Pickup</span>
+          </div>
+
+          <div class="restaurant-footer">
+            <div class="delivery-info">
+              <i class="bi bi-truck me-1"></i> Free delivery
+            </div>
+            <div class="delivery-time">
+              15-30 min
+            </div>
+          </div>
+
+          <hr class="my-3">
+
+          <a [routerLink]="['/restaurants', restaurant.id]" class="btn btn-outline-primary w-100">
+            <i class="bi bi-menu-button-wide me-2"></i> View Menu
+          </a>
         </div>
       </div>
     </div>
 
-    <div *ngIf="featuredRestaurants.length === 0 && !loading && !error" class="col-12 text-center">
-      <p class="text-muted">No restaurants available at the moment.</p>
+    <div *ngIf="featuredRestaurants.length === 0 && !loading && !error" class="col-12 empty-state">
+      <img src="https://images.unsplash.com/photo-1577106263724-2c8e03bfe9cf?w=400&q=80" alt="No restaurants" class="empty-img">
+      <h4>No restaurants available</h4>
+      <p class="text-muted">We couldn't find any restaurants matching your criteria.</p>
+      <button class="btn btn-outline-primary" (click)="resetFilters()">Clear filters</button>
+    </div>
+  </div>
+
+  <!-- Popular Dishes Section -->
+  <h2 class="section-title mt-5">Popular Dishes Near You</h2>
+  <div class="row">
+    <div class="col-md-6 col-lg-3 mb-4" *ngFor="let dish of popularDishes">
+      <div class="card h-100 fade-in">
+        <img [src]="dish.imageUrl" class="card-img-top" alt="{{ dish.name }}">
+        <div class="card-body">
+          <h5 class="card-title">{{ dish.name }}</h5>
+          <p class="card-text">{{ dish.description }}</p>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="fw-bold fs-5">${{ dish.price }}</span>
+            <button class="btn btn-sm btn-primary" (click)="addToCart(dish)">Add to cart</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

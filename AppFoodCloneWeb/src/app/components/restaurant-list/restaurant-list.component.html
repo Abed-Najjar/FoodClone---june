@@ -1,15 +1,37 @@
 <div class="container">
   <h1 class="mb-4">Restaurants</h1>
-  
+
   <!-- Search and filters -->
   <div class="row mb-4">
     <div class="col-md-6">
       <div class="input-group">
-        <input type="text" class="form-control" placeholder="Search restaurants..." 
+        <input type="text" class="form-control" placeholder="Search restaurants..."
                #searchInput (input)="filterRestaurants(searchInput.value)">
         <button class="btn btn-outline-secondary" type="button">
           <i class="bi bi-search"></i> Search
         </button>
+      </div>
+    </div>
+
+    <!-- Added filter options -->
+    <div class="col-md-6">
+      <div class="d-flex justify-content-md-end">
+        <div class="dropdown me-2">
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-sort"></i> Sort by
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+            <li><a class="dropdown-item" href="#">Rating: High to Low</a></li>
+            <li><a class="dropdown-item" href="#">Rating: Low to High</a></li>
+            <li><a class="dropdown-item" href="#">Name: A-Z</a></li>
+            <li><a class="dropdown-item" href="#">Name: Z-A</a></li>
+          </ul>
+        </div>
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" id="openOnly">
+          <label class="form-check-label" for="openOnly">Open now</label>
+        </div>
       </div>
     </div>
   </div>
@@ -27,11 +49,13 @@
     </div>
 
     <div *ngFor="let restaurant of filteredRestaurants" class="col-md-6 col-xl-4 mb-4">
-      <div class="card h-100">
+      <div class="card h-100 restaurant-card">
         <div class="restaurant-card-header">
-          <img [src]="restaurant.coverImageUrl || 'https://via.placeholder.com/400x200?text=Restaurant'" 
+          <!-- Use the larger range of restaurant cover images with fallback to placeholder -->
+          <img [src]="restaurant.coverImageUrl || 'https://images.unsplash.com/photo-' + (1517248135467 + restaurant.id * 10000) + '-4c7edcad34c4?w=800&q=80'"
                class="card-img-top" alt="{{ restaurant.name }}">
-          <img [src]="restaurant.logoUrl || 'https://via.placeholder.com/100x100?text=Logo'" 
+          <!-- Use the larger range of restaurant logo images with fallback to placeholder -->
+          <img [src]="restaurant.logoUrl || 'https://images.unsplash.com/photo-' + (1594041680534 + restaurant.id * 10000) + '-e8c8cdebd659?w=200&q=80'"
                class="restaurant-logo" alt="{{ restaurant.name }} logo">
         </div>
         <div class="card-body">
@@ -41,15 +65,22 @@
               {{ restaurant.isOpen ? 'Open' : 'Closed' }}
             </span>
           </div>
-          
+
           <div class="mb-3">
             <span class="badge bg-warning text-dark me-2">{{ restaurant.rating }} ★</span>
             <small class="text-muted">{{ restaurant.reviewCount }} reviews</small>
           </div>
-          
+
           <p class="card-text small text-truncate mb-2">{{ restaurant.description }}</p>
           <p class="small text-muted mb-3"><i class="bi bi-geo-alt"></i> {{ restaurant.address }}</p>
-          
+
+          <!-- Added tags for restaurant -->
+          <div class="mb-3">
+            <span class="badge bg-light text-dark me-1">Fast Food</span>
+            <span class="badge bg-light text-dark me-1">Delivery</span>
+            <span *ngIf="restaurant.id % 2 === 0" class="badge bg-light text-dark">Pickup</span>
+          </div>
+
           <div class="d-flex justify-content-between align-items-center">
             <small class="text-muted">{{ restaurant.openingHours }}</small>
             <a [routerLink]="['/restaurants', restaurant.id]" class="btn btn-sm btn-primary">View Menu</a>
@@ -59,7 +90,10 @@
     </div>
 
     <div *ngIf="filteredRestaurants.length === 0 && !loading && !error" class="col-12 text-center py-5">
+      <img src="https://images.unsplash.com/photo-1577106263724-2c8e03bfe9cf?w=400&q=80"
+           alt="No restaurants found" class="img-fluid mb-3" style="max-height: 200px;">
       <p class="text-muted">No restaurants found matching your search criteria.</p>
+      <button class="btn btn-outline-primary" (click)="resetFilters()">Clear filters</button>
     </div>
   </div>
 </div>

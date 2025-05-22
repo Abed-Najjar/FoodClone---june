@@ -101,7 +101,6 @@ export class RestaurantDetailComponent implements OnInit {
     this.activeCategory = categoryId;
     this.filterDishes();
   }
-
   filterDishes(): void {
     if (this.activeCategory === null) {
       this.filteredDishes = this.dishes;
@@ -111,6 +110,40 @@ export class RestaurantDetailComponent implements OnInit {
   }
 
   addToCart(dish: Dish): void {
-    this.cartService.addToCart(dish, 1);
+    const quantity = this.getQuantity(dish);
+    if (quantity > 0) {
+      this.cartService.addToCart(dish, quantity);
+      this.resetQuantity(dish);
+    } else {
+      this.cartService.addToCart(dish, 1);
+    }
+  }
+
+  getCategoryName(categoryId: number): string {
+    const category = this.categories.find(c => c.id === categoryId);
+    return category ? category.name : 'Uncategorized';
+  }
+
+  // Quantity management for dishes
+  private dishQuantities: { [dishId: number]: number } = {};
+
+  getQuantity(dish: Dish): number {
+    return this.dishQuantities[dish.id] || 1;
+  }
+
+  increaseQuantity(dish: Dish): void {
+    const currentQuantity = this.getQuantity(dish);
+    this.dishQuantities[dish.id] = currentQuantity + 1;
+  }
+
+  decreaseQuantity(dish: Dish): void {
+    const currentQuantity = this.getQuantity(dish);
+    if (currentQuantity > 1) {
+      this.dishQuantities[dish.id] = currentQuantity - 1;
+    }
+  }
+
+  resetQuantity(dish: Dish): void {
+    this.dishQuantities[dish.id] = 1;
   }
 }

@@ -1,0 +1,141 @@
+<div class="dishes-manager">
+  <h2>Dishes Management</h2>
+
+  <div class="action-bar">
+    <button (click)="showAddForm()" class="add-btn">Add New Dish</button>
+    <div class="search-container">
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Search dishes..." class="search-input" (input)="filterDishes()">
+    </div>
+  </div>
+
+  <!-- Dish Form -->
+  <div *ngIf="showForm" class="dish-form">
+    <h3>{{ isEditing ? 'Edit' : 'Add' }} Dish</h3>
+    <form [formGroup]="dishForm" (ngSubmit)="saveDish()">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" formControlName="name" class="form-control">
+        <div *ngIf="dishForm.get('name')?.errors && dishForm.get('name')?.touched" class="error-message">
+          Name is required
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" formControlName="description" class="form-control"></textarea>
+        <div *ngIf="dishForm.get('description')?.errors && dishForm.get('description')?.touched" class="error-message">
+          Description is required
+        </div>
+      </div>      <div class="form-group">
+        <label for="imageUrl">Image</label>
+        <input type="file" id="imageUrl" (change)="onFileSelected($event)" class="form-control" accept="image/*">
+        <img *ngIf="imagePreview" [src]="imagePreview" class="img-preview" style="max-width: 120px; max-height: 120px; margin-top: 8px; border-radius: 4px;" />
+        <div *ngIf="!imagePreview && dishForm.get('imageUrl')?.errors && dishForm.get('imageUrl')?.touched" class="error-message">
+          Image is required
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half-width">
+          <label for="price">Price</label>
+          <input type="number" id="price" formControlName="price" min="0" step="0.01" class="form-control">
+          <div *ngIf="dishForm.get('price')?.errors && dishForm.get('price')?.touched" class="error-message">
+            Price is required and must be greater than 0
+          </div>
+        </div>
+
+        <div class="form-group half-width">
+          <label for="isAvailable">Availability</label>
+          <select id="isAvailable" formControlName="isAvailable" class="form-control">
+            <option [value]="true">Available</option>
+            <option [value]="false">Unavailable</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half-width">
+          <label for="restaurantId">Restaurant</label>
+          <select id="restaurantId" formControlName="restaurantId" class="form-control" (change)="onRestaurantChange()">
+            <option value="">Select Restaurant</option>
+            <option *ngFor="let restaurant of restaurants" [value]="restaurant.id">
+              {{ restaurant.name }}
+            </option>
+          </select>
+          <div *ngIf="dishForm.get('restaurantId')?.errors && dishForm.get('restaurantId')?.touched" class="error-message">
+            Restaurant is required
+          </div>
+        </div>        <div class="form-group half-width">
+          <label for="categoryId">Category</label>
+          <select id="categoryId" formControlName="categoryId" class="form-control">
+            <option value="">Select Category</option>
+            <option *ngFor="let category of restaurantCategories" [value]="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+          <div *ngIf="dishForm.get('categoryId')?.errors && dishForm.get('categoryId')?.touched" class="error-message">
+            Category is required
+          </div>
+        </div>
+      </div>      <div class="form-actions">
+        <button type="submit" [disabled]="dishForm.invalid" class="save-btn">Save</button>
+        <button type="button" (click)="cancelForm()" class="cancel-btn">Cancel</button>
+        <button type="button" (click)="checkFormValidity()" class="debug-btn">Debug Form</button>
+        <div *ngIf="dishForm.invalid" class="error-message">
+          Form is invalid. Please check all required fields.
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Dishes List -->
+  <div *ngIf="!showForm" class="dishes-list">
+    <div *ngIf="loading" class="loading">Loading dishes...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+
+    <table *ngIf="!loading && !error && filteredDishes.length > 0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Restaurant</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th class="actions-header">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let dish of filteredDishes">
+          <td>{{ dish.id }}</td>
+          <td>
+            <img [src]="dish.imageUrl" alt="{{ dish.name }}" class="dish-image">
+          </td>
+          <td>
+            <div class="dish-name">{{ dish.name }}</div>
+            <div class="dish-description">{{ dish.description }}</div>
+          </td>
+          <td>{{ dish.price | currency }}</td>
+          <td>{{ dish.restaurantName }}</td>
+          <td>{{ dish.categoryName }}</td>
+          <td>
+            <span [class]="dish.isAvailable ? 'status-available' : 'status-unavailable'">
+              {{ dish.isAvailable ? 'Available' : 'Unavailable' }}
+            </span>
+          </td>
+          <td class="actions" style="vertical-align: middle;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-start;">
+              <button (click)="editDish(dish)" class="edit-btn">Edit</button>
+              <button (click)="deleteDish(dish)" class="delete-btn">Delete</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && !error && filteredDishes.length === 0" class="no-data">
+      No dishes found. Add a new dish to get started.
+    </div>
+  </div>
+</div>

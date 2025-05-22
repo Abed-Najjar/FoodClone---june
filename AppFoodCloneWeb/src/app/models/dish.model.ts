@@ -7,4 +7,6 @@ export interface Dish {
   restaurantId: number;
   restaurantName: string;
   categoryId: number;
+  categoryName?: string;
+  isAvailable?: boolean;
 }
