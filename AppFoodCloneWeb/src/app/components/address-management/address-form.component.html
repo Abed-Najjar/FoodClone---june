@@ -20,11 +20,11 @@
     <!-- Address Name Field -->
     <div class="mb-3">
       <label for="name" class="form-label">Address Name</label>
-      <input 
-        type="text" 
-        class="form-control" 
-        id="name" 
-        formControlName="name" 
+      <input
+        type="text"
+        class="form-control"
+        id="name"
+        formControlName="name"
         placeholder="Home, Work, etc."
       >
       <div *ngIf="formControls['name'].touched && formControls['name'].invalid" class="invalid-feedback d-block">
@@ -35,7 +35,7 @@
     <!-- Map Section -->
     <div class="mb-3">
       <label class="form-label">Select Location on Map</label>
-      <app-location-picker 
+      <app-location-picker
         [initialLatitude]="addressForm.value.latitude"
         [initialLongitude]="addressForm.value.longitude"
         (locationSelected)="onLocationSelected($event)"
@@ -48,11 +48,11 @@
     <!-- Street Address Field -->
     <div class="mb-3">
       <label for="streetAddress" class="form-label">Street Address</label>
-      <input 
-        type="text" 
-        class="form-control" 
-        id="streetAddress" 
-        formControlName="streetAddress" 
+      <input
+        type="text"
+        class="form-control"
+        id="streetAddress"
+        formControlName="streetAddress"
         placeholder="123 Main St, Apt 4B"
       >
       <div *ngIf="formControls['streetAddress'].touched && formControls['streetAddress'].invalid" class="invalid-feedback d-block">
@@ -64,10 +64,10 @@
     <div class="row mb-3">
       <div class="col">
         <label for="city" class="form-label">City</label>
-        <input 
-          type="text" 
-          class="form-control" 
-          id="city" 
+        <input
+          type="text"
+          class="form-control"
+          id="city"
           formControlName="city"
         >
         <div *ngIf="formControls['city'].touched && formControls['city'].invalid" class="invalid-feedback d-block">
@@ -76,10 +76,10 @@
       </div>
       <div class="col">
         <label for="state" class="form-label">State/Province</label>
-        <input 
-          type="text" 
-          class="form-control" 
-          id="state" 
+        <input
+          type="text"
+          class="form-control"
+          id="state"
           formControlName="state"
         >
         <div *ngIf="formControls['state'].touched && formControls['state'].invalid" class="invalid-feedback d-block">
@@ -92,10 +92,10 @@
     <div class="row mb-3">
       <div class="col">
         <label for="country" class="form-label">Country</label>
-        <input 
-          type="text" 
-          class="form-control" 
-          id="country" 
+        <input
+          type="text"
+          class="form-control"
+          id="country"
           formControlName="country"
         >
         <div *ngIf="formControls['country'].touched && formControls['country'].invalid" class="invalid-feedback d-block">
@@ -104,20 +104,21 @@
       </div>
       <div class="col">
         <label for="zipCode" class="form-label">Zip/Postal Code</label>
-        <input 
-          type="text" 
-          class="form-control" 
-          id="zipCode" 
+        <input
+          type="text"
+          class="form-control"
+          id="zipCode"
           formControlName="zipCode"
         >
-      </div>    </div>
+      </div>
+    </div>
 
     <!-- Default Address Checkbox -->
     <div class="mb-4 form-check">
-      <input 
-        type="checkbox" 
-        class="form-check-input" 
-        id="isDefault" 
+      <input
+        type="checkbox"
+        class="form-check-input"
+        id="isDefault"
         formControlName="isDefault"
       >
       <label class="form-check-label" for="isDefault">Set as default address</label>

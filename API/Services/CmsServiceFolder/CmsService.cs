@@ -6,16 +6,17 @@ using Microsoft.EntityFrameworkCore;
 using API.Data;
 
 namespace API.Services.CmsServiceFolder
-{
-    public class CmsService : ICmsService
+{    public class CmsService : ICmsService
     {
         private readonly ICmsRepository _cmsRepository;
         private readonly ILogger<CmsService> _logger;
+        private readonly AppDbContext _context;
 
-        public CmsService(ICmsRepository cmsRepository, ILogger<CmsService> logger)
+        public CmsService(ICmsRepository cmsRepository, ILogger<CmsService> logger, AppDbContext context)
         {
             _cmsRepository = cmsRepository;
             _logger = logger;
+            _context = context;
         }
     
         public async Task<AppResponse<List<CategoriesDto>>> GetAllCategoriesAsync()
@@ -633,6 +634,54 @@ namespace API.Services.CmsServiceFolder
 
             return new AppResponse<AdminRestaurantDto>(restaurantDto);
         }
+
+        public async Task<AppResponse<List<CategoryDto>>> GetCategories(int restaurantId)
+        {
+            try
+            {
+                var categories = await _context.RestaurantsCategories
+                    .Include(rc => rc.Category)
+                    .ThenInclude(c => c.Dishes)
+                    .Include(rc => rc.Restaurant)
+                    .Where(rc => rc.RestaurantId == restaurantId)
+                    .ToListAsync();
+
+                if (!categories.Any())
+                {
+                    return new AppResponse<List<CategoryDto>>(new List<CategoryDto>(), "No categories found for this restaurant", 200, true);
+                }
+
+                var categoryDtos = categories.Select(rc => new CategoryDto
+                {
+                    Id = rc.Category.Id,
+                    Name = rc.Category.Name,
+                    Description = rc.Category.Description,
+                    ImageUrl = rc.Category.ImageUrl,
+                    RestaurantId = rc.Restaurant.Id,
+                    RestaurantName = rc.Restaurant.Name,
+                    Dishes = rc.Category.Dishes.Select(d => new AdminRestaurantDishDto
+                    {
+                        Id = d.Id,
+                        Name = d.Name,
+                        Description = d.Description,
+                        Price = d.Price,
+                        ImageUrl = d.ImageUrl,
+                        RestaurantId = d.RestaurantId,
+                        RestaurantName = d.Restaurant?.Name ?? string.Empty,
+                        CategoryId = d.CategoryId,
+                        CategoryName = d.Category?.Name
+                    }).ToList()
+                }).ToList();
+
+                return new AppResponse<List<CategoryDto>>(categoryDtos, "Categories retrieved successfully", 200, true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving categories for restaurant {RestaurantId}", restaurantId);
+                return new AppResponse<List<CategoryDto>>(null, $"An error occurred: {ex.Message}", 500, false);
+            }
+        }
+
     }
     
     

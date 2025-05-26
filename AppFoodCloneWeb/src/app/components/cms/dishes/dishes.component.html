@@ -1,10 +1,21 @@
 <div class="dishes-manager">
-  <h2>Dishes Management</h2>
+  <div class="header-container">
+    <h2>Dishes Management</h2>
+    <h3 *ngIf="selectedRestaurantId" class="restaurant-header">{{ selectedRestaurantName }}</h3>
+  </div>
 
   <div class="action-bar">
     <button (click)="showAddForm()" class="add-btn">Add New Dish</button>
     <div class="search-container">
       <input type="text" [(ngModel)]="searchTerm" placeholder="Search dishes..." class="search-input" (input)="filterDishes()">
+    </div>
+  </div>
+
+  <!-- Restaurant Filter Notice -->
+  <div *ngIf="selectedRestaurantId" class="filter-notice">
+    <div class="notice-content">
+      <span>Showing dishes for restaurant: <strong>{{ selectedRestaurantName }}</strong></span>
+      <button (click)="clearRestaurantFilter()" class="clear-filter-btn">Clear Filter</button>
     </div>
   </div>
 

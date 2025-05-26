@@ -4,281 +4,38 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { CmsService } from '../../../services/cms.service';
 import { Category } from '../../../models/category.model';
 import { ImageUtilService } from '../../../services/image-util.service';
+import { ImageUploadService } from '../../../services/image-upload.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-categories',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  template: `
-    <div class="categories-manager">
-      <h2>Categories Management</h2>
-
-      <div class="action-bar">
-        <button (click)="showAddForm()" class="add-btn">Add New Category</button>
-        <div class="search-container">
-          <input type="text" [(ngModel)]="searchTerm" placeholder="Search categories..." class="search-input" (input)="filterCategories()">
-        </div>
-      </div>
-
-      <!-- Category Form -->
-      <div *ngIf="showForm" class="category-form">
-        <h3>{{ isEditing ? 'Edit' : 'Add' }} Category</h3>
-        <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
-          <div class="form-group">
-            <label for="name">Name</label>
-            <input type="text" id="name" formControlName="name" class="form-control">
-            <div *ngIf="categoryForm.get('name')?.errors && categoryForm.get('name')?.touched" class="error-message">
-              Name is required
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="description">Description</label>
-            <textarea id="description" formControlName="description" class="form-control"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="imageUrl">Image URL</label>
-            <input type="text" id="imageUrl" formControlName="imageUrl" class="form-control">
-            <div *ngIf="categoryForm.get('imageUrl')?.errors && categoryForm.get('imageUrl')?.touched" class="error-message">
-              Image URL is required
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="restaurantId">Restaurant</label>
-            <select id="restaurantId" formControlName="restaurantId" class="form-control">
-              <option value="">Select Restaurant</option>
-              <option *ngFor="let restaurant of restaurants" [value]="restaurant.id">
-                {{ restaurant.name }}
-              </option>
-            </select>
-            <div *ngIf="categoryForm.get('restaurantId')?.errors && categoryForm.get('restaurantId')?.touched" class="error-message">
-              Restaurant is required
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" [disabled]="categoryForm.invalid" class="save-btn">Save</button>
-            <button type="button" (click)="cancelForm()" class="cancel-btn">Cancel</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Categories List -->
-      <div *ngIf="!showForm" class="categories-list">
-        <div *ngIf="loading" class="loading">Loading categories...</div>
-        <div *ngIf="error" class="error-message">{{ error }}</div>
-
-        <table *ngIf="!loading && !error && filteredCategories.length > 0">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Image</th>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Restaurant</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let category of filteredCategories">
-              <td>{{ category.id }}</td>
-              <td>
-                <img [src]="category.imageUrl" alt="{{ category.name }}" class="category-image">
-              </td>
-              <td>{{ category.name }}</td>
-              <td>{{ category.description || 'No description' }}</td>
-              <td>{{ category.restaurantName }}</td>
-              <td class="actions">
-                <button (click)="editCategory(category)" class="edit-btn">Edit</button>
-                <button (click)="deleteCategory(category)" class="delete-btn">Delete</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div *ngIf="!loading && !error && filteredCategories.length === 0" class="no-data">
-          No categories found. Add a new category to get started.
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .categories-manager {
-      padding: 1rem;
-      max-width: 100%;
-    }
-
-    h2 {
-      margin-bottom: 1.5rem;
-      color: #333;
-    }
-
-    .action-bar {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 1.5rem;
-    }
-
-    .add-btn {
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .search-input {
-      padding: 0.5rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      width: 250px;
-    }
-
-    .category-form {
-      background-color: #f9f9f9;
-      padding: 1.5rem;
-      border-radius: 8px;
-      margin-bottom: 2rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-
-    textarea.form-control {
-      min-height: 100px;
-      resize: vertical;
-    }
-
-    .error-message {
-      color: #f44336;
-      font-size: 0.875rem;
-      margin-top: 0.25rem;
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-
-    .save-btn {
-      background-color: #2196f3;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .save-btn:disabled {
-      background-color: #b0bec5;
-      cursor: not-allowed;
-    }
-
-    .cancel-btn {
-      background-color: #f5f5f5;
-      color: #333;
-      border: 1px solid #ddd;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      background-color: white;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-
-    th {
-      background-color: #f5f5f5;
-      font-weight: 600;
-    }
-
-    .category-image {
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
-      border-radius: 4px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .edit-btn {
-      background-color: #2196f3;
-      color: white;
-      border: none;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .delete-btn {
-      background-color: #f44336;
-      color: white;
-      border: none;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .loading, .no-data {
-      text-align: center;
-      padding: 2rem;
-      color: #757575;
-    }
-  `]
+  templateUrl: './categories.component.html',
+  styleUrls: ['./categories.component.css']
 })
-export class CategoriesComponent implements OnInit {
-  categories: Category[] = [];
+export class CategoriesComponent implements OnInit {  categories: Category[] = [];
   filteredCategories: Category[] = [];
   restaurants: any[] = [];
   loading: boolean = false;
   error: string | null = null;
   searchTerm: string = '';
+  selectedRestaurantId: number | null = null;
+  selectedRestaurantName: string = '';
 
   // Form properties
   categoryForm: FormGroup;
   showForm: boolean = false;
   isEditing: boolean = false;
   currentCategoryId: number | null = null;
-
+  imagePreview: string | null = null;
+  categoryImageFile: File | null = null;
   constructor(
     private cmsService: CmsService,
     private fb: FormBuilder,
-    private imageUtil: ImageUtilService
+    private imageUtil: ImageUtilService,
+    private imageUploadService: ImageUploadService,
+    private activeRoute: ActivatedRoute
   ) {
     this.categoryForm = this.fb.group({
       name: ['', Validators.required],
@@ -286,22 +43,74 @@ export class CategoriesComponent implements OnInit {
       imageUrl: ['', Validators.required],
       restaurantId: ['', Validators.required]
     });
-  }
+  }  ngOnInit() {
 
-  ngOnInit() {
-    this.loadCategories();
-    this.loadRestaurants();
-  }
 
-  loadCategories() {
+    this.activeRoute.queryParams.subscribe((params) => {
+      if (params['restaurantId']) {
+        this.loadRestaurants(parseInt(params['restaurantId']));
+      } else this.loadRestaurants();
+    })
+
+
+
+    // Check if we have a selected restaurant from localStorage
+    const storedRestaurantId = localStorage.getItem('selectedRestaurantId');
+    if (storedRestaurantId) {
+      this.selectedRestaurantId = parseInt(storedRestaurantId);
+      this.selectedRestaurantName = localStorage.getItem('selectedRestaurantName') || '';
+      console.log('Found selected restaurant:', this.selectedRestaurantId, this.selectedRestaurantName);
+    }
+
+    // First load restaurants, then categories to ensure we have restaurant names
+
+
+    // Debug: Log form value changes
+    this.categoryForm.valueChanges.subscribe(values => {
+      console.log('Form values changed:', values);
+    });
+  }loadCategories() {
     this.loading = true;
     this.error = null;
 
     this.cmsService.getAllCategories().subscribe({
       next: (response) => {
         if (response.success) {
-          this.categories = response.data;
+          // Ensure we have restaurant names
+          this.categories = response.data.map(category => {
+            // Find the restaurant name if available
+            const restaurant = this.restaurants.find(r => r.id === category.restaurantId);
+
+            // Debug output to help diagnose the issue
+            if (!category.restaurantId) {
+              console.log('Category without restaurantId:', category);
+            }
+
+            if (!category.description) {
+              console.log('Category without description:', category);
+            }
+
+            // Create a new object with guaranteed properties
+            return {
+              ...category,
+              description: category.description || '',
+              restaurantName: restaurant?.name || 'Unknown restaurant'
+            };
+          });
+
           this.filteredCategories = [...this.categories];
+          console.log('Loaded categories with restaurant details:', this.categories);
+
+          // Debug the first few entries to see what we're working with
+          if (this.categories.length > 0) {
+            console.log('Sample category data:', {
+              id: this.categories[0].id,
+              name: this.categories[0].name,
+              description: this.categories[0].description,
+              restaurantId: this.categories[0].restaurantId,
+              restaurantName: this.categories[0].restaurantName
+            });
+          }
         } else {
           this.error = response.errorMessage || 'Failed to load categories';
         }
@@ -314,12 +123,14 @@ export class CategoriesComponent implements OnInit {
       }
     });
   }
-
-  loadRestaurants() {
-    this.cmsService.getAllRestaurants().subscribe({
+  loadRestaurants(id?: number) {
+    this.cmsService.getAllRestaurants(id).subscribe({
       next: (response) => {
         if (response.success) {
           this.restaurants = response.data;
+          console.log('Restaurants loaded successfully:', this.restaurants);
+          // Now load categories since we have restaurant data
+          this.loadCategories();
         } else {
           console.error('Failed to load restaurants:', response.errorMessage);
         }
@@ -328,116 +139,267 @@ export class CategoriesComponent implements OnInit {
         console.error('Error loading restaurants:', err);
       }
     });
+  }  filterCategories() {
+    // First apply restaurant filter if selected
+    let filtered = [...this.categories];
+
+    if (this.selectedRestaurantId) {
+      filtered = filtered.filter(category =>
+        category.restaurantId === this.selectedRestaurantId
+      );
+    }
+
+    // Then apply search term filter
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(category =>
+        category.name.toLowerCase().includes(term)
+      );
+    }
+
+    this.filteredCategories = filtered;
+  }  showAddForm() {
+    // First set editing mode to false and clear the ID
+    this.isEditing = false;
+    this.currentCategoryId = null;
+
+    // Prepare form values, pre-select restaurant if one is filtered
+    const formValues: any = {
+      name: '',
+      description: '',
+      imageUrl: '',
+      restaurantId: this.selectedRestaurantId ? this.selectedRestaurantId.toString() : ''
+    };
+
+    // Clear form values and set default restaurant if selected
+    this.categoryForm.reset(formValues);
+
+    // Reset image preview and file
+    this.imagePreview = null;
+    this.categoryImageFile = null;
+
+    // Now show the form
+    this.showForm = true;
+  }editCategory(category: Category) {
+    console.log('Edit button clicked for category:', category); // Debug logging
+
+  // First set the image preview and prepare data
+    this.imagePreview = category.imageUrl;
+
+    console.log('Setting form values for category:', category);    // Set values directly without resetting first - with a delay to ensure component is ready
+    setTimeout(() => {
+      console.log('Setting form values with category:', JSON.stringify(category));
+
+      // Make sure we have a description value (empty string if null/undefined)
+      const description = category.description || '';
+
+      this.categoryForm.setValue({
+        name: category.name || '',
+        description: description,
+        imageUrl: category.imageUrl || '',
+        restaurantId: category.restaurantId ? category.restaurantId.toString() : ''
+      });
+
+      console.log('Form values directly set:', this.categoryForm.value); // Debug logging
+
+      // Force change detection
+      this.categoryForm.markAsDirty();
+      this.categoryForm.updateValueAndValidity();
+    }, 0);
+
+    // Set editing mode
+    this.isEditing = true;
+    this.currentCategoryId = category.id;
+
+    // Now show the form
+    this.showForm = true;
+
+    // Try to scroll to the form
+    setTimeout(() => {
+      try {
+        const formElement = document.querySelector('.category-form');
+        if (formElement) {
+          formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          console.error('Form element not found in DOM');
+        }
+      } catch (error) {
+        console.error('Error scrolling to form:', error);
+      }
+    }, 100);
+  }  cancelForm() {
+    this.showForm = false;
+    this.isEditing = false; // Make sure to clear editing mode
+    this.currentCategoryId = null; // Clear the current category ID
+    this.categoryForm.reset({
+      name: '',
+      description: '',
+      imageUrl: '',
+      restaurantId: ''
+    });
+    this.imagePreview = null;
+    this.categoryImageFile = null;
   }
 
-  filterCategories() {
-    if (!this.searchTerm.trim()) {
-      this.filteredCategories = [...this.categories];
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      // Preview immediately
+      const reader = new FileReader();
+      reader.onload = e => this.imagePreview = reader.result as string;
+      reader.readAsDataURL(file);
+
+      // Store the file for later upload
+      this.categoryImageFile = file;
+
+      // Set a temporary data URL from the file itself to make the form valid immediately
+      // This ensures the form is valid even before the upload completes
+      const tempUrl = URL.createObjectURL(file);
+      this.categoryForm.patchValue({ imageUrl: tempUrl });
+      this.categoryForm.get('imageUrl')?.markAsDirty();
+      this.categoryForm.get('imageUrl')?.markAsTouched();
+      this.categoryForm.get('imageUrl')?.updateValueAndValidity();
+
+      console.log('Selected image:', file.name);
+    }
+  }  async saveCategory() {
+    if (this.categoryForm.invalid) {
+      console.error('Form is invalid:', this.categoryForm.errors);
+      alert('Please fill in all required fields correctly.');
       return;
     }
 
-    const term = this.searchTerm.toLowerCase().trim();
-    this.filteredCategories = this.categories.filter(category =>
-      category.name.toLowerCase().includes(term) ||
-      (category.description && category.description.toLowerCase().includes(term)) ||
-      category.restaurantName.toLowerCase().includes(term)
-    );
-  }
+    this.loading = true;
+    console.log('Starting category save process...', this.categoryForm.value);
+    console.log('Current form description value:', this.categoryForm.get('description')?.value);
 
-  showAddForm() {
-    this.isEditing = false;
-    this.currentCategoryId = null;
-    this.categoryForm.reset();
-    this.showForm = true;
-  }
+    // Handle image upload if a new file is selected
+    if (this.categoryImageFile) {
+      try {
+        console.log('Uploading image file:', this.categoryImageFile.name);
+        await new Promise<void>((resolve, reject) => {
+          this.imageUploadService.uploadImage(this.categoryImageFile!).subscribe({
+            next: (response) => {
+              console.log('Image upload successful:', response);
+              if (response && response.url) {
+                // Update form with the new cloud URL
+                this.categoryForm.patchValue({ imageUrl: response.url });
+                resolve();
+              } else {
+                reject('Invalid response from image upload service');
+              }
+            },
+            error: (err) => {
+              console.error('Error uploading image:', err);
+              reject(err);
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Image upload failed:', error);
+        alert('Failed to upload the image. Please try again.');
+        this.loading = false;
+        return;
+      }
+    }
 
-  editCategory(category: Category) {
-    this.isEditing = true;
-    this.currentCategoryId = category.id;
-    this.categoryForm.patchValue({
-      name: category.name,
-      description: category.description || '',
-      imageUrl: category.imageUrl,
-      restaurantId: category.restaurantId.toString()
-    });
-    this.showForm = true;
-  }
+    const formValue = this.categoryForm.value;
+    console.log('Form values to be sent:', formValue);
 
-  cancelForm() {
-    this.showForm = false;
-    this.categoryForm.reset();
-  }
+    // Ensure all required fields are present and correctly typed
+    const categoryData: Category = {
+      id: this.isEditing ? this.currentCategoryId! : 0,
+      name: formValue.name || '',
+      description: formValue.description || '', // Make sure description is never undefined
+      imageUrl: formValue.imageUrl || '',
+      restaurantId: parseInt(formValue.restaurantId) || 0,
+      restaurantName: '' // Will be updated after creation/update
+    };
 
-  saveCategory() {
-    if (this.categoryForm.invalid) return;
-
-    const formValue = this.categoryForm.value;      const categoryData: Category = {
-        id: 0, // Temporary ID, will be replaced by the server
-        name: formValue.name,
-        description: formValue.description,
-        imageUrl: formValue.imageUrl,
-        restaurantId: Number(formValue.restaurantId),
-        restaurantName: '' // Temporary, will be updated after creation
-      };
+    console.log('Category data prepared:', categoryData);
 
     if (this.isEditing && this.currentCategoryId) {
       // Update existing category
       const restaurantName = this.restaurants.find(r => r.id === categoryData.restaurantId)?.name || '';
-      const categoryToUpdate: Category = {
-        id: this.currentCategoryId,
-        name: formValue.name,
-        description: formValue.description,
-        imageUrl: formValue.imageUrl,
-        restaurantId: categoryData.restaurantId,
-        restaurantName: restaurantName
-      };
-
-      this.cmsService.updateCategory(this.currentCategoryId, categoryToUpdate).subscribe({
+      categoryData.restaurantName = restaurantName;      this.cmsService.updateCategory(this.currentCategoryId, categoryData).subscribe({
         next: (response) => {
+          this.loading = false;
           if (response.success) {
-            // Update the local list
+            // Find the category in the array and update it
             const index = this.categories.findIndex(c => c.id === this.currentCategoryId);
             if (index !== -1) {
+              // Get the restaurant name from our restaurants list
               const restaurantName = this.restaurants.find(r => r.id === categoryData.restaurantId)?.name || '';
-              this.categories[index] = {
-                ...response.data,
-                restaurantName
+              console.log('Found restaurant name for update:', restaurantName, 'for ID:', categoryData.restaurantId);
+
+              // Create a complete updated object
+              const updatedCategory = {
+                ...categoryData,
+                restaurantName: restaurantName,
+                description: categoryData.description || ''
               };
+
+              console.log('Original category:', this.categories[index]);
+              console.log('Updated category:', updatedCategory);
+
+              // Replace the category in the array
+              this.categories[index] = updatedCategory;
+
+              // Create a new array to ensure change detection
+              this.categories = [...this.categories];
               this.filterCategories();
             }
+
             this.showForm = false;
             this.categoryForm.reset();
+            this.imagePreview = null;
+            this.categoryImageFile = null;
+            alert('Category updated successfully!');
           } else {
             alert(response.errorMessage || 'Failed to update category');
           }
         },
         error: (err) => {
+          this.loading = false;
           console.error('Error updating category:', err);
           alert('Error updating category. Please try again.');
         }
       });
-    } else {
-      // Create new category
+    } else {      // Create new category
       this.cmsService.createCategory(categoryData).subscribe({
         next: (response) => {
           if (response.success) {
-            // Add to the local list
+            console.log('Category created API response:', response.data);
+
+            // Get restaurant name from our loaded restaurants data
             const restaurantName = this.restaurants.find(r => r.id === categoryData.restaurantId)?.name || '';
+            console.log('Found restaurant name:', restaurantName, 'for ID:', categoryData.restaurantId);
+
+            // Create a fully populated category object
             const newCategory = {
               ...response.data,
-              restaurantName
+              restaurantName: restaurantName,
+              description: categoryData.description || '' // Prioritize our locally-entered description
             };
+
+            console.log('New category created with all fields:', newCategory);
             this.categories.push(newCategory);
             this.filterCategories();
             this.showForm = false;
             this.categoryForm.reset();
+            this.imagePreview = null;
+            this.categoryImageFile = null;
+            alert('Category created successfully!');
           } else {
             alert(response.errorMessage || 'Failed to create category');
           }
-        },
-        error: (err) => {
+        },        error: (err) => {
           console.error('Error creating category:', err);
-          alert('Error creating category. Please try again.');
+          console.error('Error details:', JSON.stringify(err, null, 2));
+          alert('Error creating category: ' + (err.error?.message || err.message || 'Please try again.'));
+        },
+        complete: () => {
+          this.loading = false;
         }
       });
     }
@@ -461,5 +423,13 @@ export class CategoriesComponent implements OnInit {
         }
       });
     }
+  }
+
+  clearRestaurantFilter() {
+    this.selectedRestaurantId = null;
+    this.selectedRestaurantName = '';
+    localStorage.removeItem('selectedRestaurantId');
+    localStorage.removeItem('selectedRestaurantName');
+    this.filterCategories();
   }
 }

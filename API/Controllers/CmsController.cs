@@ -26,6 +26,12 @@ namespace API.Controllers
             return await _cmsService.GetAllCategoriesAsync();
         }
 
+        [HttpGet("categories/{restaurantId}")]
+        public async Task<AppResponse<List<CategoryDto>>> GetCategories(int restaurantId)
+        {
+            return await _cmsService.GetCategories(restaurantId);
+        }
+
         [HttpGet("restaurants")]
         public async Task<AppResponse<List<RestaurantDto>>> GetAllRestaurants()
         {

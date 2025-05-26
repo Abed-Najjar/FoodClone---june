@@ -1,11 +1,24 @@
-.restaurants-manager {
+.categories-manager {
   padding: 1rem;
   max-width: 100%;
 }
 
-h2 {
+.header-container {
+  display: flex;
+  flex-direction: column;
   margin-bottom: 1.5rem;
+}
+
+h2 {
+  margin-bottom: 0.5rem;
   color: #333;
+}
+
+.restaurant-header {
+  margin-top: 0;
+  color: #1976d2;
+  font-size: 1.25rem;
+  font-style: italic;
 }
 
 .action-bar {
@@ -30,7 +43,34 @@ h2 {
   width: 250px;
 }
 
-.restaurant-form {
+.filter-notice {
+  background-color: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.notice-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.clear-filter-btn {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.category-form {
   background-color: #f9f9f9;
   padding: 1.5rem;
   border-radius: 8px;
@@ -40,17 +80,6 @@ h2 {
 
 .form-group {
   margin-bottom: 1rem;
-}
-
-.form-row {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.half-width {
-  flex: 1;
-  margin-bottom: 0;
 }
 
 label {
@@ -128,27 +157,16 @@ th {
   font-weight: 600;
 }
 
-.restaurant-image {
+.category-image {
   width: 60px;
   height: 60px;
   object-fit: cover;
   border-radius: 4px;
 }
 
-.status-active {
-  color: #4caf50;
-  font-weight: 500;
-}
-
-.status-inactive {
-  color: #f44336;
-  font-weight: 500;
-}
-
 .actions {
   display: flex;
   gap: 0.5rem;
-  flex-wrap: wrap;
 }
 
 .edit-btn {
@@ -169,35 +187,27 @@ th {
   cursor: pointer;
 }
 
-.view-btn {
-  background-color: #009688;
-  color: white;
-  border: none;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 0.25rem;
-}
-
 .loading, .no-data {
   text-align: center;
   padding: 2rem;
   color: #757575;
 }
 
-/* Opening Hours Time Inputs Styling */
-.opening-hours-container {
-  display: flex;
-  gap: 1rem;
+.current-image {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
-.time-input {
-  flex: 1;
+.current-image h4 {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #555;
 }
 
-.time-input label {
-  display: block;
-  font-size: 0.8rem;
-  margin-bottom: 0.3rem;
-  color: #666;
+.preview-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ddd;
 }

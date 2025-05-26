@@ -2,6 +2,11 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Location } from '../../models/address.model';
 
+// Define an interface extending Google Maps options
+interface ExtendedMapOptions extends google.maps.MapOptions {
+  fullscreenControl?: boolean;
+}
+
 @Component({
   selector: 'app-location-picker',
   standalone: true,
@@ -10,17 +15,17 @@ import { Location } from '../../models/address.model';
   styleUrls: ['./location-picker.component.css']
 })
 export class LocationPickerComponent implements OnInit {
-  @Input() initialLatitude: number = 31.9539;  // Default to Jordan's latitude
-  @Input() initialLongitude: number = 35.9106; // Default to Jordan's longitude
+  @Input() initialLatitude: number = 30.5852;  // Default to Amman, Jordan
+  @Input() initialLongitude: number = 26.2384; // Default to Amman, Jordan
   @Input() allowSelection: boolean = true;
   @Input() markerTitle: string = 'Selected Location';
-  
+
   @Output() locationSelected = new EventEmitter<Location>();
-  
+
   map: google.maps.Map | null = null;
   marker: google.maps.Marker | null = null;
   geocoder: google.maps.Geocoder | null = null;
-  
+
   constructor() { }
 
   ngOnInit(): void {
@@ -48,13 +53,33 @@ export class LocationPickerComponent implements OnInit {
     const mapElement = document.getElementById('map');
     if (!mapElement) return;
 
-    this.map = new google.maps.Map(mapElement, {
+    // Option 1: Use type assertion to bypass the type check
+    const mapOptions = {
+      zoom: 15,
       center: { lat: this.initialLatitude, lng: this.initialLongitude },
-      zoom: 15
-    });
+      mapTypeControl: true,
+      fullscreenControl: true
+    } as google.maps.MapOptions;
+
+    // OR Option 2: Use the controlOptions property instead
+    /* const mapOptions: google.maps.MapOptions = {
+      zoom: 15,
+      center: { lat: this.initialLatitude, lng: this.initialLongitude },
+      mapTypeControl: true,
+      fullscreenControlOptions: {
+        position: google.maps.ControlPosition.RIGHT_TOP
+      }
+    }; */
+
+    const extendedMapOptions: ExtendedMapOptions = {
+      ...mapOptions,
+      fullscreenControl: true
+    };
+
+    this.map = new google.maps.Map(mapElement, extendedMapOptions);
 
     this.geocoder = new google.maps.Geocoder();
-    
+
     this.marker = new google.maps.Marker({
       position: { lat: this.initialLatitude, lng: this.initialLongitude },
       map: this.map,
@@ -102,7 +127,7 @@ export class LocationPickerComponent implements OnInit {
           longitude: latLng.lng(),
           formattedAddress: results[0].formatted_address
         };
-        
+
         this.locationSelected.emit(location);
       }
     });

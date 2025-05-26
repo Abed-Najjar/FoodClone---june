@@ -1,0 +1,98 @@
+<div class="categories-manager">
+  <div class="header-container">
+    <h2>Categories Management</h2>
+    <h3 *ngIf="selectedRestaurantId" class="restaurant-header">{{ selectedRestaurantName }}</h3>
+  </div>
+
+  <div class="action-bar">
+    <button (click)="showAddForm()" class="add-btn">Add New Category</button>
+    <div class="search-container">
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Search categories..." class="search-input" (input)="filterCategories()">
+    </div>
+  </div>
+
+  <!-- Restaurant Filter Notice -->
+  <div *ngIf="selectedRestaurantId" class="filter-notice">
+    <div class="notice-content">
+      <span>Showing categories for restaurant: <strong>{{ selectedRestaurantName }}</strong></span>
+      <button (click)="clearRestaurantFilter()" class="clear-filter-btn">Clear Filter</button>
+    </div>
+  </div>
+
+  <!-- Category Form -->
+  <div *ngIf="showForm" class="category-form">
+    <h3>{{ isEditing ? 'Edit Category: ' + categoryForm.value.name : 'Add New Category' }}</h3>
+    <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" formControlName="name" class="form-control">
+        <div *ngIf="categoryForm.get('name')?.errors && categoryForm.get('name')?.touched" class="error-message">
+          Name is required
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="imageUrl">Category Image</label>
+        <input type="file" id="imageUrl" (change)="onFileSelected($event)" class="form-control" accept="image/*">
+        <div *ngIf="imagePreview" class="image-preview-container" style="margin-top: 10px;">
+          <p>Current image:</p>
+          <img [src]="imagePreview" class="img-preview" style="max-width: 120px; max-height: 120px; border-radius: 4px;" />
+        </div>
+        <div *ngIf="!imagePreview && categoryForm.get('imageUrl')?.errors && categoryForm.get('imageUrl')?.touched" class="error-message">
+          Image is required
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="restaurantId">Restaurant</label>
+        <select id="restaurantId" formControlName="restaurantId" class="form-control">
+          <option value="">Select Restaurant</option>
+          <option *ngFor="let restaurant of restaurants" [value]="restaurant.id">
+            {{ restaurant.name }}
+          </option>
+        </select>
+        <div *ngIf="categoryForm.get('restaurantId')?.errors && categoryForm.get('restaurantId')?.touched" class="error-message">
+          Restaurant is required
+        </div>
+      </div>      <!-- Current image is now shown inline with the file input field -->
+
+      <div class="form-actions">
+        <button type="submit" [disabled]="categoryForm.invalid" class="save-btn">{{ isEditing ? 'Update' : 'Save' }}</button>
+        <button type="button" (click)="cancelForm()" class="cancel-btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Categories List -->
+  <div *ngIf="!showForm" class="categories-list">
+    <div *ngIf="loading" class="loading">Loading categories...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>    <table *ngIf="!loading && !error && filteredCategories.length > 0">      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let category of filteredCategories">
+          <td>{{ category.id }}</td>
+          <td>
+            <img [src]="category.imageUrl" alt="{{ category.name }}" class="category-image">
+          </td>
+          <td>{{ category.name }}</td>
+          <td class="actions">
+            <button (click)="editCategory(category)" class="edit-btn">Edit</button>
+            <button (click)="deleteCategory(category)" class="delete-btn">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && !error && filteredCategories.length === 0" class="no-data">
+      No categories found. Add a new category to get started.
+    </div>
+  </div>  <!-- Add this for debugging - it will show if we're in edit mode -->  <div *ngIf="isEditing" style="position: fixed; top: 0; right: 0; background: yellow; padding: 5px; z-index: 9999;">
+    Editing Mode: {{ currentCategoryId }} |
+    Name: {{ categoryForm.value.name }}
+  </div>
+</div>

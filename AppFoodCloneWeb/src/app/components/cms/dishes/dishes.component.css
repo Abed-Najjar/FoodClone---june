@@ -3,9 +3,49 @@
   max-width: 100%;
 }
 
-h2 {
+.header-container {
+  display: flex;
+  flex-direction: column;
   margin-bottom: 1.5rem;
+}
+
+h2 {
+  margin-bottom: 0.5rem;
   color: #333;
+}
+
+.restaurant-header {
+  margin-top: 0;
+  color: #1976d2;
+  font-size: 1.25rem;
+  font-style: italic;
+}
+
+.filter-notice {
+  background-color: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.notice-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.clear-filter-btn {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 0.5rem;
 }
 
 .action-bar {

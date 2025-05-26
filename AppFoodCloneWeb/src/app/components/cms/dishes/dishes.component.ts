@@ -17,8 +17,7 @@ import { HttpClient } from '@angular/common/http';
   templateUrl: './dishes.component.html',
   styleUrls: ['./dishes.component.css']
 })
-export class DishesComponent implements OnInit {
-  dishes: any[] = [];
+export class DishesComponent implements OnInit {  dishes: any[] = [];
   filteredDishes: any[] = [];
   restaurants: Restaurant[] = [];
   categories: Category[] = [];
@@ -26,6 +25,8 @@ export class DishesComponent implements OnInit {
   loading: boolean = false;
   error: string | null = null;
   searchTerm: string = '';
+  selectedRestaurantId: number | null = null;
+  selectedRestaurantName: string = '';
 
   // Form properties
   dishForm: FormGroup;
@@ -52,8 +53,15 @@ export class DishesComponent implements OnInit {
       categoryId: ['', Validators.required]
     });
   }
-
   ngOnInit() {
+    // Check if we have a selected restaurant from localStorage
+    const storedRestaurantId = localStorage.getItem('selectedRestaurantId');
+    if (storedRestaurantId) {
+      this.selectedRestaurantId = parseInt(storedRestaurantId);
+      this.selectedRestaurantName = localStorage.getItem('selectedRestaurantName') || '';
+      console.log('Found selected restaurant:', this.selectedRestaurantId, this.selectedRestaurantName);
+    }
+
     this.loadDishes();
     this.loadRestaurants();
     this.loadCategories();
@@ -112,25 +120,34 @@ export class DishesComponent implements OnInit {
   }
 
   filterDishes() {
-    if (!this.searchTerm.trim()) {
-      this.filteredDishes = [...this.dishes];
-      return;
+    // First apply restaurant filter if selected
+    let filtered = [...this.dishes];
+
+    if (this.selectedRestaurantId) {
+      filtered = filtered.filter(dish =>
+        dish.restaurantId === this.selectedRestaurantId
+      );
     }
 
-    const term = this.searchTerm.toLowerCase().trim();
-    this.filteredDishes = this.dishes.filter(dish =>
-      dish.name.toLowerCase().includes(term) ||
-      dish.description.toLowerCase().includes(term) ||
-      dish.restaurantName.toLowerCase().includes(term) ||
-      dish.categoryName.toLowerCase().includes(term)
-    );
+    // Then apply search term filter
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(dish =>
+        dish.name.toLowerCase().includes(term) ||
+        dish.description.toLowerCase().includes(term) ||
+        dish.restaurantName.toLowerCase().includes(term) ||
+        dish.categoryName.toLowerCase().includes(term)
+      );
+    }
+
+    this.filteredDishes = filtered;
   }
   onRestaurantChange() {
     const restaurantId = this.dishForm.get('restaurantId')?.value;
     if (restaurantId) {
       // Show all categories regardless of restaurant
       this.restaurantCategories = [...this.categories];
-      
+
       // Reset category selection if the current selection doesn't exist
       const currentCategoryId = this.dishForm.get('categoryId')?.value;
       if (currentCategoryId) {
@@ -145,16 +162,25 @@ export class DishesComponent implements OnInit {
       this.restaurantCategories = [...this.categories];
       this.dishForm.patchValue({ categoryId: '' });
     }
-  }
-  showAddForm() {
+  }  showAddForm() {
     this.isEditing = false;
     this.currentDishId = null;
     // Always show all categories in the add form
     this.restaurantCategories = [...this.categories];
-    this.dishForm.reset({
+
+    // Prepare form values, pre-select restaurant if one is filtered
+    const formValues: any = {
       price: 0.01,
-      isAvailable: true
-    });
+      isAvailable: true,
+      restaurantId: this.selectedRestaurantId ? this.selectedRestaurantId.toString() : ''
+    };
+
+    this.dishForm.reset(formValues);
+
+    if (this.selectedRestaurantId) {
+      this.onRestaurantChange(); // Update categories based on selected restaurant
+    }
+
     this.showForm = true;
   }
   editDish(dish: any) {
@@ -425,5 +451,13 @@ export class DishesComponent implements OnInit {
         }
       });
     }
+  }
+
+  clearRestaurantFilter() {
+    this.selectedRestaurantId = null;
+    this.selectedRestaurantName = '';
+    localStorage.removeItem('selectedRestaurantId');
+    localStorage.removeItem('selectedRestaurantName');
+    this.filterDishes();
   }
 }

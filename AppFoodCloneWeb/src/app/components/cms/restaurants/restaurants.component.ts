@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { CmsService } from '../../../services/cms.service';
+import { RestaurantService } from '../../../services/restaurant.service';
 import { Restaurant } from '../../../models/restaurant.model';
 import { ImageUtilService } from '../../../services/image-util.service';
 import { ImageUploadService } from '../../../services/image-upload.service';
+import { CmsNavigationService } from '../../../services/cms-navigation.service';
 
 @Component({
   selector: 'app-restaurants',
@@ -28,12 +31,14 @@ export class RestaurantsComponent implements OnInit {
   logoFile: File | null = null;
   coverFile: File | null = null;
   logoPreviewUrl: string | null = null;
-  coverPreviewUrl: string | null = null;
-  constructor(
+  coverPreviewUrl: string | null = null; constructor(
     private cmsService: CmsService,
+    private restaurantService: RestaurantService,
+    private router: Router,
     private fb: FormBuilder,
     private imageUtil: ImageUtilService,
-    private imageUploadService: ImageUploadService
+    private imageUploadService: ImageUploadService,
+    private navigationService: CmsNavigationService
   ) {
     this.restaurantForm = this.fb.group({
       name: ['', Validators.required],
@@ -99,16 +104,16 @@ export class RestaurantsComponent implements OnInit {
       isOpen: true
     });
     this.showForm = true;
-  }  editRestaurant(restaurant: Restaurant) {
+  } editRestaurant(restaurant: Restaurant) {
     this.isEditing = true;
     this.currentRestaurantId = restaurant.id;
-    
+
     console.log('Original restaurant opening hours:', restaurant.openingHours);
-    
+
     // Parse opening hours string into from and to times
     let openingHoursFrom = '09:00';
     let openingHoursTo = '22:00';
-    
+
     if (restaurant.openingHours) {
       const hoursMatch = restaurant.openingHours.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/);
       console.log('Regex match result:', hoursMatch);
@@ -120,7 +125,7 @@ export class RestaurantsComponent implements OnInit {
         console.log('Failed to parse opening hours, using defaults');
       }
     }
-    
+
     this.restaurantForm.patchValue({
       name: restaurant.name,
       description: restaurant.description,
@@ -160,7 +165,7 @@ export class RestaurantsComponent implements OnInit {
       reader.onload = (e: any) => this.coverPreviewUrl = e.target.result;
       reader.readAsDataURL(file);
     }
-  }  async saveRestaurant() {
+  } async saveRestaurant() {
     if (this.restaurantForm.invalid) return;
     let logoUrl = this.restaurantForm.value.logoUrl;
     let coverImageUrl = this.restaurantForm.value.coverImageUrl;
@@ -187,12 +192,12 @@ export class RestaurantsComponent implements OnInit {
     }
 
     const formValue = this.restaurantForm.value;
-      // Combine opening hours from and to times
+    // Combine opening hours from and to times
     const openingHoursFrom = formValue.openingHoursFrom || '09:00';
     const openingHoursTo = formValue.openingHoursTo || '22:00';
     const openingHours = `${openingHoursFrom} - ${openingHoursTo}`;
-    
-    console.log('Opening hours combined value:', openingHours);    const restaurantData = {
+
+    console.log('Opening hours combined value:', openingHours); const restaurantData = {
       id: this.isEditing ? this.currentRestaurantId : 0,
       name: formValue.name,
       description: formValue.description,
@@ -209,8 +214,8 @@ export class RestaurantsComponent implements OnInit {
       deliveryFee: 0,
       suspended: false
     };
-    
-    console.log('Restaurant data being sent to API:', restaurantData);    if (this.isEditing && this.currentRestaurantId) {
+
+    console.log('Restaurant data being sent to API:', restaurantData); if (this.isEditing && this.currentRestaurantId) {
       this.cmsService.updateRestaurant(this.currentRestaurantId, restaurantData).subscribe({
         next: (response) => {
           console.log('Update restaurant response:', response);
@@ -258,7 +263,6 @@ export class RestaurantsComponent implements OnInit {
       });
     }
   }
-
   deleteRestaurant(restaurant: Restaurant) {
     if (confirm(`Are you sure you want to delete the restaurant "${restaurant.name}"? This will also delete all associated categories and dishes.`)) {
       this.cmsService.deleteRestaurant(restaurant.id).subscribe({
@@ -277,5 +281,29 @@ export class RestaurantsComponent implements OnInit {
         }
       });
     }
+  }
+  viewRestaurantCategories(restaurant: Restaurant) {
+
+
+    this.router.navigate(['/admin/dashboard'], {
+      queryParams: { restaurantId: restaurant.id }
+    });
+    this.navigationService.changeTab('categories');
+    return
+
+    // Store the restaurant info in local storage
+    localStorage.setItem('selectedRestaurantId', restaurant.id.toString());
+    localStorage.setItem('selectedRestaurantName', restaurant.name);
+
+    // Switch to the categories tab using the navigation service
+  }
+
+  viewRestaurantDishes(restaurant: Restaurant) {
+    // Store the restaurant info in local storage
+    localStorage.setItem('selectedRestaurantId', restaurant.id.toString());
+    localStorage.setItem('selectedRestaurantName', restaurant.name);
+
+    // Switch to the dishes tab using the navigation service
+    this.navigationService.changeTab('dishes');
   }
 }

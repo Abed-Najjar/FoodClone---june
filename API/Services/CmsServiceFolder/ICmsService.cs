@@ -7,10 +7,12 @@ namespace API.Services.CmsServiceFolder
     {
         // Category methods
         Task<AppResponse<List<CategoriesDto>>> GetAllCategoriesAsync();
+        Task<AppResponse<List<CategoryDto>>> GetCategories(int restaurantId);
         Task<AppResponse<CategoryDto>> UpdateCategoryAsync(int id, CategoryDto categoryDto);
         Task<AppResponse<bool>> DeleteCategoryAsync(int id);
-          // Restaurant methods
-        Task<AppResponse<List<RestaurantDto>>> GetAllRestaurantsAsync();
+        
+        // Restaurant methods
+    Task<AppResponse<List<RestaurantDto>>> GetAllRestaurantsAsync();
         Task<AppResponse<AdminRestaurantDto>> GetRestaurantByIdAsync(int id);
         Task<AppResponse<AdminRestaurantDto>> CreateRestaurantAsync(AdminRestaurantCreateDto restaurantDto);
         Task<AppResponse<AdminRestaurantDto>> UpdateRestaurantAsync(int id, AdminRestaurantDto restaurantDto);

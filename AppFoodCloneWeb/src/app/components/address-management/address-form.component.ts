@@ -22,7 +22,7 @@ export class AddressFormComponent implements OnInit {
   isLoading = false;
   error: string | null = null;
   successMessage: string | null = null;
-  
+
   constructor(
     private fb: FormBuilder,
     private addressService: AddressService,
@@ -31,7 +31,7 @@ export class AddressFormComponent implements OnInit {
   ) {
     this.addressForm = this.createAddressForm();
   }
-  
+
   ngOnInit(): void {
     this.route.paramMap.pipe(
       switchMap(params => {
@@ -56,7 +56,7 @@ export class AddressFormComponent implements OnInit {
       }
     });
   }
-  
+
   private createAddressForm(): FormGroup {
     return this.fb.group({
       name: ['', [Validators.required]],
@@ -72,7 +72,7 @@ export class AddressFormComponent implements OnInit {
       isDefault: [false]
     });
   }
-  
+
   private populateForm(address: Address): void {
     this.addressForm.patchValue({
       name: address.name,
@@ -86,14 +86,14 @@ export class AddressFormComponent implements OnInit {
       isDefault: address.isDefault
     });
   }
-  
+
   onLocationSelected(location: Location): void {
     this.addressForm.patchValue({
       latitude: location.latitude,
       longitude: location.longitude,
       formattedAddress: location.formattedAddress
     });
-    
+
     // Try to extract components from formatted address
     const addressParts = location.formattedAddress.split(',');
     if (addressParts.length >= 3) {
@@ -103,7 +103,7 @@ export class AddressFormComponent implements OnInit {
         city: addressParts[1].trim(),
         state: addressParts[2].trim()
       });
-      
+
       if (addressParts.length > 3) {
         this.addressForm.patchValue({
           country: addressParts[addressParts.length - 1].trim()
@@ -111,7 +111,7 @@ export class AddressFormComponent implements OnInit {
       }
     }
   }
-  
+
   onSubmit(): void {
     if (this.addressForm.invalid) {
       // Mark all fields as touched to trigger validation messages
@@ -121,11 +121,11 @@ export class AddressFormComponent implements OnInit {
       });
       return;
     }
-    
+
     this.isLoading = true;
     this.error = null;
     this.successMessage = null;
-    
+
     if (this.isEditMode && this.addressId) {
       const addressUpdate: AddressUpdate = this.addressForm.value;
       this.addressService.updateAddress(this.addressId, addressUpdate).subscribe(
@@ -166,7 +166,7 @@ export class AddressFormComponent implements OnInit {
       );
     }
   }
-  
+
   get formControls() {
     return this.addressForm.controls;
   }

@@ -146,10 +146,11 @@
             <span [class]="restaurant.isOpen ? 'status-active' : 'status-inactive'">
               {{ restaurant.isOpen ? 'Open' : 'Closed' }}
             </span>
-          </td>
-          <td class="actions">
+          </td>          <td class="actions">
             <button (click)="editRestaurant(restaurant)" class="edit-btn">Edit</button>
             <button (click)="deleteRestaurant(restaurant)" class="delete-btn">Delete</button>
+            <button (click)="viewRestaurantCategories(restaurant)" class="view-btn">Categories</button>
+            <button (click)="viewRestaurantDishes(restaurant)" class="view-btn">Dishes</button>
           </td>
         </tr>
       </tbody>
