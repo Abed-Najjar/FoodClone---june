@@ -42,8 +42,9 @@ export class CmsService {
   createRestaurant(restaurant: any): Observable<AppResponse<Restaurant>> {
     return this.http.post<AppResponse<Restaurant>>(`${this.baseUrl}/restaurants`, restaurant);
   }
-
   updateRestaurant(id: number, restaurant: any): Observable<AppResponse<Restaurant>> {
+    console.log(`Sending update to: ${this.baseUrl}/restaurants/${id}`);
+    console.log('Request data:', restaurant);
     return this.http.put<AppResponse<Restaurant>>(`${this.baseUrl}/restaurants/${id}`, restaurant);
   }
 

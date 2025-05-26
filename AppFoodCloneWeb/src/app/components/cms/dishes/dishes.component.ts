@@ -69,7 +69,7 @@ export class DishesComponent implements OnInit {
           this.dishes = response.data;
           this.filteredDishes = [...this.dishes];
         } else {
-          this.error = response.message || 'Failed to load dishes';
+          this.error = response.errorMessage || 'Failed to load dishes';
         }
         this.loading = false;
       },
@@ -87,7 +87,7 @@ export class DishesComponent implements OnInit {
         if (response.success) {
           this.restaurants = response.data;
         } else {
-          console.error('Failed to load restaurants:', response.message);
+          console.error('Failed to load restaurants:', response.errorMessage);
         }
       },
       error: (err) => {
@@ -102,7 +102,7 @@ export class DishesComponent implements OnInit {
         if (response.success) {
           this.categories = response.data;
         } else {
-          console.error('Failed to load categories:', response.message);
+          console.error('Failed to load categories:', response.errorMessage);
         }
       },
       error: (err) => {
@@ -125,19 +125,16 @@ export class DishesComponent implements OnInit {
       dish.categoryName.toLowerCase().includes(term)
     );
   }
-
   onRestaurantChange() {
     const restaurantId = this.dishForm.get('restaurantId')?.value;
     if (restaurantId) {
-      // Only filter categories if you want to restrict by restaurant, otherwise show all
-      // this.restaurantCategories = this.categories.filter(
-      //   category => category.restaurantId === parseInt(restaurantId)
-      // );
+      // Show all categories regardless of restaurant
       this.restaurantCategories = [...this.categories];
-      // Reset category selection if the current selection doesn't belong to the selected restaurant
+      
+      // Reset category selection if the current selection doesn't exist
       const currentCategoryId = this.dishForm.get('categoryId')?.value;
       if (currentCategoryId) {
-        const categoryExists = this.restaurantCategories.some(
+        const categoryExists = this.categories.some(
           category => category.id === parseInt(currentCategoryId)
         );
         if (!categoryExists) {
@@ -160,15 +157,12 @@ export class DishesComponent implements OnInit {
     });
     this.showForm = true;
   }
-
   editDish(dish: any) {
     this.isEditing = true;
     this.currentDishId = dish.id;
 
-    // Set restaurant categories based on the dish's restaurant
-    this.restaurantCategories = this.categories.filter(
-      category => category.restaurantId === dish.restaurantId
-    );
+    // Load all categories for the select dropdown
+    this.restaurantCategories = [...this.categories];
 
     this.dishForm.patchValue({
       name: dish.name,
@@ -347,7 +341,7 @@ export class DishesComponent implements OnInit {
             this.dishForm.reset();
             this.restaurantCategories = [];
           } else {
-            alert(response.message || 'Failed to update dish');
+            alert(response.errorMessage || 'Failed to update dish');
           }
         },
         error: (err) => {
@@ -390,7 +384,7 @@ export class DishesComponent implements OnInit {
               this.updateNewDishImage(response.data.id, file);
             }
           } else {
-            alert(response.message || 'Failed to create dish');
+            alert(response.errorMessage || 'Failed to create dish');
           }
         },
         error: (err) => {
@@ -422,7 +416,7 @@ export class DishesComponent implements OnInit {
             this.dishes = this.dishes.filter(d => d.id !== dish.id);
             this.filterDishes();
           } else {
-            alert(response.message || 'Failed to delete dish');
+            alert(response.errorMessage || 'Failed to delete dish');
           }
         },
         error: (err) => {

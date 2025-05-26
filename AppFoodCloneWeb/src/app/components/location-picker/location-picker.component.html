@@ -1,0 +1,17 @@
+<div class="location-picker-container">
+  <div id="map" class="map-container"></div>
+  <div class="address-search-container" *ngIf="allowSelection">
+    <input 
+      #addressInput
+      type="text" 
+      class="form-control" 
+      placeholder="Search for an address"
+    />
+    <button 
+      class="btn btn-primary" 
+      (click)="searchAddress(addressInput.value)"
+    >
+      Search
+    </button>
+  </div>
+</div>

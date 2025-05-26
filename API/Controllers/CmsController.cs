@@ -100,9 +100,7 @@ namespace API.Controllers
             }
 
             return await _cmsService.CreateRestaurantAsync(restaurantDto);
-        }
-
-        [HttpPut("restaurants/{id}")]
+        }        [HttpPut("restaurants/{id}")]
         public async Task<AppResponse<AdminRestaurantDto>> UpdateRestaurant(int id, [FromBody] AdminRestaurantDto restaurantDto)
         {
             if (!ModelState.IsValid)
@@ -110,6 +108,7 @@ namespace API.Controllers
                 return new AppResponse<AdminRestaurantDto>(null, "Invalid model state", 400, false);
             }
 
+            _logger.LogInformation($"Updating restaurant with ID: {id}, Opening Hours: {restaurantDto.OpeningHours}");
             return await _cmsService.UpdateRestaurantAsync(id, restaurantDto);
         }
 

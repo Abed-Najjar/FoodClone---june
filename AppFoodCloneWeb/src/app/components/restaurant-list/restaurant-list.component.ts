@@ -32,7 +32,7 @@ export class RestaurantListComponent implements OnInit {
           this.filteredRestaurants = this.restaurants;
           this.loading = false;
         } else {
-          this.error = response.message;
+          this.error = response.errorMessage;
           this.loading = false;
         }
       },

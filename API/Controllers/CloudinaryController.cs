@@ -17,20 +17,16 @@ namespace API.Controllers
         {
             _cloudinaryService = cloudinaryService;
             _cmsRepository = cmsRepository;
-        }
-
-        [HttpPost("upload-image")]
-        public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
+        }        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadImage(IFormFile file)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("No file uploaded.");
 
             var url = await _cloudinaryService.UploadImageAsync(file);
             return Ok(new { url });
-        }
-
-        [HttpPost("upload-restaurant-logo/{restaurantId}")]
-        public async Task<IActionResult> UploadRestaurantLogo(int restaurantId, [FromForm] IFormFile file)
+        }        [HttpPost("upload-restaurant-logo/{restaurantId}")]
+        public async Task<IActionResult> UploadRestaurantLogo(int restaurantId, IFormFile file)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("No file uploaded.");
@@ -42,10 +38,8 @@ namespace API.Controllers
             restaurant.LogoUrl = url;
             await _cmsRepository.UpdateRestaurantAsync(restaurant);
             return Ok(new { url });
-        }
-
-        [HttpPost("upload-restaurant-cover/{restaurantId}")]
-        public async Task<IActionResult> UploadRestaurantCover(int restaurantId, [FromForm] IFormFile file)
+        }        [HttpPost("upload-restaurant-cover/{restaurantId}")]
+        public async Task<IActionResult> UploadRestaurantCover(int restaurantId, IFormFile file)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("No file uploaded.");

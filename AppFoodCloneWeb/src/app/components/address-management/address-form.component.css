@@ -1,0 +1,22 @@
+.address-form-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.invalid-feedback {
+  color: #dc3545;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.map-container {
+  height: 300px;
+  margin-bottom: 20px;
+}

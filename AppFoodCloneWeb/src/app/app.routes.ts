@@ -12,16 +12,20 @@ import { RestaurantsComponent } from './components/cms/restaurants/restaurants.c
 import { DishesComponent } from './components/cms/dishes/dishes.component';
 import { UsersComponent } from './components/cms/users/users.component';
 import { OrdersComponent } from './components/cms/orders/orders.component';
+import { AddressListComponent } from './components/address-management/address-list.component';
+import { AddressFormComponent } from './components/address-management/address-form.component';
 import { authGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { path: '', component: HomeComponent, canActivate: [authGuard] },
-  { path: 'restaurants', component: RestaurantListComponent, canActivate: [authGuard] },
+  { path: '', component: HomeComponent, canActivate: [authGuard] },  { path: 'restaurants', component: RestaurantListComponent, canActivate: [authGuard] },
   { path: 'restaurants/:id', component: RestaurantDetailComponent, canActivate: [authGuard] },
   { path: 'cart', component: CartComponent, canActivate: [authGuard] },
+  { path: 'addresses', component: AddressListComponent, canActivate: [authGuard] },
+  { path: 'addresses/new', component: AddressFormComponent, canActivate: [authGuard] },
+  { path: 'addresses/edit/:id', component: AddressFormComponent, canActivate: [authGuard] },
 
   // Admin routes
   { path: 'admin/login', component: AdminLoginComponent },

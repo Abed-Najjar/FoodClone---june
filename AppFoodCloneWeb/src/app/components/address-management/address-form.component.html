@@ -1,0 +1,141 @@
+<div class="address-form-container">
+  <h2>{{ isEditMode ? 'Edit' : 'Add New' }} Address</h2>
+
+  <div *ngIf="isLoading" class="loading-spinner">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger" role="alert">
+    {{ error }}
+    <button type="button" class="btn-close" (click)="error = null" aria-label="Close"></button>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success" role="alert">
+    {{ successMessage }}
+  </div>
+
+  <form [formGroup]="addressForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading || isEditMode">
+    <!-- Address Name Field -->
+    <div class="mb-3">
+      <label for="name" class="form-label">Address Name</label>
+      <input 
+        type="text" 
+        class="form-control" 
+        id="name" 
+        formControlName="name" 
+        placeholder="Home, Work, etc."
+      >
+      <div *ngIf="formControls['name'].touched && formControls['name'].invalid" class="invalid-feedback d-block">
+        <span *ngIf="formControls['name'].errors?.['required']">Address name is required</span>
+      </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="mb-3">
+      <label class="form-label">Select Location on Map</label>
+      <app-location-picker 
+        [initialLatitude]="addressForm.value.latitude"
+        [initialLongitude]="addressForm.value.longitude"
+        (locationSelected)="onLocationSelected($event)"
+      ></app-location-picker>
+      <div *ngIf="formControls['formattedAddress'].touched && formControls['formattedAddress'].invalid" class="invalid-feedback d-block">
+        <span *ngIf="formControls['formattedAddress'].errors?.['required']">Please select a location on the map</span>
+      </div>
+    </div>
+
+    <!-- Street Address Field -->
+    <div class="mb-3">
+      <label for="streetAddress" class="form-label">Street Address</label>
+      <input 
+        type="text" 
+        class="form-control" 
+        id="streetAddress" 
+        formControlName="streetAddress" 
+        placeholder="123 Main St, Apt 4B"
+      >
+      <div *ngIf="formControls['streetAddress'].touched && formControls['streetAddress'].invalid" class="invalid-feedback d-block">
+        <span *ngIf="formControls['streetAddress'].errors?.['required']">Street address is required</span>
+      </div>
+    </div>
+
+    <!-- City & State Fields -->
+    <div class="row mb-3">
+      <div class="col">
+        <label for="city" class="form-label">City</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          id="city" 
+          formControlName="city"
+        >
+        <div *ngIf="formControls['city'].touched && formControls['city'].invalid" class="invalid-feedback d-block">
+          <span *ngIf="formControls['city'].errors?.['required']">City is required</span>
+        </div>
+      </div>
+      <div class="col">
+        <label for="state" class="form-label">State/Province</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          id="state" 
+          formControlName="state"
+        >
+        <div *ngIf="formControls['state'].touched && formControls['state'].invalid" class="invalid-feedback d-block">
+          <span *ngIf="formControls['state'].errors?.['required']">State is required</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Country & Zip Fields -->
+    <div class="row mb-3">
+      <div class="col">
+        <label for="country" class="form-label">Country</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          id="country" 
+          formControlName="country"
+        >
+        <div *ngIf="formControls['country'].touched && formControls['country'].invalid" class="invalid-feedback d-block">
+          <span *ngIf="formControls['country'].errors?.['required']">Country is required</span>
+        </div>
+      </div>
+      <div class="col">
+        <label for="zipCode" class="form-label">Zip/Postal Code</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          id="zipCode" 
+          formControlName="zipCode"
+        >
+      </div>    </div>
+
+    <!-- Default Address Checkbox -->
+    <div class="mb-4 form-check">
+      <input 
+        type="checkbox" 
+        class="form-check-input" 
+        id="isDefault" 
+        formControlName="isDefault"
+      >
+      <label class="form-check-label" for="isDefault">Set as default address</label>
+    </div>
+
+    <!-- Hidden Fields for coordinates and formatted address -->
+    <input type="hidden" formControlName="latitude">
+    <input type="hidden" formControlName="longitude">
+    <input type="hidden" formControlName="formattedAddress">
+
+    <!-- Submit Button -->
+    <div class="d-flex justify-content-between">
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+        {{ isEditMode ? 'Update' : 'Save' }} Address
+      </button>
+      <button type="button" class="btn btn-outline-secondary" routerLink="/addresses">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>

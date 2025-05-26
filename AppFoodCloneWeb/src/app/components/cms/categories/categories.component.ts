@@ -303,7 +303,7 @@ export class CategoriesComponent implements OnInit {
           this.categories = response.data;
           this.filteredCategories = [...this.categories];
         } else {
-          this.error = response.message || 'Failed to load categories';
+          this.error = response.errorMessage || 'Failed to load categories';
         }
         this.loading = false;
       },
@@ -321,7 +321,7 @@ export class CategoriesComponent implements OnInit {
         if (response.success) {
           this.restaurants = response.data;
         } else {
-          console.error('Failed to load restaurants:', response.message);
+          console.error('Failed to load restaurants:', response.errorMessage);
         }
       },
       error: (err) => {
@@ -408,7 +408,7 @@ export class CategoriesComponent implements OnInit {
             this.showForm = false;
             this.categoryForm.reset();
           } else {
-            alert(response.message || 'Failed to update category');
+            alert(response.errorMessage || 'Failed to update category');
           }
         },
         error: (err) => {
@@ -432,7 +432,7 @@ export class CategoriesComponent implements OnInit {
             this.showForm = false;
             this.categoryForm.reset();
           } else {
-            alert(response.message || 'Failed to create category');
+            alert(response.errorMessage || 'Failed to create category');
           }
         },
         error: (err) => {
@@ -452,7 +452,7 @@ export class CategoriesComponent implements OnInit {
             this.categories = this.categories.filter(c => c.id !== category.id);
             this.filterCategories();
           } else {
-            alert(response.message || 'Failed to delete category');
+            alert(response.errorMessage || 'Failed to delete category');
           }
         },
         error: (err) => {

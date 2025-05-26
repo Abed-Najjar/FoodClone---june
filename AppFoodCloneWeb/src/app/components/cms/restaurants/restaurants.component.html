@@ -55,16 +55,24 @@
         <div *ngIf="restaurantForm.get('address')?.errors && restaurantForm.get('address')?.touched" class="error-message">
           Address is required
         </div>
-      </div>
-      <div class="form-row">
+      </div>      <div class="form-row">
         <div class="form-group half-width">
           <label for="phoneNumber">Phone Number</label>
           <input type="text" id="phoneNumber" formControlName="phoneNumber" class="form-control">
         </div>
 
         <div class="form-group half-width">
-          <label for="openingHours">Opening Hours</label>
-          <input type="text" id="openingHours" formControlName="openingHours" class="form-control">
+          <label>Opening Hours</label>
+          <div class="opening-hours-container">
+            <div class="time-input">
+              <label for="openingHoursFrom">From</label>
+              <input type="time" id="openingHoursFrom" formControlName="openingHoursFrom" class="form-control">
+            </div>
+            <div class="time-input">
+              <label for="openingHoursTo">To</label>
+              <input type="time" id="openingHoursTo" formControlName="openingHoursTo" class="form-control">
+            </div>
+          </div>
         </div>
       </div>
 

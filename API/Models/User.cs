@@ -6,11 +6,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace API.Models
 {
     public class User
-    {
-        public int Id { get; set; }
+    {        public int Id { get; set; }
         public string UserName { get; set; } = string.Empty;
-        public List<string> Address { get; set; } = new List<string>();
+        public List<string> Address { get; set; } = new List<string>(); // Legacy field - will be deprecated
         public string PhoneNumber { get; set; } = string.Empty;
+        
+        // Navigation property for multiple user addresses
+        public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
         public string ImageUrl { get; set; } = string.Empty;
         public Roles Role { get; set; } = Roles.User;
         public string Email { get; set; } = string.Empty;

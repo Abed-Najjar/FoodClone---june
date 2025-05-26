@@ -80,6 +80,9 @@ public class CmsRepository : ICmsRepository
         var existingRestaurant = await _context.Restaurants.FindAsync(restaurant.Id);
         if (existingRestaurant == null) return null;
 
+        Console.WriteLine($"CmsRepository UpdateRestaurantAsync - Original OpeningHours: {existingRestaurant.OpeningHours}");
+        Console.WriteLine($"CmsRepository UpdateRestaurantAsync - New OpeningHours: {restaurant.OpeningHours}");
+
         existingRestaurant.Name = restaurant.Name;
         existingRestaurant.Description = restaurant.Description;
         existingRestaurant.LogoUrl = restaurant.LogoUrl;
@@ -87,9 +90,18 @@ public class CmsRepository : ICmsRepository
         existingRestaurant.Address = restaurant.Address;
         existingRestaurant.PhoneNumber = restaurant.PhoneNumber;
         existingRestaurant.Email = restaurant.Email;
+        existingRestaurant.OpeningHours = restaurant.OpeningHours;
+        existingRestaurant.IsOpen = restaurant.IsOpen;
+        existingRestaurant.Rating = restaurant.Rating;
+        existingRestaurant.ReviewCount = restaurant.ReviewCount;
+
+        Console.WriteLine($"CmsRepository UpdateRestaurantAsync - After assignment OpeningHours: {existingRestaurant.OpeningHours}");
 
         _context.Restaurants.Update(existingRestaurant);
         await _context.SaveChangesAsync();
+        
+        Console.WriteLine($"CmsRepository UpdateRestaurantAsync - After save OpeningHours: {existingRestaurant.OpeningHours}");
+        
         return existingRestaurant;
     }
 

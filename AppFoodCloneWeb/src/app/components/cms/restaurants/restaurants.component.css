@@ -173,3 +173,20 @@ th {
   padding: 2rem;
   color: #757575;
 }
+
+/* Opening Hours Time Inputs Styling */
+.opening-hours-container {
+  display: flex;
+  gap: 1rem;
+}
+
+.time-input {
+  flex: 1;
+}
+
+.time-input label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+  color: #666;
+}

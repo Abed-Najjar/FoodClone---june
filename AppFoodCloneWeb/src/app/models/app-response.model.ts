@@ -1,6 +1,6 @@
 export interface AppResponse<T> {
   data: T;
-  message: string;
+  errorMessage: string;
   statusCode: number;
   success: boolean;
 }

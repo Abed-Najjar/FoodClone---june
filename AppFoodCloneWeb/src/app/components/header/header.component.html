@@ -11,14 +11,15 @@
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNav">
-      <div class="location-selector d-none d-lg-flex ms-4">
-        <i class="bi bi-geo-alt"></i>
-        <span>New York, NY</span>
-        <i class="bi bi-chevron-down ms-1"></i>
-      </div>
-
       <!-- Navigation links (visible to all) -->
-      <ul class="navbar-nav me-auto">
+      <ul class="navbar-nav me-auto flex-row gap-3">
+         <!-- My Addresses (only visible when logged in) -->
+        <li class="nav-item" *ngIf="isLoggedIn">
+          <a class="nav-link" routerLink="/addresses" routerLinkActive="active">
+            <i class="bi bi-geo-alt-fill fs-5"></i>
+            <span class="d-none d-lg-inline-block ms-1">My Addresses</span>
+          </a>
+        </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
             <i class="bi bi-house me-1"></i> Home
@@ -53,8 +54,9 @@
              [title]="isLoggedIn ? 'View cart' : 'Login to view cart'">
             <i class="bi bi-cart3 fs-5"></i>
             <span *ngIf="cartItemCount > 0" class="cart-badge">{{ cartItemCount }}</span>
-          </a>
-        </li>
+          </a>        </li>
+        
+ 
 
 
 

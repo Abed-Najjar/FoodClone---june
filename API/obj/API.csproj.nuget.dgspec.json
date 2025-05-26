@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Abdulrahman Al Najja\\Desktop\\.NET Projects\\Food Clone Angular + Flutter\\Careem-Food-Angular-Flutter\\API\\API.csproj": {}
+    "C:\\Users\\x_sly\\OneDrive\\Desktop\\.NET Projects\\Technzone Practice\\Careem-Food-Angular-Flutter\\API\\API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Abdulrahman Al Najja\\Desktop\\.NET Projects\\Food Clone Angular + Flutter\\Careem-Food-Angular-Flutter\\API\\API.csproj": {
+    "C:\\Users\\x_sly\\OneDrive\\Desktop\\.NET Projects\\Technzone Practice\\Careem-Food-Angular-Flutter\\API\\API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Abdulrahman Al Najja\\Desktop\\.NET Projects\\Food Clone Angular + Flutter\\Careem-Food-Angular-Flutter\\API\\API.csproj",
+        "projectUniqueName": "C:\\Users\\x_sly\\OneDrive\\Desktop\\.NET Projects\\Technzone Practice\\Careem-Food-Angular-Flutter\\API\\API.csproj",
         "projectName": "API",
-        "projectPath": "C:\\Users\\Abdulrahman Al Najja\\Desktop\\.NET Projects\\Food Clone Angular + Flutter\\Careem-Food-Angular-Flutter\\API\\API.csproj",
-        "packagesPath": "C:\\Users\\Abdulrahman Al Najja\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Abdulrahman Al Najja\\Desktop\\.NET Projects\\Food Clone Angular + Flutter\\Careem-Food-Angular-Flutter\\API\\obj\\",
+        "projectPath": "C:\\Users\\x_sly\\OneDrive\\Desktop\\.NET Projects\\Technzone Practice\\Careem-Food-Angular-Flutter\\API\\API.csproj",
+        "packagesPath": "C:\\Users\\x_sly\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\x_sly\\OneDrive\\Desktop\\.NET Projects\\Technzone Practice\\Careem-Food-Angular-Flutter\\API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Abdulrahman Al Najja\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\x_sly\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -44,7 +44,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net9.0": {
@@ -112,7 +112,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

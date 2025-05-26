@@ -1,0 +1,54 @@
+<div class="address-list-container">
+  <h2>Your Addresses</h2>
+
+  <div *ngIf="isLoading" class="loading-spinner">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger" role="alert">
+    {{ error }}
+    <button type="button" class="btn-close" (click)="error = null" aria-label="Close"></button>
+  </div>
+  
+  <div *ngIf="!(addresses$ | async)?.length && !isLoading" class="no-addresses">
+    <p>You haven't added any addresses yet.</p>
+  </div>
+
+  <div class="address-cards" *ngIf="(addresses$ | async) as addresses">
+    <div *ngFor="let address of addresses" class="address-card" [class.default]="address.isDefault">
+      <div class="address-card-header">
+        <h3>{{ address.name }}</h3>
+        <div class="badge badge-primary" *ngIf="address.isDefault">Default</div>
+      </div>
+        <div class="address-card-body">
+        <p>{{ address.streetAddress }}</p>
+        <p>{{ address.city }}, {{ address.state }} {{ address.zipCode }}</p>
+        <p>{{ address.country }}</p>
+      </div>
+      
+      <div class="address-card-footer">
+        <button 
+          class="btn btn-sm btn-outline-primary" 
+          *ngIf="!address.isDefault" 
+          (click)="setDefaultAddress(address.id)"
+        >
+          Set as Default
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" [routerLink]="['/addresses', 'edit', address.id]">
+          Edit
+        </button>
+        <button class="btn btn-sm btn-outline-danger" (click)="deleteAddress(address.id)">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="add-address-button">
+    <button class="btn btn-primary" [routerLink]="['/addresses', 'new']">
+      Add New Address
+    </button>
+  </div>
+</div>

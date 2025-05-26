@@ -205,7 +205,7 @@ export class UsersComponent implements OnInit {
           this.users = response.data;
           this.filteredUsers = [...this.users];
         } else {
-          this.error = response.message || 'Failed to load users';
+          this.error = response.errorMessage || 'Failed to load users';
         }
         this.loading = false;
       },

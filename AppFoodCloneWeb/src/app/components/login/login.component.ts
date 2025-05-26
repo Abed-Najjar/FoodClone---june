@@ -62,7 +62,7 @@ export class LoginComponent implements OnInit {
             window.location.reload();
           });
         } else {
-          this.error = response.message || 'Login failed';
+          this.error = response.errorMessage || 'Login failed';
           this.loading = false;
         }
       },

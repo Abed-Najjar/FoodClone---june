@@ -49,7 +49,7 @@ export class RestaurantDetailComponent implements OnInit {
             return;
           }
         } else {
-          this.error = response.message;
+          this.error = response.errorMessage;
           this.loading = false;
         }
       },
@@ -68,7 +68,7 @@ export class RestaurantDetailComponent implements OnInit {
             this.activeCategory = this.categories[0].id;
           }
         } else {
-          console.warn('Failed to get categories:', response.message);
+          console.warn('Failed to get categories:', response.errorMessage);
         }
       },
       error: (err) => {
@@ -83,9 +83,9 @@ export class RestaurantDetailComponent implements OnInit {
           this.filterDishes();
           this.loading = false;
         } else {
-          this.error = response.message;
+          this.error = response.errorMessage;
           this.loading = false;
-          console.warn('Failed to get dishes:', response.message);
+          console.warn('Failed to get dishes:', response.errorMessage);
         }
       },
       error: (err) => {

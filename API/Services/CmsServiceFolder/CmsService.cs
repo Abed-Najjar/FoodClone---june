@@ -42,10 +42,8 @@ namespace API.Services.CmsServiceFolder
             if (restaurants == null || !restaurants.Any())
             {
                 return new AppResponse<List<RestaurantDto>>(null, "No restaurants found.", 200, false);
-            }
-            var restaurantDtos = restaurants.Select(r => new RestaurantDto
-            {
-                Id = r.Id,
+            }            var restaurantDtos = restaurants.Select(r => new RestaurantDto
+            {                Id = r.Id,
                 Name = r.Name,
                 Description = r.Description,
                 LogoUrl = r.LogoUrl,
@@ -55,7 +53,8 @@ namespace API.Services.CmsServiceFolder
                 Email = r.Email,
                 IsOpen = r.IsOpen,
                 Rating = r.Rating,
-
+                OpeningHours = r.OpeningHours,
+                ReviewCount = r.ReviewCount,
             }).ToList();
 
             return new AppResponse<List<RestaurantDto>>(restaurantDtos);
@@ -148,9 +147,7 @@ namespace API.Services.CmsServiceFolder
             }
 
             return new AppResponse<bool>(true, "Category deleted successfully.", 200, true);
-        }
-
-        public async Task<AppResponse<AdminRestaurantDto>> UpdateRestaurantAsync(int id, AdminRestaurantUpdateDto restaurantDto)
+        }        public async Task<AppResponse<AdminRestaurantDto>> UpdateRestaurantAsync(int id, AdminRestaurantUpdateDto restaurantDto)
         {
             var restaurant = await _cmsRepository.GetRestaurantByIdAsync(id);
             if (restaurant == null)
@@ -165,6 +162,10 @@ namespace API.Services.CmsServiceFolder
             restaurant.Address = restaurantDto.Address!;
             restaurant.PhoneNumber = restaurantDto.PhoneNumber!;
             restaurant.Email = restaurantDto.Email!;
+            if (restaurantDto.OpeningHours != null)
+            {
+                restaurant.OpeningHours = restaurantDto.OpeningHours;
+            }
 
             var updatedRestaurant = await _cmsRepository.UpdateRestaurantAsync(restaurant);
             if (updatedRestaurant == null)
@@ -500,15 +501,17 @@ namespace API.Services.CmsServiceFolder
 
             });
 
-        }
-
-        public async Task<AppResponse<AdminRestaurantDto>> UpdateRestaurantAsync(int id, AdminRestaurantDto restaurantDto)
+        }        public async Task<AppResponse<AdminRestaurantDto>> UpdateRestaurantAsync(int id, AdminRestaurantDto restaurantDto)
         {
+            _logger.LogInformation($"CmsService UpdateRestaurantAsync called with ID: {id}, Opening Hours: {restaurantDto.OpeningHours}");
+            
             var restaurant = await _cmsRepository.GetRestaurantByIdAsync(id);
             if (restaurant == null)
             {
                 return new AppResponse<AdminRestaurantDto>(null, "Restaurant not found.", 404, false);
             }
+
+            _logger.LogInformation($"Original restaurant OpeningHours: {restaurant.OpeningHours}");
 
             restaurant.Name = restaurantDto.Name!;
             restaurant.Description = restaurantDto.Description!;
@@ -516,7 +519,10 @@ namespace API.Services.CmsServiceFolder
             restaurant.CoverImageUrl = restaurantDto.CoverImageUrl!;
             restaurant.Address = restaurantDto.Address!;
             restaurant.PhoneNumber = restaurantDto.PhoneNumber!;
-            restaurant.Email = restaurantDto.Email!;
+            restaurant.Email = restaurantDto.Email!;            
+            restaurant.OpeningHours = restaurantDto.OpeningHours!;
+
+            _logger.LogInformation($"Before update, restaurant OpeningHours set to: {restaurant.OpeningHours}");
 
             var updatedRestaurant = await _cmsRepository.UpdateRestaurantAsync(restaurant);
             if (updatedRestaurant == null)
@@ -524,9 +530,10 @@ namespace API.Services.CmsServiceFolder
                 return new AppResponse<AdminRestaurantDto>(null, "Failed to update restaurant.", 500, false);
             }
 
+            _logger.LogInformation($"After update, restaurant OpeningHours is: {updatedRestaurant.OpeningHours}");
+
             return new AppResponse<AdminRestaurantDto>(new AdminRestaurantDto
-            {
-                Id = updatedRestaurant.Id,
+            {                Id = updatedRestaurant.Id,
                 Name = updatedRestaurant.Name,
                 Description = updatedRestaurant.Description,
                 LogoUrl = updatedRestaurant.LogoUrl,
@@ -536,6 +543,8 @@ namespace API.Services.CmsServiceFolder
                 Email = updatedRestaurant.Email,
                 IsOpen = updatedRestaurant.IsOpen,
                 Rating = updatedRestaurant.Rating,
+                OpeningHours = updatedRestaurant.OpeningHours,
+                ReviewCount = updatedRestaurant.ReviewCount
 
             });
         }

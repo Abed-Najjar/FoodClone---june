@@ -29,7 +29,6 @@ export class RestaurantsComponent implements OnInit {
   coverFile: File | null = null;
   logoPreviewUrl: string | null = null;
   coverPreviewUrl: string | null = null;
-
   constructor(
     private cmsService: CmsService,
     private fb: FormBuilder,
@@ -43,7 +42,8 @@ export class RestaurantsComponent implements OnInit {
       coverImageUrl: ['', Validators.required],
       address: ['', Validators.required],
       phoneNumber: [''],
-      openingHours: [''],
+      openingHoursFrom: ['09:00'],
+      openingHoursTo: ['22:00'],
       rating: [4.0, [Validators.required, Validators.min(0), Validators.max(5)]],
       reviewCount: [0],
       isOpen: [true],
@@ -54,7 +54,6 @@ export class RestaurantsComponent implements OnInit {
   ngOnInit() {
     this.loadRestaurants();
   }
-
   loadRestaurants() {
     this.loading = true;
     this.error = null;
@@ -62,10 +61,11 @@ export class RestaurantsComponent implements OnInit {
     this.cmsService.getAllRestaurants().subscribe({
       next: (response) => {
         if (response.success) {
+          console.log('Restaurants data from API:', response.data);
           this.restaurants = response.data;
           this.filteredRestaurants = [...this.restaurants];
         } else {
-          this.error = response.message || 'Failed to load restaurants';
+          this.error = response.errorMessage || 'Failed to load restaurants';
         }
         this.loading = false;
       },
@@ -99,10 +99,28 @@ export class RestaurantsComponent implements OnInit {
       isOpen: true
     });
     this.showForm = true;
-  }
-  editRestaurant(restaurant: Restaurant) {
+  }  editRestaurant(restaurant: Restaurant) {
     this.isEditing = true;
     this.currentRestaurantId = restaurant.id;
+    
+    console.log('Original restaurant opening hours:', restaurant.openingHours);
+    
+    // Parse opening hours string into from and to times
+    let openingHoursFrom = '09:00';
+    let openingHoursTo = '22:00';
+    
+    if (restaurant.openingHours) {
+      const hoursMatch = restaurant.openingHours.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/);
+      console.log('Regex match result:', hoursMatch);
+      if (hoursMatch && hoursMatch.length === 3) {
+        openingHoursFrom = hoursMatch[1];
+        openingHoursTo = hoursMatch[2];
+        console.log('Parsed opening hours - From:', openingHoursFrom, 'To:', openingHoursTo);
+      } else {
+        console.log('Failed to parse opening hours, using defaults');
+      }
+    }
+    
     this.restaurantForm.patchValue({
       name: restaurant.name,
       description: restaurant.description,
@@ -110,7 +128,8 @@ export class RestaurantsComponent implements OnInit {
       coverImageUrl: restaurant.coverImageUrl,
       address: restaurant.address,
       phoneNumber: restaurant.phoneNumber,
-      openingHours: restaurant.openingHours,
+      openingHoursFrom: openingHoursFrom,
+      openingHoursTo: openingHoursTo,
       rating: restaurant.rating,
       reviewCount: restaurant.reviewCount,
       isOpen: restaurant.isOpen,
@@ -141,9 +160,7 @@ export class RestaurantsComponent implements OnInit {
       reader.onload = (e: any) => this.coverPreviewUrl = e.target.result;
       reader.readAsDataURL(file);
     }
-  }
-
-  async saveRestaurant() {
+  }  async saveRestaurant() {
     if (this.restaurantForm.invalid) return;
     let logoUrl = this.restaurantForm.value.logoUrl;
     let coverImageUrl = this.restaurantForm.value.coverImageUrl;
@@ -170,23 +187,33 @@ export class RestaurantsComponent implements OnInit {
     }
 
     const formValue = this.restaurantForm.value;
-    const restaurantData = {
+      // Combine opening hours from and to times
+    const openingHoursFrom = formValue.openingHoursFrom || '09:00';
+    const openingHoursTo = formValue.openingHoursTo || '22:00';
+    const openingHours = `${openingHoursFrom} - ${openingHoursTo}`;
+    
+    console.log('Opening hours combined value:', openingHours);    const restaurantData = {
+      id: this.isEditing ? this.currentRestaurantId : 0,
       name: formValue.name,
       description: formValue.description,
       logoUrl,
       coverImageUrl,
       address: formValue.address,
       phoneNumber: formValue.phoneNumber || '',
-      openingHours: formValue.openingHours || '',
+      openingHours: openingHours,
       rating: formValue.rating,
       reviewCount: formValue.reviewCount || 0,
       isOpen: formValue.isOpen,
-      email: formValue.email
+      email: formValue.email,
+      categories: [],
+      deliveryFee: 0,
+      suspended: false
     };
-
-    if (this.isEditing && this.currentRestaurantId) {
+    
+    console.log('Restaurant data being sent to API:', restaurantData);    if (this.isEditing && this.currentRestaurantId) {
       this.cmsService.updateRestaurant(this.currentRestaurantId, restaurantData).subscribe({
         next: (response) => {
+          console.log('Update restaurant response:', response);
           if (response.success) {
             const index = this.restaurants.findIndex(r => r.id === this.currentRestaurantId);
             if (index !== -1) {
@@ -200,7 +227,7 @@ export class RestaurantsComponent implements OnInit {
             this.logoPreviewUrl = null;
             this.coverPreviewUrl = null;
           } else {
-            alert(response.message || 'Failed to update restaurant');
+            alert(response.errorMessage || 'Failed to update restaurant');
           }
         },
         error: (err) => {
@@ -221,7 +248,7 @@ export class RestaurantsComponent implements OnInit {
             this.logoPreviewUrl = null;
             this.coverPreviewUrl = null;
           } else {
-            alert(response.message || 'Failed to create restaurant');
+            alert(response.errorMessage || 'Failed to create restaurant');
           }
         },
         error: (err) => {
@@ -241,7 +268,7 @@ export class RestaurantsComponent implements OnInit {
             this.restaurants = this.restaurants.filter(r => r.id !== restaurant.id);
             this.filterRestaurants();
           } else {
-            alert(response.message || 'Failed to delete restaurant');
+            alert(response.errorMessage || 'Failed to delete restaurant');
           }
         },
         error: (err) => {

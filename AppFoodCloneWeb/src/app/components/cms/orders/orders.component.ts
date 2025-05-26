@@ -476,7 +476,7 @@ export class OrdersComponent implements OnInit {
           this.orders = response.data;
           this.filteredOrders = [...this.orders];
         } else {
-          this.error = response.message || 'Failed to load orders';
+          this.error = response.errorMessage || 'Failed to load orders';
         }
         this.loading = false;
       },

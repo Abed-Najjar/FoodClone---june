@@ -57,7 +57,7 @@ export class HomeComponent implements OnInit {
           this.featuredRestaurants = this.allRestaurants.slice(0, 8);
           this.loading = false;
         } else {
-          this.error = response.message;
+          this.error = response.errorMessage;
           this.loading = false;
         }      },
       error: (err) => {

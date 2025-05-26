@@ -48,7 +48,7 @@ export class AdminLoginComponent {
             this.authService.logout();
           }
         } else {
-          this.error = response.message || 'Login failed';
+          this.error = response.errorMessage || 'Login failed';
         }
         this.loading = false;
       },

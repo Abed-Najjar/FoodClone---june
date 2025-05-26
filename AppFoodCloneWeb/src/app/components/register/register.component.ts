@@ -102,8 +102,8 @@ export class RegisterComponent implements OnInit {
             window.location.reload();
           });
         } else {
-          this.error = response.message || 'Registration failed. No specific error message provided.';
-          console.error('Registration failed:', response.message || 'No specific error message provided.');
+          this.error = response.errorMessage || 'Registration failed. No specific error message provided.';
+          console.error('Registration failed:', response.errorMessage || 'No specific error message provided.');
           this.loading = false;
         }
       },
