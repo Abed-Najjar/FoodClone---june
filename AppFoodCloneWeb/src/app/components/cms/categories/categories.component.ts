@@ -44,32 +44,33 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
       restaurantId: ['', Validators.required]
     });
   }  ngOnInit() {
-
-
+    // Check for restaurant ID from query parameters first
     this.activeRoute.queryParams.subscribe((params) => {
       if (params['restaurantId']) {
-        this.loadRestaurants(parseInt(params['restaurantId']));
-      } else this.loadRestaurants();
-    })
+        this.selectedRestaurantId = parseInt(params['restaurantId']);
+        console.log('Restaurant ID from query params:', this.selectedRestaurantId);
 
+        // Load all restaurants first, then set the selected one
+        this.loadRestaurants();
+      } else {
+        // Check if we have a selected restaurant from localStorage
+        const storedRestaurantId = localStorage.getItem('selectedRestaurantId');
+        if (storedRestaurantId) {
+          this.selectedRestaurantId = parseInt(storedRestaurantId);
+          this.selectedRestaurantName = localStorage.getItem('selectedRestaurantName') || '';
+          console.log('Found selected restaurant from localStorage:', this.selectedRestaurantId, this.selectedRestaurantName);
+        }
 
-
-    // Check if we have a selected restaurant from localStorage
-    const storedRestaurantId = localStorage.getItem('selectedRestaurantId');
-    if (storedRestaurantId) {
-      this.selectedRestaurantId = parseInt(storedRestaurantId);
-      this.selectedRestaurantName = localStorage.getItem('selectedRestaurantName') || '';
-      console.log('Found selected restaurant:', this.selectedRestaurantId, this.selectedRestaurantName);
-    }
-
-    // First load restaurants, then categories to ensure we have restaurant names
-
+        // Load all restaurants
+        this.loadRestaurants();
+      }
+    });
 
     // Debug: Log form value changes
     this.categoryForm.valueChanges.subscribe(values => {
       console.log('Form values changed:', values);
     });
-  }  loadCategories() {
+  }loadCategories() {
     this.loading = true;
     this.error = null;
 
@@ -149,13 +150,22 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
         }
       });
     }
-  }
-  loadRestaurants(id?: number) {
-    this.cmsService.getAllRestaurants(id).subscribe({
+  }  loadRestaurants() {
+    this.cmsService.getAllRestaurants().subscribe({
       next: (response) => {
         if (response.success) {
           this.restaurants = response.data;
           console.log('Restaurants loaded successfully:', this.restaurants);
+
+          // If we have a selected restaurant ID, find and set the restaurant name
+          if (this.selectedRestaurantId) {
+            const selectedRestaurant = this.restaurants.find(r => r.id === this.selectedRestaurantId);
+            if (selectedRestaurant) {
+              this.selectedRestaurantName = selectedRestaurant.name;
+              console.log('Set selected restaurant name:', this.selectedRestaurantName);
+            }
+          }
+
           // Now load categories since we have restaurant data
           this.loadCategories();
         } else {
@@ -166,7 +176,7 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
         console.error('Error loading restaurants:', err);
       }
     });
-  }  filterCategories() {
+  }filterCategories() {
     // First apply restaurant filter if selected
     let filtered = [...this.categories];
 

@@ -163,32 +163,39 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
     }
 
     this.filteredDishes = filtered;
-  }
-  onRestaurantChange() {
+  }  onRestaurantChange() {
     const restaurantId = this.dishForm.get('restaurantId')?.value;
     if (restaurantId) {
-      // Show all categories regardless of restaurant
-      this.restaurantCategories = [...this.categories];
+      // Load categories specific to the selected restaurant
+      console.log(`Loading categories for restaurant ID: ${restaurantId}`);
+      this.cmsService.getCategoriesByRestaurant(parseInt(restaurantId)).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.restaurantCategories = response.data;
+            console.log(`Loaded ${this.restaurantCategories.length} categories for restaurant ID ${restaurantId}`);
 
-      // Reset category selection if the current selection doesn't exist
-      const currentCategoryId = this.dishForm.get('categoryId')?.value;
-      if (currentCategoryId) {
-        const categoryExists = this.categories.some(
-          category => category.id === parseInt(currentCategoryId)
-        );
-        if (!categoryExists) {
+            // Reset category selection since the available categories have changed
+            this.dishForm.patchValue({ categoryId: '' });
+          } else {
+            console.error('Failed to load categories for restaurant:', response.errorMessage);
+            this.restaurantCategories = [];
+            this.dishForm.patchValue({ categoryId: '' });
+          }
+        },
+        error: (err) => {
+          console.error('Error loading categories for restaurant:', err);
+          this.restaurantCategories = [];
           this.dishForm.patchValue({ categoryId: '' });
         }
-      }
+      });
     } else {
-      this.restaurantCategories = [...this.categories];
+      // No restaurant selected, clear categories
+      this.restaurantCategories = [];
       this.dishForm.patchValue({ categoryId: '' });
     }
   }  showAddForm() {
     this.isEditing = false;
     this.currentDishId = null;
-    // Always show all categories in the add form
-    this.restaurantCategories = [...this.categories];
 
     // Prepare form values, pre-select restaurant if one is filtered
     const formValues: any = {
@@ -199,19 +206,19 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
 
     this.dishForm.reset(formValues);
 
+    // Load categories based on pre-selected restaurant or clear categories
     if (this.selectedRestaurantId) {
-      this.onRestaurantChange(); // Update categories based on selected restaurant
+      this.onRestaurantChange(); // This will load categories for the selected restaurant
+    } else {
+      this.restaurantCategories = []; // No restaurant selected, no categories to show
     }
 
     this.showForm = true;
-  }
-  editDish(dish: any) {
+  }  editDish(dish: any) {
     this.isEditing = true;
     this.currentDishId = dish.id;
 
-    // Load all categories for the select dropdown
-    this.restaurantCategories = [...this.categories];
-
+    // Set form values first
     this.dishForm.patchValue({
       name: dish.name,
       description: dish.description,
@@ -219,8 +226,35 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
       price: dish.price,
       isAvailable: dish.isAvailable,
       restaurantId: dish.restaurantId.toString(),
-      categoryId: dish.categoryId.toString()
+      categoryId: dish.categoryId ? dish.categoryId.toString() : ''
     });
+
+    // Load categories for the dish's restaurant
+    if (dish.restaurantId) {
+      console.log(`Loading categories for editing dish in restaurant ID: ${dish.restaurantId}`);
+      this.cmsService.getCategoriesByRestaurant(dish.restaurantId).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.restaurantCategories = response.data;
+            console.log(`Loaded ${this.restaurantCategories.length} categories for restaurant ID ${dish.restaurantId}`);
+
+            // Re-set the category ID after loading categories
+            this.dishForm.patchValue({
+              categoryId: dish.categoryId ? dish.categoryId.toString() : ''
+            });
+          } else {
+            console.error('Failed to load categories for restaurant:', response.errorMessage);
+            this.restaurantCategories = [];
+          }
+        },
+        error: (err) => {
+          console.error('Error loading categories for restaurant:', err);
+          this.restaurantCategories = [];
+        }
+      });
+    } else {
+      this.restaurantCategories = [];
+    }
 
     this.showForm = true;
   }

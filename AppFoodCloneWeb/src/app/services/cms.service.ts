@@ -114,10 +114,9 @@ export class CmsService {
     // Using DishManagement controller endpoint which already exists
     return this.http.get<AppResponse<Dish[]>>(`${environment.apiUrl}/DishManagement/restaurant/dishes/${restaurantId}`);
   }
-
   // Restaurants
   getAllRestaurants(id?: number): Observable<AppResponse<Restaurant[]>> {
-    return this.http.get<AppResponse<Restaurant[]>>(`${this.baseUrl}/categories${id ? `/${id}` : ''}`);
+    return this.http.get<AppResponse<Restaurant[]>>(`${this.baseUrl}/restaurants${id ? `/${id}` : ''}`);
   }
 
   createRestaurant(restaurant: any): Observable<AppResponse<Restaurant>> {

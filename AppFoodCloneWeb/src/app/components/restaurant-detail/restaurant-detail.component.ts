@@ -64,9 +64,9 @@ export class RestaurantDetailComponent implements OnInit {
         console.log('Categories response:', response);
         if (response.success) {
           this.categories = response.data;
-          if (this.categories.length > 0) {
-            this.activeCategory = this.categories[0].id;
-          }
+          console.log('Loaded categories:', this.categories);
+          // Start with "All Items" view instead of pre-selecting first category
+          this.activeCategory = null;
         } else {
           console.warn('Failed to get categories:', response.errorMessage);
         }
@@ -80,6 +80,14 @@ export class RestaurantDetailComponent implements OnInit {
         console.log('Dishes response:', response);
         if (response.success) {
           this.dishes = response.data;
+          console.log('Loaded dishes:', this.dishes);
+
+          // Debug: Log category IDs in dishes vs available categories
+          const dishCategoryIds = [...new Set(this.dishes.map(d => d.categoryId))];
+          const availableCategoryIds = this.categories.map(c => c.id);
+          console.log('Dish category IDs:', dishCategoryIds);
+          console.log('Available category IDs:', availableCategoryIds);
+
           this.filterDishes();
           this.loading = false;
         } else {
@@ -96,16 +104,18 @@ export class RestaurantDetailComponent implements OnInit {
       }
     });
   }
-
   setActiveCategory(categoryId: number | null): void {
+    console.log('Setting active category to:', categoryId);
     this.activeCategory = categoryId;
     this.filterDishes();
-  }
-  filterDishes(): void {
+  }filterDishes(): void {
+    console.log('Filtering dishes, activeCategory:', this.activeCategory);
     if (this.activeCategory === null) {
       this.filteredDishes = this.dishes;
+      console.log('Showing all dishes:', this.filteredDishes.length);
     } else {
       this.filteredDishes = this.dishes.filter(dish => dish.categoryId === this.activeCategory);
+      console.log(`Showing dishes for category ${this.activeCategory}:`, this.filteredDishes.length);
     }
   }
 
@@ -118,8 +128,10 @@ export class RestaurantDetailComponent implements OnInit {
       this.cartService.addToCart(dish, 1);
     }
   }
-
-  getCategoryName(categoryId: number): string {
+  getCategoryName(categoryId: number | null): string {
+    if (categoryId === null) {
+      return 'Uncategorized';
+    }
     const category = this.categories.find(c => c.id === categoryId);
     return category ? category.name : 'Uncategorized';
   }
