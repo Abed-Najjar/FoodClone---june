@@ -210,14 +210,43 @@ export class CmsService {
     console.log('Request payload:', createDishDto);
 
     return this.http.post<AppResponse<Dish>>(dishManagementUrl, createDishDto);
+  }  updateDish(id: number, dish: Dish): Observable<AppResponse<Dish>> {
+    // Use the DishManagement controller endpoint
+    const dishManagementUrl = `${environment.apiUrl}/DishManagement/dishes/${id}`;
+    
+    // Format data to match the UpdateDishDto expected by the API
+    const updateDishDto = {
+      id: id, // Include the ID as required by UpdateDishDto
+      name: dish.name,
+      description: dish.description || '', // Ensure description is never null
+      price: dish.price,
+      imageUrl: dish.imageUrl,
+      restaurantId: dish.restaurantId, // Include restaurantId as required by UpdateDishDto
+      isAvailable: dish.isAvailable,
+      categoryId: dish.categoryId
+    };    console.log('Updating dish using endpoint:', dishManagementUrl);
+    console.log('Request payload:', updateDishDto);
+    console.log('Request payload JSON:', JSON.stringify(updateDishDto, null, 2));
+    
+    // Check if user is authenticated
+    const authService = this.http; // We'll inject AuthService separately if needed
+    console.log('Making authenticated request to update dish...');
+    return this.http.put<AppResponse<Dish>>(dishManagementUrl, updateDishDto).pipe(
+      catchError((error: any) => {
+        console.error('HTTP error in updateDish:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.message);
+        console.error('Error response body:', error.error);
+        console.error('Full error object:', JSON.stringify(error, null, 2));
+        throw error; // Re-throw so component can handle it
+      })
+    );
   }
-
-  updateDish(id: number, dish: Dish): Observable<AppResponse<Dish>> {
-    return this.http.put<AppResponse<Dish>>(`${this.baseUrl}/dishes/${id}`, dish);
-  }
-
   deleteDish(id: number): Observable<AppResponse<boolean>> {
-    return this.http.delete<AppResponse<boolean>>(`${this.baseUrl}/dishes/${id}`);
+    // Use the DishManagement controller endpoint
+    const dishManagementUrl = `${environment.apiUrl}/DishManagement/dishes/${id}`;
+    console.log('Deleting dish using endpoint:', dishManagementUrl);
+    return this.http.delete<AppResponse<boolean>>(dishManagementUrl);
   }
 
   // Users

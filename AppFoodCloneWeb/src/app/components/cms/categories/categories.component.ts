@@ -36,10 +36,9 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
     private imageUtil: ImageUtilService,
     private imageUploadService: ImageUploadService,
     private activeRoute: ActivatedRoute
-  ) {
-    this.categoryForm = this.fb.group({
+  ) {    this.categoryForm = this.fb.group({
       name: ['', Validators.required],
-      description: [''],
+      description: ['', Validators.required], // Make description required to match API expectations
       imageUrl: ['', Validators.required],
       restaurantId: ['', Validators.required]
     });
@@ -203,7 +202,7 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
     // Prepare form values, pre-select restaurant if one is filtered
     const formValues: any = {
       name: '',
-      description: '',
+      description: '', // Make sure description is initialized even if empty
       imageUrl: '',
       restaurantId: this.selectedRestaurantId ? this.selectedRestaurantId.toString() : ''
     };
@@ -270,7 +269,7 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
     this.currentCategoryId = null; // Clear the current category ID
     this.categoryForm.reset({
       name: '',
-      description: '',
+      description: '', // Make sure description is reset properly
       imageUrl: '',
       restaurantId: ''
     });
@@ -341,17 +340,29 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
     }
 
     const formValue = this.categoryForm.value;
-    console.log('Form values to be sent:', formValue);
+    console.log('Form values to be sent:', formValue);    // Ensure all required fields are present and correctly typed
+    // Make sure description is never empty since it's required on the server
+    if (!formValue.description) {
+      this.loading = false;
+      alert('Description is required. Please provide a description for the category.');
+      return;
+    }
 
-    // Ensure all required fields are present and correctly typed
     const categoryData: Category = {
       id: this.isEditing ? this.currentCategoryId! : 0,
       name: formValue.name || '',
-      description: formValue.description || '', // Make sure description is never undefined
+      description: formValue.description || '', // Make sure description is never empty
       imageUrl: formValue.imageUrl || '',
       restaurantId: parseInt(formValue.restaurantId) || 0,
       restaurantName: '' // Will be updated after creation/update
     };
+    
+    // Additional validation for required fields
+    if (!categoryData.name || !categoryData.description || !categoryData.imageUrl || !categoryData.restaurantId) {
+      this.loading = false;
+      alert('Please fill in all required fields.');
+      return;
+    }
 
     console.log('Category data prepared:', categoryData);
 

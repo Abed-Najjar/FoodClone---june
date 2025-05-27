@@ -1,9 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace API.DTOs
-{
-
-    public class DishDto
+{    public class DishDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -14,11 +12,11 @@ namespace API.DTOs
         public string RestaurantName { get; set; } = string.Empty;
         public int? CategoryId { get; set; }
         public string? CategoryName { get; set; }
+        public bool IsAvailable { get; set; } = true;
     }
 
 
-    
-    public class AdminRestaurantDishDto
+      public class AdminRestaurantDishDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -29,11 +27,10 @@ namespace API.DTOs
         public string RestaurantName { get; set; } = string.Empty;
         public int? CategoryId { get; set; }
         public string? CategoryName { get; set; }
+        public bool IsAvailable { get; set; } = true;
     }
 
-    
-
-    public class UserRestaurantDishesDto
+        public class UserRestaurantDishesDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -43,8 +40,8 @@ namespace API.DTOs
         public int RestaurantId { get; set; }
         public string RestaurantName { get; set; } = string.Empty;
         public int? CategoryId { get; set; }
+        public bool IsAvailable { get; set; } = true;
     }
-
     public class CreateDishDto
     {
         [Required]
@@ -66,9 +63,8 @@ namespace API.DTOs
         public int RestaurantId { get; set; }
 
         public int? CategoryId { get; set; }
-    }
-
-    public class UpdateDishDto
+        public bool IsAvailable { get; set; } = true;
+    }    public class UpdateDishDto
     {
         
         public int Id { get; set; }
@@ -82,5 +78,6 @@ namespace API.DTOs
         [Required]
         public int RestaurantId { get; set; }
         public int? CategoryId { get; set; }
+        public bool IsAvailable { get; set; } = true;
     }
 } 

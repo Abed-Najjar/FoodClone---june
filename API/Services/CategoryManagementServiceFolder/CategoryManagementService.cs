@@ -49,11 +49,10 @@ public class CategoryManagementService : ICategoryManagementService
             if (restaurant == null)
             {
                 return new AppResponse<CategoryDto>(null, "Restaurant not found", 404, false);
-            }
-
-            var category = new Category
+            }            var category = new Category
             {
                 Name = categoryDto.Name,
+                Description = categoryDto.Description,
                 ImageUrl = categoryDto.ImageUrl
             };
 
@@ -69,12 +68,11 @@ public class CategoryManagementService : ICategoryManagementService
             };
 
             await _context.RestaurantsCategories.AddAsync(restaurantCategory);
-            await _context.SaveChangesAsync();
-
-            var responseDto = new CategoryDto
+            await _context.SaveChangesAsync();            var responseDto = new CategoryDto
             {
                 Id = category.Id,
                 Name = category.Name,
+                Description = category.Description,
                 ImageUrl = category.ImageUrl,
                 RestaurantId = restaurant.Id,
                 RestaurantName = restaurant.Name
@@ -235,9 +233,8 @@ public class CategoryManagementService : ICategoryManagementService
             if (category == null)
             {
                 return new AppResponse<CategoryDto>(null, "Category not found", 404, false);
-            }
-
-            if (categoryDto.Name != null) category.Name = categoryDto.Name;
+            }            if (categoryDto.Name != null) category.Name = categoryDto.Name;
+            if (categoryDto.Description != null) category.Description = categoryDto.Description;
             if (categoryDto.ImageUrl != null) category.ImageUrl = categoryDto.ImageUrl;
 
             var restaurantCategory = await _context.RestaurantsCategories

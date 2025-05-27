@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { RestaurantService } from '../../services/restaurant.service';
 import { Restaurant } from '../../models/restaurant.model';
 import { Dish } from '../../models/dish.model';
@@ -10,7 +11,7 @@ import { CartService } from '../../services/cart.service';
 @Component({
   selector: 'app-restaurant-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './restaurant-detail.component.html',
   styleUrl: './restaurant-detail.component.css'
 })
@@ -23,6 +24,7 @@ export class RestaurantDetailComponent implements OnInit {
   error = '';
   activeCategory: number | null = null;
   filteredDishes: Dish[] = [];
+  showAvailableOnly = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -108,18 +110,31 @@ export class RestaurantDetailComponent implements OnInit {
     console.log('Setting active category to:', categoryId);
     this.activeCategory = categoryId;
     this.filterDishes();
-  }filterDishes(): void {
-    console.log('Filtering dishes, activeCategory:', this.activeCategory);
-    if (this.activeCategory === null) {
-      this.filteredDishes = this.dishes;
-      console.log('Showing all dishes:', this.filteredDishes.length);
-    } else {
-      this.filteredDishes = this.dishes.filter(dish => dish.categoryId === this.activeCategory);
-      console.log(`Showing dishes for category ${this.activeCategory}:`, this.filteredDishes.length);
+  }  filterDishes(): void {
+    console.log('Filtering dishes, activeCategory:', this.activeCategory, 'showAvailableOnly:', this.showAvailableOnly);
+    
+    let filtered = [...this.dishes];
+    
+    // Filter by category
+    if (this.activeCategory !== null) {
+      filtered = filtered.filter(dish => dish.categoryId === this.activeCategory);
     }
+    
+    // Filter by availability
+    if (this.showAvailableOnly) {
+      filtered = filtered.filter(dish => dish.isAvailable !== false); // Handle undefined as available
+    }
+    
+    this.filteredDishes = filtered;
+    console.log(`Showing ${this.filteredDishes.length} dishes after filtering`);
   }
-
   addToCart(dish: Dish): void {
+    // Check if dish is available
+    if (!dish.isAvailable) {
+      alert('This dish is currently unavailable and cannot be added to cart.');
+      return;
+    }
+
     const quantity = this.getQuantity(dish);
     if (quantity > 0) {
       this.cartService.addToCart(dish, quantity);

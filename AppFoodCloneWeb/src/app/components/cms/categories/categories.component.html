@@ -31,6 +31,14 @@
       </div>
 
       <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" formControlName="description" class="form-control" rows="3"></textarea>
+        <div *ngIf="categoryForm.get('description')?.errors && categoryForm.get('description')?.touched" class="error-message">
+          Description is required
+        </div>
+      </div>
+
+      <div class="form-group">
         <label for="imageUrl">Category Image</label>
         <input type="file" id="imageUrl" (change)="onFileSelected($event)" class="form-control" accept="image/*">
         <div *ngIf="imagePreview" class="image-preview-container" style="margin-top: 10px;">

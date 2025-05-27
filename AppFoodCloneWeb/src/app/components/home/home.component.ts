@@ -8,15 +8,6 @@ import { CartService } from '../../services/cart.service';
 import { Dish } from '../../models/dish.model';
 import { ImageUtilService } from '../../services/image-util.service';
 
-interface PopularDish {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  imageUrl: string;
-  restaurantId: number;
-}
-
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -28,22 +19,22 @@ export class HomeComponent implements OnInit {
   featuredRestaurants: Restaurant[] = [];
   allRestaurants: Restaurant[] = [];
   filteredRestaurants: Restaurant[] = [];
-  popularDishes: PopularDish[] = [];
+  popularDishes: Dish[] = [];
   loading = true;
+  dishesLoading = true;
   error = '';
+  dishesError = '';
   searchTerm = '';
   selectedCategory: string | null = null;
   heroImage: string = '';
-
   constructor(
     private restaurantService: RestaurantService,
     private cartService: CartService,
     private imageUtilService: ImageUtilService
   ) {}
-
   ngOnInit(): void {
     this.loadRestaurants();
-    this.generatePopularDishes();
+    this.loadPopularDishes();
     this.heroImage = this.getRandomHeroImage();
   }
 
@@ -110,35 +101,88 @@ export class HomeComponent implements OnInit {
     this.selectedCategory = null;
     this.filteredRestaurants = [...this.allRestaurants];
     this.featuredRestaurants = this.allRestaurants.slice(0, 8);
+  }  // Load popular dishes from the database
+  loadPopularDishes(): void {
+    this.dishesLoading = true;
+    
+    // First get all restaurants, then fetch dishes from each restaurant
+    this.restaurantService.getAllRestaurants().subscribe({
+      next: (restaurantsResponse) => {
+        if (restaurantsResponse.success && restaurantsResponse.data && restaurantsResponse.data.length > 0) {
+          this.loadDishesFromRestaurants(restaurantsResponse.data);
+        } else {
+          this.dishesError = 'No restaurants available to load dishes from';
+          this.dishesLoading = false;
+        }
+      },
+      error: (err) => {
+        this.dishesError = 'Failed to load restaurants for dishes. Please try again later.';
+        this.dishesLoading = false;
+        console.error('Error fetching restaurants for dishes:', err);
+      }
+    });
   }
 
-  // Generate mock popular dishes
-  generatePopularDishes(): void {
-    const dishNames = [
-      'Classic Cheeseburger', 'Fresh Garden Salad', 'Pepperoni Pizza', 'Spaghetti Bolognese',
-      'Grilled Salmon', 'Vegetarian Stir Fry', 'Chicken Teriyaki Bowl', 'Beef Tacos'
-    ];
+  // Load dishes from multiple restaurants
+  private loadDishesFromRestaurants(restaurants: Restaurant[]): void {
+    const allDishes: Dish[] = [];
+    let completedRequests = 0;
+    const totalRequests = Math.min(restaurants.length, 3); // Limit to first 3 restaurants for performance
 
-    const dishDescriptions = [
-      'Juicy beef patty with melted cheese and special sauce',
-      'Mix of fresh vegetables with our house vinaigrette',
-      'Classic pizza with pepperoni, cheese and our special sauce',
-      'Traditional pasta with rich meat sauce and parmesan',
-      'Fresh salmon filet with lemon herb sauce',
-      'Seasonal vegetables sautéed in teriyaki sauce',
-      'Grilled chicken with teriyaki glaze over steamed rice',
-      'Authentic corn tortillas filled with seasoned beef'
-    ];
+    if (totalRequests === 0) {
+      this.dishesError = 'No restaurants available';
+      this.dishesLoading = false;
+      return;
+    }
 
-    this.popularDishes = Array(8).fill(0).map((_, idx) => {
-      return {
-        id: idx + 1,
-        name: dishNames[idx % dishNames.length],
-        description: dishDescriptions[idx % dishDescriptions.length],
-        price: 6.99 + (idx * 2),
-        imageUrl: this.getRandomDishImage(),
-        restaurantId: (idx % 4) + 1
-      };
+    // Get dishes from first few restaurants
+    restaurants.slice(0, totalRequests).forEach(restaurant => {
+      this.restaurantService.getRestaurantDishes(restaurant.id).subscribe({
+        
+        next: (dishesResponse) => {
+          completedRequests++;            if (dishesResponse.success && dishesResponse.data) {            // Convert UserRestaurantDishesDto to Dish model
+            const convertedDishes: Dish[] = dishesResponse.data
+              .map(dish => ({
+                id: dish.id,
+                name: dish.name,
+                description: dish.description,
+                price: dish.price,
+                imageUrl: dish.imageUrl || this.imageUtilService.getRandomDishImage(),
+                restaurantId: restaurant.id,
+                restaurantName: restaurant.name,
+                categoryId: dish.categoryId,
+                isAvailable: dish.isAvailable, // Make sure this is preserved from the backend
+                restaurantLogoUrl: restaurant.logoUrl || this.getRestaurantLogoImage(restaurant)
+              }));
+            
+            allDishes.push(...convertedDishes);
+          }          // Check if all requests completed
+          if (completedRequests === totalRequests) {
+            // Only show available dishes
+            this.popularDishes = allDishes.slice(0, 8);
+            
+            this.dishesLoading = false;
+            
+            if (this.popularDishes.length === 0) {
+              this.dishesError = 'No available dishes at the moment';
+            }
+          }
+        },
+        error: (err) => {
+          completedRequests++;
+          console.error(`Error fetching dishes for restaurant ${restaurant.id}:`, err);
+            // Check if all requests completed (including failed ones)
+          if (completedRequests === totalRequests) {
+            if (allDishes.length > 0) {
+              this.popularDishes = allDishes.slice(0, 8);
+              this.dishesLoading = false;
+            } else {
+              this.dishesError = 'Failed to load available dishes from restaurants';
+              this.dishesLoading = false;
+            }
+          }
+        }
+      });
     });
   }
 
@@ -169,45 +213,24 @@ export class HomeComponent implements OnInit {
     return `https://images.unsplash.com/photo-${1594041680534 + restaurant.id * 10000}-e8c8cdebd659?w=200&q=80`;
   }
 
-  // Get a random dish image
-  getRandomDishImage(): string {
-    const dishImages = [
-      'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80',
-      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80',
-      'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80',
-      'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80',
-      'https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=600&q=80',
-      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&q=80',
-      'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80',
-      'https://images.unsplash.com/photo-1551782450-17144efb9c50?w=600&q=80',
-      'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?w=600&q=80',
-      'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600&q=80',
-      'https://images.unsplash.com/photo-1559742811-822873691df8?w=600&q=80',
-      'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&q=80',
-      'https://images.unsplash.com/photo-1569058242567-93de6f36f8e7?w=600&q=80',
-      'https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=600&q=80',
-      'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&q=80',
-      'https://images.unsplash.com/photo-1562967916-eb82221dfb92?w=600&q=80'
-    ];
-    return dishImages[Math.floor(Math.random() * dishImages.length)];
-  }
 
   // Add dish to cart
-  addToCart(dish: PopularDish): void {
+  addToCart(dish: Dish): void {
+    // Check if dish is available before adding to cart
+    if (!dish.isAvailable) {
+      alert(`${dish.name} is currently unavailable and cannot be added to cart.`);
+      return;
+    }
+    
     // Find a restaurant for this dish
     const restaurant = this.allRestaurants.find(r => r.id === dish.restaurantId) ||
-                      { id: dish.restaurantId, name: 'Restaurant ' + dish.restaurantId };
+                      { id: dish.restaurantId, name: dish.restaurantName || 'Restaurant ' + dish.restaurantId };
 
-    // Convert PopularDish to Dish model
+    // The dish already follows the Dish model, just ensure all required properties are present
     const cartDish: Dish = {
-      id: dish.id,
-      name: dish.name,
-      description: dish.description,
-      price: dish.price,
-      imageUrl: dish.imageUrl,
-      restaurantId: dish.restaurantId,
-      restaurantName: restaurant?.name || 'Restaurant',
-      categoryId: 1
+      ...dish,
+      restaurantName: dish.restaurantName || restaurant?.name || 'Restaurant',
+      isAvailable: dish.isAvailable // Keep the original availability status
     };
 
     // Add to cart with a quantity of 1

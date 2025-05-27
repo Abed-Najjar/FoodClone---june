@@ -65,7 +65,8 @@ namespace API.DTOs
         public string? Country { get; set; }
         public string? ZipCode { get; set; }
         public double? Latitude { get; set; }
-        public double? Longitude { get; set; }        public string? FormattedAddress { get; set; }
+        public double? Longitude { get; set; }
+        public string? FormattedAddress { get; set; }
         public bool? IsDefault { get; set; }
     }
 }

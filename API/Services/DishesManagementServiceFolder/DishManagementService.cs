@@ -36,9 +36,7 @@ public class DishManagementService : IDishManagementService
                 {
                     return new AppResponse<AdminRestaurantDishDto>(null, "Category not found", 404, false);
                 }
-            }
-
-            var dish = new Dish
+            }            var dish = new Dish
             {
                 Name = dishDto.Name,
                 Description = dishDto.Description,
@@ -46,13 +44,12 @@ public class DishManagementService : IDishManagementService
                 ImageUrl = dishDto.ImageUrl,
                 RestaurantId = dishDto.RestaurantId,
                 Restaurant = restaurant,
-                CategoryId = dishDto.CategoryId
+                CategoryId = dishDto.CategoryId,
+                IsAvailable = dishDto.IsAvailable
             };
 
             await _dishRepository.AddDishAsync(dish);
-            await _dishRepository.SaveChangesAsync();
-
-            var responseDto = new AdminRestaurantDishDto
+            await _dishRepository.SaveChangesAsync();            var responseDto = new AdminRestaurantDishDto
             {
                 Id = dish.Id,
                 Name = dish.Name,
@@ -62,7 +59,8 @@ public class DishManagementService : IDishManagementService
                 RestaurantId = dish.RestaurantId,
                 RestaurantName = restaurant.Name,
                 CategoryId = dish.CategoryId,
-                CategoryName = dish.Category?.Name
+                CategoryName = dish.Category?.Name,
+                IsAvailable = dish.IsAvailable
             };
 
             return new AppResponse<AdminRestaurantDishDto>(responseDto, "Dish created successfully", 201, true);
@@ -105,9 +103,7 @@ public class DishManagementService : IDishManagementService
             if (dish == null)
             {
                 return new AppResponse<AdminRestaurantDishDto>(null, "Dish not found", 404, false);
-            }
-
-            var dishDto = new AdminRestaurantDishDto
+            }            var dishDto = new AdminRestaurantDishDto
             {
                 Id = dish.Id,
                 Name = dish.Name,
@@ -117,7 +113,8 @@ public class DishManagementService : IDishManagementService
                 RestaurantId = dish.RestaurantId,
                 RestaurantName = dish.Restaurant.Name,
                 CategoryId = dish.CategoryId,
-                CategoryName = dish.Category?.Name
+                CategoryName = dish.Category?.Name,
+                IsAvailable = dish.IsAvailable
             };
 
             return new AppResponse<AdminRestaurantDishDto>(dishDto, "Dish retrieved successfully", 200, true);
@@ -126,9 +123,7 @@ public class DishManagementService : IDishManagementService
         {
             return new AppResponse<AdminRestaurantDishDto>(null, ex.Message, 500, false);
         }
-    }
-
-    public async Task<AppResponse<List<AdminRestaurantDishDto>>> GetDishesInRestaurant(int restaurantId)
+    }    public async Task<AppResponse<List<AdminRestaurantDishDto>>> GetDishesInRestaurant(int restaurantId)
     {
         try
         {
@@ -149,7 +144,8 @@ public class DishManagementService : IDishManagementService
                 RestaurantId = d.RestaurantId,
                 RestaurantName = d.Restaurant.Name,
                 CategoryId = d.CategoryId,
-                CategoryName = d.Category?.Name
+                CategoryName = d.Category?.Name,
+                IsAvailable = d.IsAvailable
             }).ToList();
 
             return new AppResponse<List<AdminRestaurantDishDto>>(dishDtos, "Dishes retrieved successfully", 200, true);
@@ -161,8 +157,7 @@ public class DishManagementService : IDishManagementService
     }
 
     public async Task<AppResponse<List<AdminRestaurantDishDto>>> GetDishesByCategory(int categoryId)
-    {
-        try
+    {        try
         {
             var dishes = await _dishRepository.GetDishesByCategoryIdAsync(categoryId);
 
@@ -181,7 +176,8 @@ public class DishManagementService : IDishManagementService
                 RestaurantId = d.RestaurantId,
                 RestaurantName = d.Restaurant.Name,
                 CategoryId = d.CategoryId,
-                CategoryName = d.Category?.Name
+                CategoryName = d.Category?.Name,
+                IsAvailable = d.IsAvailable
             }).ToList();
 
             return new AppResponse<List<AdminRestaurantDishDto>>(dishDtos, "Dishes retrieved successfully", 200, true);
@@ -192,8 +188,6 @@ public class DishManagementService : IDishManagementService
             return new AppResponse<List<AdminRestaurantDishDto>>(null, ex.Message, 500, false);
         }
     }
-
-
     public async Task<AppResponse<AdminRestaurantDishDto>> UpdateDish(int id, UpdateDishDto dishDto)
     {
         try
@@ -205,10 +199,23 @@ public class DishManagementService : IDishManagementService
                 return new AppResponse<AdminRestaurantDishDto>(null, "Dish not found", 404, false);
             }
 
+            // Validate restaurant exists if restaurantId is being changed
+            if (dishDto.RestaurantId != dish.RestaurantId)
+            {
+                var restaurant = await _restaurantRepository.GetRestaurantByIdAsync(dishDto.RestaurantId);
+                if (restaurant == null)
+                {
+                    return new AppResponse<AdminRestaurantDishDto>(null, "Restaurant not found", 404, false);
+                }
+                dish.RestaurantId = dishDto.RestaurantId;
+            }
+
             if (dishDto.Name != null) dish.Name = dishDto.Name;
             if (dishDto.Description != null) dish.Description = dishDto.Description;
             dish.Price = dishDto.Price;
             if (dishDto.ImageUrl != null) dish.ImageUrl = dishDto.ImageUrl;
+            dish.IsAvailable = dishDto.IsAvailable;
+            
             if (dishDto.CategoryId.HasValue)
             {
                 var category = await _categoryRepository.GetCategoryByIdAsync(dishDto.CategoryId.Value);
@@ -219,9 +226,7 @@ public class DishManagementService : IDishManagementService
                 dish.CategoryId = dishDto.CategoryId;
             }
 
-            await _dishRepository.SaveChangesAsync();
-
-            var responseDto = new AdminRestaurantDishDto
+            await _dishRepository.SaveChangesAsync();var responseDto = new AdminRestaurantDishDto
             {
                 Id = dish.Id,
                 Name = dish.Name,
@@ -231,7 +236,8 @@ public class DishManagementService : IDishManagementService
                 RestaurantId = dish.RestaurantId,
                 RestaurantName = dish.Restaurant.Name,
                 CategoryId = dish.CategoryId,
-                CategoryName = dish.Category?.Name
+                CategoryName = dish.Category?.Name,
+                IsAvailable = dish.IsAvailable
             };
 
             return new AppResponse<AdminRestaurantDishDto>(responseDto, "Dish updated successfully", 200, true);
@@ -252,9 +258,7 @@ public class DishManagementService : IDishManagementService
             if (!dishes.Any())
             {
                 return new AppResponse<List<DishDto>>(null, "No dishes found", 404, false);
-            }
-
-            var dishDtos = dishes.Select(d => new DishDto
+            }            var dishDtos = dishes.Select(d => new DishDto
             {
                 Id = d.Id,
                 Name = d.Name,
@@ -264,7 +268,8 @@ public class DishManagementService : IDishManagementService
                 RestaurantId = d.RestaurantId,
                 RestaurantName = d.Restaurant.Name,
                 CategoryId = d.CategoryId,
-                CategoryName = d.Category?.Name
+                CategoryName = d.Category?.Name,
+                IsAvailable = d.IsAvailable
             }).ToList();
 
             return new AppResponse<List<DishDto>>(dishDtos, "Dishes retrieved successfully", 200, true);

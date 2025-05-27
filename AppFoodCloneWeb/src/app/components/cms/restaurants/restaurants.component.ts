@@ -94,17 +94,25 @@ export class RestaurantsComponent implements OnInit {
       restaurant.description.toLowerCase().includes(term) ||
       restaurant.address.toLowerCase().includes(term)
     );
-  }
-  showAddForm() {
+  }  showAddForm() {
     this.isEditing = false;
     this.currentRestaurantId = null;
     this.restaurantForm.reset({
       rating: 4.0,
       reviewCount: 0,
-      isOpen: true
+      isOpen: true,
+      openingHoursFrom: '09:00',
+      openingHoursTo: '22:00'
     });
+    
+    // Clear file selections and previews
+    this.logoFile = null;
+    this.coverFile = null;
+    this.logoPreviewUrl = null;
+    this.coverPreviewUrl = null;
+    
     this.showForm = true;
-  } editRestaurant(restaurant: Restaurant) {
+  }editRestaurant(restaurant: Restaurant) {
     this.isEditing = true;
     this.currentRestaurantId = restaurant.id;
 
@@ -142,11 +150,16 @@ export class RestaurantsComponent implements OnInit {
     });
     this.showForm = true;
   }
-
   cancelForm() {
     this.showForm = false;
     this.restaurantForm.reset();
-  }  onLogoFileSelected(event: any) {
+    
+    // Clear file selections and previews
+    this.logoFile = null;
+    this.coverFile = null;
+    this.logoPreviewUrl = null;
+    this.coverPreviewUrl = null;
+  }onLogoFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
       this.logoFile = file;
@@ -171,10 +184,13 @@ export class RestaurantsComponent implements OnInit {
             alert('There was an error uploading your logo to the cloud storage, but you can still save the form.');
           }
         });
+      } else {
+        // For new restaurants, set a temporary placeholder value to satisfy form validation
+        this.restaurantForm.patchValue({ logoUrl: 'temp-logo-selected' });
+        console.log('Logo file selected for new restaurant, form validation updated');
       }
     }
   }
-
   onCoverFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
@@ -200,6 +216,10 @@ export class RestaurantsComponent implements OnInit {
             alert('There was an error uploading your cover image to the cloud storage, but you can still save the form.');
           }
         });
+      } else {
+        // For new restaurants, set a temporary placeholder value to satisfy form validation
+        this.restaurantForm.patchValue({ coverImageUrl: 'temp-cover-selected' });
+        console.log('Cover file selected for new restaurant, form validation updated');
       }
     }
   }async saveRestaurant() {

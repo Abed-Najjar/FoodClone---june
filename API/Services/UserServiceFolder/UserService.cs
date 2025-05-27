@@ -222,9 +222,7 @@ namespace API.Services.UserServiceFolder
                         200, 
                         true
                     );
-                }
-
-                var dishDtos = dishes.Select(d => new UserRestaurantDishesDto
+                }                var dishDtos = dishes.Select(d => new UserRestaurantDishesDto
                 {
                     Id = d.Id,
                     Name = d.Name,
@@ -234,6 +232,7 @@ namespace API.Services.UserServiceFolder
                     RestaurantId = d.RestaurantId,
                     RestaurantName = d.Restaurant.Name,
                     CategoryId = d.CategoryId,
+                    IsAvailable = d.IsAvailable,
                 }).ToList();
 
                 return new AppResponse<List<UserRestaurantDishesDto>>(dishDtos, "Dishes retrieved successfully", 200, true);

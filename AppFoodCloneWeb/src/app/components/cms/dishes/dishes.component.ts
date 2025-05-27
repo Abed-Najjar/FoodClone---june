@@ -42,13 +42,12 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
     private imageUploadService: ImageUploadService,
     private http: HttpClient,
     private authService: AuthService
-  ) {
-    this.dishForm = this.fb.group({
+  ) {    this.dishForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required],
       imageUrl: ['', Validators.required],
       price: [0, [Validators.required, Validators.min(0.01)]],
-      isAvailable: [true],
+      isAvailable: ['true'], // Initialize as string for select dropdown
       restaurantId: ['', Validators.required],
       categoryId: ['', Validators.required]
     });
@@ -195,12 +194,10 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
     }
   }  showAddForm() {
     this.isEditing = false;
-    this.currentDishId = null;
-
-    // Prepare form values, pre-select restaurant if one is filtered
+    this.currentDishId = null;    // Prepare form values, pre-select restaurant if one is filtered
     const formValues: any = {
       price: 0.01,
-      isAvailable: true,
+      isAvailable: 'true', // Set as string for the select dropdown
       restaurantId: this.selectedRestaurantId ? this.selectedRestaurantId.toString() : ''
     };
 
@@ -216,15 +213,13 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
     this.showForm = true;
   }  editDish(dish: any) {
     this.isEditing = true;
-    this.currentDishId = dish.id;
-
-    // Set form values first
+    this.currentDishId = dish.id;    // Set form values first
     this.dishForm.patchValue({
       name: dish.name,
       description: dish.description,
       imageUrl: dish.imageUrl,
       price: dish.price,
-      isAvailable: dish.isAvailable,
+      isAvailable: dish.isAvailable.toString(), // Convert boolean to string for the select
       restaurantId: dish.restaurantId.toString(),
       categoryId: dish.categoryId ? dish.categoryId.toString() : ''
     });
@@ -374,23 +369,24 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
       this.dishForm.get(key)?.markAsTouched();
     });
   }
-
   saveDish() {
     if (this.dishForm.invalid) return;
 
     // Check if user has admin role
+    const currentUser = this.authService.getCurrentUser();
+    console.log('Current user:', currentUser);
+    console.log('Is admin:', this.authService.isAdmin());
+    
     if (!this.authService.isAdmin()) {
       alert('You need to be logged in with an Admin account to perform this action.');
       return;
-    }
-
-    const formValue = this.dishForm.value;
+    }    const formValue = this.dishForm.value;
     const dishData = {
       name: formValue.name,
       description: formValue.description,
       imageUrl: formValue.imageUrl,
       price: parseFloat(formValue.price),
-      isAvailable: formValue.isAvailable,
+      isAvailable: formValue.isAvailable === 'true' || formValue.isAvailable === true, // Convert string to boolean
       restaurantId: parseInt(formValue.restaurantId),
       categoryId: parseInt(formValue.categoryId)
     };
@@ -424,11 +420,28 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
             this.restaurantCategories = [];
           } else {
             alert(response.errorMessage || 'Failed to update dish');
-          }
-        },
+          }        },
         error: (err) => {
           console.error('Error updating dish:', err);
-          alert('Error updating dish. Please try again.');
+          console.error('Error details:', {
+            status: err.status,
+            statusText: err.statusText,
+            message: err.message,
+            error: err.error
+          });
+          
+          let errorMessage = 'Error updating dish. Please try again.';
+          if (err.status === 401) {
+            errorMessage = 'Authentication failed. Please log in as an admin to update dishes.';
+          } else if (err.status === 403) {
+            errorMessage = 'Access denied. You need admin permissions to update dishes.';
+          } else if (err.status === 0) {
+            errorMessage = 'Cannot connect to server. Please check if the API is running.';
+          } else if (err.error && err.error.errorMessage) {
+            errorMessage = err.error.errorMessage;
+          }
+          
+          alert(errorMessage);
         }
       });
     } else {

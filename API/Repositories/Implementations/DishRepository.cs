@@ -87,9 +87,7 @@ public class DishRepository : IDishRepository
             .ToListAsync();
 
         return result;
-    }
-
-    public async Task<Dish> UpdateDishAsync(Dish dish)
+    }    public async Task<Dish> UpdateDishAsync(Dish dish)
     {
         var existingDish = await _context.Dishes.FindAsync(dish.Id);
         if (existingDish == null)
@@ -103,6 +101,7 @@ public class DishRepository : IDishRepository
         existingDish.ImageUrl = dish.ImageUrl;
         existingDish.RestaurantId = dish.RestaurantId;
         existingDish.CategoryId = dish.CategoryId;
+        existingDish.IsAvailable = dish.IsAvailable;
 
         return existingDish;
     }
