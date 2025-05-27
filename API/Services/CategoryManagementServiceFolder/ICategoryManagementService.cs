@@ -3,6 +3,7 @@ using API.DTOs;
 
 public interface ICategoryManagementService
 {
+    Task<AppResponse<List<CategoriesDto>>> GetAllCategoriesAsync(); // Added for CmsController
     Task<AppResponse<List<CategoryDto>>> GetCategories(int restaurantId);
     Task<AppResponse<CategoryDto>> GetCategoryById(int id);
     Task<AppResponse<CategoryDto>> GetCategoriesByRestaurantId(int restaurantId);

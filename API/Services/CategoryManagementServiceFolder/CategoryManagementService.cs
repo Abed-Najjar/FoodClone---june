@@ -13,6 +13,34 @@ public class CategoryManagementService : ICategoryManagementService
         _context = context;
     }
 
+    public async Task<AppResponse<List<CategoriesDto>>> GetAllCategoriesAsync()
+    {
+        try
+        {
+            var categories = await _context.Categories
+                .Select(c => new CategoriesDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    ImageUrl = c.ImageUrl,
+                    // RestaurantId and RestaurantName are not part of CategoriesDto
+                    // If these are needed, CategoriesDto should be updated or a different DTO used.
+                })
+                .ToListAsync();
+
+            if (!categories.Any())
+            {
+                return new AppResponse<List<CategoriesDto>>(null, "No categories found", 404, false);
+            }
+
+            return new AppResponse<List<CategoriesDto>>(categories, "Categories retrieved successfully", 200, true);
+        }
+        catch (Exception ex)
+        {
+            return new AppResponse<List<CategoriesDto>>(null, ex.Message, 500, false);
+        }
+    }
+
     public async Task<AppResponse<CategoryDto>> CreateCategory(CreateCategoryDto categoryDto)
     {
         try

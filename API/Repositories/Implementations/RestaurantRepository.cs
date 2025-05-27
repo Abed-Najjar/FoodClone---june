@@ -44,10 +44,14 @@ public class RestaurantRepository : IRestaurantRepository
             throw new Exception($"Restaurant with id {id} not found");
         }
         return result;
+    }    public Task<Restaurant> UpdateRestaurantAsync(Restaurant restaurant)
+    {
+        _context.Restaurants.Update(restaurant);
+        return Task.FromResult(restaurant);
     }
 
-    public Task<Restaurant> UpdateRestaurantAsync(Restaurant restaurant)
+    public async Task<bool> SaveChangesAsync()
     {
-        throw new NotImplementedException();
+        return await _context.SaveChangesAsync() > 0;
     }
 }

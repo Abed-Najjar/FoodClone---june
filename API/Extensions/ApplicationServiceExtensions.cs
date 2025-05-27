@@ -1,8 +1,10 @@
 using API.Data;
 using API.Repositories.Implementations;
 using API.Repositories.Interfaces;
+using API.Repositories.OrderRepositoryFolder; // Added
 using API.Services.Argon;
-using API.Services.CmsServiceFolder;
+using API.Services.CmsServiceFolder; // For CloudinaryService
+using API.Services.OrderServiceFolder; // Added
 using API.Services.TokenServiceFolder;
 using API.Services.TokenServiceFolder.AuthService;
 using API.Services.TokenServiceFolder.AuthServiceFolder;
@@ -34,28 +36,24 @@ namespace API.Extensions
             
             // Add Database Context
             services.AddDbContext<AppDbContext>(options =>
-                    options.UseSqlite(config.GetConnectionString("DefaultConnection")));
-
-            // Service Registration
+                    options.UseSqlite(config.GetConnectionString("DefaultConnection")));            // Service Registration
             services.AddScoped<ITokenService, TokenService>();
             services.AddHttpContextAccessor();
             services.AddScoped<IArgonHashing, ArgonHashing>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IDishManagementService, DishManagementService>();
             services.AddScoped<IOrderManagementService, OrderManagementService>();
+            services.AddScoped<IOrderService, OrderService>(); // Added
             services.AddScoped<IUserManagementService, UserManagementService>();
             services.AddScoped<IRestaurantManagement, RestaurantManagement>();
-            services.AddScoped<ICategoryManagementService, CategoryManagementService>();
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ICmsService, CmsService>();
+            services.AddScoped<ICategoryManagementService, CategoryManagementService>();            services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICloudinaryService, CloudinaryService>();
 
             // Register repositories
             services.AddScoped<IRestaurantRepository, RestaurantRepository>();
             services.AddScoped<IDishRepository, DishRepository>();
-            services.AddScoped<ICategoryRepository, CategoryRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<ICmsRepository, CmsRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>(); // Added
             
             return services;
         }

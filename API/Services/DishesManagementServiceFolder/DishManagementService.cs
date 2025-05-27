@@ -243,8 +243,38 @@ public class DishManagementService : IDishManagementService
 
     }
     
-    
+    public async Task<AppResponse<List<DishDto>>> GetAllDishesAsync()
+    {
+        try
+        {
+            var dishes = await _dishRepository.GetAllDishesWithIncludesAsync();
+
+            if (!dishes.Any())
+            {
+                return new AppResponse<List<DishDto>>(null, "No dishes found", 404, false);
+            }
+
+            var dishDtos = dishes.Select(d => new DishDto
+            {
+                Id = d.Id,
+                Name = d.Name,
+                Description = d.Description,
+                Price = d.Price,
+                ImageUrl = d.ImageUrl,
+                RestaurantId = d.RestaurantId,
+                RestaurantName = d.Restaurant.Name,
+                CategoryId = d.CategoryId,
+                CategoryName = d.Category?.Name
+            }).ToList();
+
+            return new AppResponse<List<DishDto>>(dishDtos, "Dishes retrieved successfully", 200, true);
+        }
+        catch (Exception ex)
+        {
+            return new AppResponse<List<DishDto>>(null, ex.Message, 500, false);
+        }
+    }
 }
 
-    
-        
+
+

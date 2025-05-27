@@ -1,5 +1,5 @@
 using API.DTOs;
-using API.Services.CmsServiceFolder;
+using API.Services.OrderServiceFolder; // Added
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using API.AppResponse;
@@ -11,120 +11,134 @@ namespace API.Controllers
     [Authorize(Roles = "Admin")]
     public class CmsController : ControllerBase
     {
-        private readonly ICmsService _cmsService;
+        // Remove ICmsService
+        // private readonly ICmsService _cmsService;
         private readonly ILogger<CmsController> _logger;
+        private readonly IRestaurantManagement _restaurantManagementService; // Added
+        private readonly IDishManagementService _dishManagementService; // Added
+        private readonly ICategoryManagementService _categoryManagementService; // Added
+        private readonly IUserManagementService _userManagementService; // Added
+        private readonly IOrderService _orderService; // Added
 
-        public CmsController(ICmsService cmsService, ILogger<CmsController> logger)
+
+        public CmsController(
+            ILogger<CmsController> logger,
+            IRestaurantManagement restaurantManagementService,
+            IDishManagementService dishManagementService,
+            ICategoryManagementService categoryManagementService,
+            IUserManagementService userManagementService,
+            IOrderService orderService) // Updated constructor
         {
-            _cmsService = cmsService;
             _logger = logger;
-        }
-
-        [HttpGet("categories")]
+            _restaurantManagementService = restaurantManagementService;
+            _dishManagementService = dishManagementService;
+            _categoryManagementService = categoryManagementService;
+            _userManagementService = userManagementService;
+            _orderService = orderService; // Added
+        }        [HttpGet("categories")]
         public async Task<AppResponse<List<CategoriesDto>>> GetAllCategories()
         {
-            return await _cmsService.GetAllCategoriesAsync();
+            return await _categoryManagementService.GetAllCategoriesAsync();
         }
 
         [HttpGet("categories/{restaurantId}")]
         public async Task<AppResponse<List<CategoryDto>>> GetCategories(int restaurantId)
         {
-            return await _cmsService.GetCategories(restaurantId);
+            return await _categoryManagementService.GetCategories(restaurantId);
         }
 
         [HttpGet("restaurants")]
-        public async Task<AppResponse<List<RestaurantDto>>> GetAllRestaurants()
+        public async Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurants() // Changed DTO to AdminRestaurantDto
         {
-            return await _cmsService.GetAllRestaurantsAsync();
-        }
-
-        [HttpGet("dishes")]
-        public async Task<AppResponse<List<AdminRestaurantDishDto>>> GetAllDishes()
+            return await _restaurantManagementService.GetAllRestaurants();
+        }        [HttpGet("dishes")]
+        public async Task<AppResponse<List<DishDto>>> GetAllDishes()
         {
-            return await _cmsService.GetAllDishesAsync();
+            return await _dishManagementService.GetAllDishesAsync();
         }
 
         [HttpGet("users")]
         public async Task<AppResponse<List<UserDto>>> GetAllUsers()
         {
-            return await _cmsService.GetAllUsersAsync();
+            return await _userManagementService.GetAllUsers();
         }
 
         [HttpGet("orders")]
         public async Task<AppResponse<List<OrderDto>>> GetAllOrders()
         {
-            return await _cmsService.GetAllOrdersAsync();
+            return await _orderService.GetAllOrdersAsync();
         }
 
         [HttpGet("orders/{id}")]
         public async Task<AppResponse<OrderDto>> GetOrderById(int id)
         {
-            return await _cmsService.GetOrderByIdAsync(id);
+            return await _orderService.GetOrderByIdAsync(id);
         }
 
         [HttpGet("orders/user/{userId}")]
         public async Task<AppResponse<List<OrderDto>>> GetOrdersByUser(int userId)
         {
-            return await _cmsService.GetOrdersByUserAsync(userId);
+            return await _orderService.GetOrdersByUserAsync(userId);
         }
 
         [HttpGet("orders/restaurant/{restaurantId}")]
         public async Task<AppResponse<List<OrderDto>>> GetOrdersByRestaurant(int restaurantId)
         {
-            return await _cmsService.GetOrdersByRestaurantAsync(restaurantId);
+            return await _orderService.GetOrdersByRestaurantAsync(restaurantId);
         }
 
         [HttpGet("orders/employee/{employeeId}")]
         public async Task<AppResponse<List<OrderDto>>> GetOrdersByEmployee(int employeeId)
         {
-            return await _cmsService.GetOrdersByEmployeeAsync(employeeId);
+            return await _orderService.GetOrdersByEmployeeAsync(employeeId);
         }
 
         [HttpPut("categories/{id}")]
-        public async Task<AppResponse<CategoryDto>> UpdateCategory(int id, [FromBody] CategoryDto categoryDto)
+        public async Task<AppResponse<CategoryDto>> UpdateCategory(int id, [FromBody] UpdateCategoryDto categoryDto) // Changed to UpdateCategoryDto
         {
             if (!ModelState.IsValid)
             {
                 return new AppResponse<CategoryDto>(null, "Invalid model state", 400, false);
             }
 
-            return await _cmsService.UpdateCategoryAsync(id, categoryDto);
+            return await _categoryManagementService.UpdateCategory(id, categoryDto);
         }
 
         [HttpDelete("categories/{id}")]
         public async Task<AppResponse<bool>> DeleteCategory(int id)
         {
-            return await _cmsService.DeleteCategoryAsync(id);
+            return await _categoryManagementService.DeleteCategory(id);
         }
 
         [HttpPost("restaurants")]
-        public async Task<AppResponse<AdminRestaurantDto>> CreateRestaurant([FromBody] AdminRestaurantCreateDto restaurantDto)
+        public async Task<AppResponse<AdminRestaurantDto>> CreateRestaurant([FromBody] RestaurantCreateDto restaurantDto) // Changed to RestaurantCreateDto
         {
             if (!ModelState.IsValid)
             {
                 return new AppResponse<AdminRestaurantDto>(null, "Invalid model state", 400, false);
             }
 
-            return await _cmsService.CreateRestaurantAsync(restaurantDto);
-        }        [HttpPut("restaurants/{id}")]
-        public async Task<AppResponse<AdminRestaurantDto>> UpdateRestaurant(int id, [FromBody] AdminRestaurantDto restaurantDto)
+            return await _restaurantManagementService.CreateRestaurant(restaurantDto);
+        }
+        
+        [HttpPut("restaurants/{id}")]
+        public async Task<AppResponse<AdminRestaurantDto>> UpdateRestaurant(int id, [FromBody] RestaurantUpdateDto restaurantDto) // Changed to RestaurantUpdateDto
         {
             if (!ModelState.IsValid)
             {
                 return new AppResponse<AdminRestaurantDto>(null, "Invalid model state", 400, false);
             }
-
-            _logger.LogInformation($"Updating restaurant with ID: {id}, Opening Hours: {restaurantDto.OpeningHours}");
-            return await _cmsService.UpdateRestaurantAsync(id, restaurantDto);
+            _logger.LogInformation($"Updating restaurant with ID: {id}"); // OpeningHours might not be in RestaurantUpdateDto
+            return await _restaurantManagementService.UpdateRestaurant(id, restaurantDto);
         }
 
         [HttpDelete("restaurants/{id}")]
-        public async Task<AppResponse<bool>> DeleteRestaurant(int id)
+        public async Task<AppResponse<AdminRestaurantDto>> DeleteRestaurant(int id) // Return type changed to match service
         {
-            return await _cmsService.DeleteRestaurantAsync(id);
+            return await _restaurantManagementService.DeleteRestaurant(id);
         }
 
-        [HttpPost("create-dish")]
+        [HttpPost("create-dish")] // Route kept for now, consider aligning with DishManagement controller
         public async Task<AppResponse<AdminRestaurantDishDto>> CreateDish([FromBody] CreateDishDto dishDto)
         {
             if (!ModelState.IsValid)
@@ -132,36 +146,36 @@ namespace API.Controllers
                 return new AppResponse<AdminRestaurantDishDto>(null, "Invalid model state", 400, false);
             }
 
-            return await _cmsService.CreateDishAsync(dishDto);
+            return await _dishManagementService.CreateDish(dishDto);
         }
 
         [HttpPut("dishes/{id}")]
-        public async Task<AppResponse<AdminRestaurantDishDto>> UpdateDish(int id, [FromBody] AdminRestaurantDishDto dishDto)
+        public async Task<AppResponse<AdminRestaurantDishDto>> UpdateDish(int id, [FromBody] UpdateDishDto dishDto) // Changed to UpdateDishDto
         {
             if (!ModelState.IsValid)
             {
                 return new AppResponse<AdminRestaurantDishDto>(null, "Invalid model state", 400, false);
             }
 
-            return await _cmsService.UpdateDishAsync(id, dishDto);
+            return await _dishManagementService.UpdateDish(id, dishDto);
         }
 
         [HttpDelete("dishes/{id}")]
         public async Task<AppResponse<bool>> DeleteDish(int id)
         {
-            return await _cmsService.DeleteDishAsync(id);
+            return await _dishManagementService.DeleteDish(id);
         }
 
         [HttpPut("orders/{id}/status")]
-        public async Task<AppResponse<bool>> UpdateOrderStatus(int id, [FromBody] string status)
+        public async Task<AppResponse<bool>> UpdateOrderStatus(int id, [FromBody] string status) // Consider a DTO for status
         {
-            return await _cmsService.UpdateOrderStatusAsync(id, status);
+            return await _orderService.UpdateOrderStatusAsync(id, status);
         }
 
         [HttpDelete("users/{id}")]
         public async Task<AppResponse<bool>> DeleteUser(int id)
         {
-            return await _cmsService.DeleteUserAsync(id);
+            return await _userManagementService.DeleteUser(id);
         }
     }
 }

@@ -79,6 +79,16 @@ public class DishRepository : IDishRepository
         return result;
     }
 
+    public async Task<List<Dish>> GetAllDishesWithIncludesAsync()
+    {
+        var result = await _context.Dishes
+            .Include(d => d.Restaurant)
+            .Include(d => d.Category)
+            .ToListAsync();
+
+        return result;
+    }
+
     public async Task<Dish> UpdateDishAsync(Dish dish)
     {
         var existingDish = await _context.Dishes.FindAsync(dish.Id);
