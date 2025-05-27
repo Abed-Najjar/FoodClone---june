@@ -146,14 +146,32 @@ export class RestaurantsComponent implements OnInit {
   cancelForm() {
     this.showForm = false;
     this.restaurantForm.reset();
-  }
-  onLogoFileSelected(event: any) {
+  }  onLogoFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
       this.logoFile = file;
       const reader = new FileReader();
       reader.onload = (e: any) => this.logoPreviewUrl = e.target.result;
       reader.readAsDataURL(file);
+
+      // If we're editing an existing restaurant, upload logo directly to Cloudinary
+      if (this.isEditing && this.currentRestaurantId) {
+        console.log('Uploading logo for existing restaurant:', this.currentRestaurantId);
+        this.imageUploadService.uploadRestaurantLogo(file, this.currentRestaurantId).subscribe({
+          next: (response) => {
+            console.log('Restaurant logo uploaded successfully:', response);
+            if (response.success && response.data) {
+              this.restaurantForm.patchValue({ logoUrl: response.data });
+              console.log('Form updated with restaurant logo Cloudinary URL');
+            }
+          },
+          error: (err) => {
+            console.error('Error uploading restaurant logo:', err);
+            // Don't invalidate the form, we can still save with the current preview
+            alert('There was an error uploading your logo to the cloud storage, but you can still save the form.');
+          }
+        });
+      }
     }
   }
 
@@ -164,30 +182,53 @@ export class RestaurantsComponent implements OnInit {
       const reader = new FileReader();
       reader.onload = (e: any) => this.coverPreviewUrl = e.target.result;
       reader.readAsDataURL(file);
+
+      // If we're editing an existing restaurant, upload cover directly to Cloudinary
+      if (this.isEditing && this.currentRestaurantId) {
+        console.log('Uploading cover for existing restaurant:', this.currentRestaurantId);
+        this.imageUploadService.uploadRestaurantCover(file, this.currentRestaurantId).subscribe({
+          next: (response) => {
+            console.log('Restaurant cover uploaded successfully:', response);
+            if (response.success && response.data) {
+              this.restaurantForm.patchValue({ coverImageUrl: response.data });
+              console.log('Form updated with restaurant cover Cloudinary URL');
+            }
+          },
+          error: (err) => {
+            console.error('Error uploading restaurant cover:', err);
+            // Don't invalidate the form, we can still save with the current preview
+            alert('There was an error uploading your cover image to the cloud storage, but you can still save the form.');
+          }
+        });
+      }
     }
-  } async saveRestaurant() {
+  }async saveRestaurant() {
     if (this.restaurantForm.invalid) return;
     let logoUrl = this.restaurantForm.value.logoUrl;
     let coverImageUrl = this.restaurantForm.value.coverImageUrl;
 
-    // Upload logo if a new file is selected
-    if (this.logoFile) {
-      try {
-        const res = await this.imageUploadService.uploadImage(this.logoFile).toPromise();
-        logoUrl = res?.url || logoUrl;
-      } catch (err) {
-        alert('Failed to upload logo image.');
-        return;
+    // For new restaurants, we need to upload images first using generic upload
+    // For existing restaurants, images should already be uploaded through the file selection methods
+    if (!this.isEditing) {
+      // Upload logo if a new file is selected
+      if (this.logoFile) {
+        try {
+          const res = await this.imageUploadService.uploadImage(this.logoFile).toPromise();
+          logoUrl = res?.url || logoUrl;
+        } catch (err) {
+          alert('Failed to upload logo image.');
+          return;
+        }
       }
-    }
-    // Upload cover if a new file is selected
-    if (this.coverFile) {
-      try {
-        const res = await this.imageUploadService.uploadImage(this.coverFile).toPromise();
-        coverImageUrl = res?.url || coverImageUrl;
-      } catch (err) {
-        alert('Failed to upload cover image.');
-        return;
+      // Upload cover if a new file is selected
+      if (this.coverFile) {
+        try {
+          const res = await this.imageUploadService.uploadImage(this.coverFile).toPromise();
+          coverImageUrl = res?.url || coverImageUrl;
+        } catch (err) {
+          alert('Failed to upload cover image.');
+          return;
+        }
       }
     }
 
@@ -240,14 +281,19 @@ export class RestaurantsComponent implements OnInit {
           alert('Error updating restaurant. Please try again.');
         }
       });
-    } else {
-      this.cmsService.createRestaurant(restaurantData).subscribe({
+    } else {      this.cmsService.createRestaurant(restaurantData).subscribe({
         next: (response) => {
           if (response.success) {
             this.restaurants.push(response.data);
             this.filterRestaurants();
             this.showForm = false;
             this.restaurantForm.reset();
+
+            // If there are images to upload, upload them to Cloudinary with the specific restaurant ID
+            if (this.logoFile || this.coverFile) {
+              this.updateNewRestaurantImages(response.data.id);
+            }
+
             this.logoFile = null;
             this.coverFile = null;
             this.logoPreviewUrl = null;
@@ -281,21 +327,16 @@ export class RestaurantsComponent implements OnInit {
         }
       });
     }
-  }
-  viewRestaurantCategories(restaurant: Restaurant) {
-
-
-    this.router.navigate(['/admin/dashboard'], {
-      queryParams: { restaurantId: restaurant.id }
-    });
-    this.navigationService.changeTab('categories');
-    return
-
+  }  viewRestaurantCategories(restaurant: Restaurant) {
     // Store the restaurant info in local storage
     localStorage.setItem('selectedRestaurantId', restaurant.id.toString());
     localStorage.setItem('selectedRestaurantName', restaurant.name);
 
-    // Switch to the categories tab using the navigation service
+    // Navigate to dashboard with restaurantId parameter and switch to categories tab
+    this.router.navigate(['/admin/dashboard'], {
+      queryParams: { restaurantId: restaurant.id }
+    });
+    this.navigationService.changeTab('categories');
   }
 
   viewRestaurantDishes(restaurant: Restaurant) {
@@ -305,5 +346,51 @@ export class RestaurantsComponent implements OnInit {
 
     // Switch to the dishes tab using the navigation service
     this.navigationService.changeTab('dishes');
+  }
+  // Helper method to update restaurant images after creation
+  private updateNewRestaurantImages(restaurantId: number): void {
+    // Update logo if selected
+    if (this.logoFile) {
+      console.log('Uploading logo for newly created restaurant:', restaurantId);
+      this.imageUploadService.uploadRestaurantLogo(this.logoFile, restaurantId).subscribe({
+        next: (response) => {
+          console.log('Logo updated for new restaurant:', response);
+          if (response && response.success) {
+            // Find the restaurant in the array and update its logoUrl
+            const restaurantIndex = this.restaurants.findIndex(r => r.id === restaurantId);
+            if (restaurantIndex !== -1) {
+              this.restaurants[restaurantIndex].logoUrl = response.data;
+              this.filterRestaurants();
+            }
+          }
+        },
+        error: (err) => {
+          console.error('Error updating logo for new restaurant:', err);
+          // Restaurant is already created, so we just log the error
+        }
+      });
+    }
+
+    // Update cover if selected
+    if (this.coverFile) {
+      console.log('Uploading cover for newly created restaurant:', restaurantId);
+      this.imageUploadService.uploadRestaurantCover(this.coverFile, restaurantId).subscribe({
+        next: (response) => {
+          console.log('Cover updated for new restaurant:', response);
+          if (response && response.success) {
+            // Find the restaurant in the array and update its coverImageUrl
+            const restaurantIndex = this.restaurants.findIndex(r => r.id === restaurantId);
+            if (restaurantIndex !== -1) {
+              this.restaurants[restaurantIndex].coverImageUrl = response.data;
+              this.filterRestaurants();
+            }
+          }
+        },
+        error: (err) => {
+          console.error('Error updating cover for new restaurant:', err);
+          // Restaurant is already created, so we just log the error
+        }
+      });
+    }
   }
 }

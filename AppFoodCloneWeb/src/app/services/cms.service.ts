@@ -103,6 +103,18 @@ export class CmsService {
     return this.http.delete<AppResponse<boolean>>(`${this.baseUrl}/categories/${id}`);
   }
 
+  // Method to get categories for a specific restaurant
+  getCategoriesByRestaurant(restaurantId: number): Observable<AppResponse<Category[]>> {
+    console.log(`Getting categories for restaurant ID: ${restaurantId}`);
+    return this.http.get<AppResponse<Category[]>>(`${this.baseUrl}/categories/${restaurantId}`);
+  }
+
+  getDishesByRestaurant(restaurantId: number): Observable<AppResponse<Dish[]>> {
+    console.log(`Getting dishes for restaurant ID: ${restaurantId}`);
+    // Using DishManagement controller endpoint which already exists
+    return this.http.get<AppResponse<Dish[]>>(`${environment.apiUrl}/DishManagement/restaurant/dishes/${restaurantId}`);
+  }
+
   // Restaurants
   getAllRestaurants(id?: number): Observable<AppResponse<Restaurant[]>> {
     return this.http.get<AppResponse<Restaurant[]>>(`${this.baseUrl}/categories${id ? `/${id}` : ''}`);

@@ -69,59 +69,86 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
     this.categoryForm.valueChanges.subscribe(values => {
       console.log('Form values changed:', values);
     });
-  }loadCategories() {
+  }  loadCategories() {
     this.loading = true;
     this.error = null;
 
-    this.cmsService.getAllCategories().subscribe({
-      next: (response) => {
-        if (response.success) {
-          // Ensure we have restaurant names
-          this.categories = response.data.map(category => {
-            // Find the restaurant name if available
-            const restaurant = this.restaurants.find(r => r.id === category.restaurantId);
-
-            // Debug output to help diagnose the issue
-            if (!category.restaurantId) {
-              console.log('Category without restaurantId:', category);
-            }
-
-            if (!category.description) {
-              console.log('Category without description:', category);
-            }
-
-            // Create a new object with guaranteed properties
-            return {
+    // If a restaurant ID is selected, use the filtered endpoint
+    if (this.selectedRestaurantId) {
+      console.log(`Loading categories for restaurant ID: ${this.selectedRestaurantId}`);
+      this.cmsService.getCategoriesByRestaurant(this.selectedRestaurantId).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.categories = response.data.map(category => ({
               ...category,
               description: category.description || '',
-              restaurantName: restaurant?.name || 'Unknown restaurant'
-            };
-          });
-
-          this.filteredCategories = [...this.categories];
-          console.log('Loaded categories with restaurant details:', this.categories);
-
-          // Debug the first few entries to see what we're working with
-          if (this.categories.length > 0) {
-            console.log('Sample category data:', {
-              id: this.categories[0].id,
-              name: this.categories[0].name,
-              description: this.categories[0].description,
-              restaurantId: this.categories[0].restaurantId,
-              restaurantName: this.categories[0].restaurantName
-            });
+              restaurantName: category.restaurantName || this.selectedRestaurantName || 'Unknown restaurant'
+            }));
+            this.filteredCategories = [...this.categories];
+            console.log(`Loaded ${this.categories.length} categories for restaurant ID ${this.selectedRestaurantId}`);
+          } else {
+            this.error = response.errorMessage || `Failed to load categories for restaurant ID: ${this.selectedRestaurantId}`;
           }
-        } else {
-          this.error = response.errorMessage || 'Failed to load categories';
+          this.loading = false;
+        },
+        error: (err) => {
+          this.error = `Error loading categories for restaurant ID: ${this.selectedRestaurantId}`;
+          this.loading = false;
+          console.error('Error loading categories by restaurant:', err);
         }
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = 'Error loading categories. Please try again.';
-        this.loading = false;
-        console.error('Error loading categories:', err);
-      }
-    });
+      });
+    } else {
+      // Otherwise load all categories
+      this.cmsService.getAllCategories().subscribe({
+        next: (response) => {
+          if (response.success) {
+            // Ensure we have restaurant names
+            this.categories = response.data.map(category => {
+              // Find the restaurant name if available
+              const restaurant = this.restaurants.find(r => r.id === category.restaurantId);
+
+              // Debug output to help diagnose the issue
+              if (!category.restaurantId) {
+                console.log('Category without restaurantId:', category);
+              }
+
+              if (!category.description) {
+                console.log('Category without description:', category);
+              }
+
+              // Create a new object with guaranteed properties
+              return {
+                ...category,
+                description: category.description || '',
+                restaurantName: restaurant?.name || 'Unknown restaurant'
+              };
+            });
+
+            this.filteredCategories = [...this.categories];
+            console.log('Loaded categories with restaurant details:', this.categories);
+
+            // Debug the first few entries to see what we're working with
+            if (this.categories.length > 0) {
+              console.log('Sample category data:', {
+                id: this.categories[0].id,
+                name: this.categories[0].name,
+                description: this.categories[0].description,
+                restaurantId: this.categories[0].restaurantId,
+                restaurantName: this.categories[0].restaurantName
+              });
+            }
+          } else {
+            this.error = response.errorMessage || 'Failed to load categories';
+          }
+          this.loading = false;
+        },
+        error: (err) => {
+          this.error = 'Error loading categories. Please try again.';
+          this.loading = false;
+          console.error('Error loading categories:', err);
+        }
+      });
+    }
   }
   loadRestaurants(id?: number) {
     this.cmsService.getAllRestaurants(id).subscribe({
@@ -424,12 +451,12 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
       });
     }
   }
-
   clearRestaurantFilter() {
     this.selectedRestaurantId = null;
     this.selectedRestaurantName = '';
     localStorage.removeItem('selectedRestaurantId');
     localStorage.removeItem('selectedRestaurantName');
-    this.filterCategories();
+    // Reload all categories when clearing the filter
+    this.loadRestaurants();
   }
 }

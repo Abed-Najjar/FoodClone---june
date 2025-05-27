@@ -66,27 +66,49 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
     this.loadRestaurants();
     this.loadCategories();
   }
-
   loadDishes() {
     this.loading = true;
     this.error = null;
 
-    this.cmsService.getAllDishes().subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.dishes = response.data;
-          this.filteredDishes = [...this.dishes];
-        } else {
-          this.error = response.errorMessage || 'Failed to load dishes';
+    // If a restaurant ID is selected, use the filtered endpoint
+    if (this.selectedRestaurantId) {
+      console.log(`Loading dishes for restaurant ID: ${this.selectedRestaurantId}`);
+      this.cmsService.getDishesByRestaurant(this.selectedRestaurantId).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.dishes = response.data;
+            this.filteredDishes = [...this.dishes];
+            console.log(`Loaded ${this.dishes.length} dishes for restaurant ID ${this.selectedRestaurantId}`);
+          } else {
+            this.error = response.errorMessage || `Failed to load dishes for restaurant ID: ${this.selectedRestaurantId}`;
+          }
+          this.loading = false;
+        },
+        error: (err) => {
+          this.error = `Error loading dishes for restaurant ID: ${this.selectedRestaurantId}`;
+          this.loading = false;
+          console.error('Error loading dishes by restaurant:', err);
         }
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = 'Error loading dishes. Please try again.';
-        this.loading = false;
-        console.error('Error loading dishes:', err);
-      }
-    });
+      });
+    } else {
+      // Otherwise load all dishes
+      this.cmsService.getAllDishes().subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.dishes = response.data;
+            this.filteredDishes = [...this.dishes];
+          } else {
+            this.error = response.errorMessage || 'Failed to load dishes';
+          }
+          this.loading = false;
+        },
+        error: (err) => {
+          this.error = 'Error loading dishes. Please try again.';
+          this.loading = false;
+          console.error('Error loading dishes:', err);
+        }
+      });
+    }
   }
 
   loadRestaurants() {
@@ -458,6 +480,7 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
     this.selectedRestaurantName = '';
     localStorage.removeItem('selectedRestaurantId');
     localStorage.removeItem('selectedRestaurantName');
-    this.filterDishes();
+    // Reload all dishes when clearing the filter
+    this.loadDishes();
   }
 }

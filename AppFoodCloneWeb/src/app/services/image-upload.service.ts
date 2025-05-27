@@ -26,9 +26,32 @@ export class ImageUploadService {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post<AppResponse<string>>(`${this.baseUrl}/api/cloudinary/upload-dish-image/${dishId}`, formData)
+    // Make sure we use the correct path
+    return this.http.post<AppResponse<string>>(`${this.baseUrl}/cloudinary/upload-dish-image/${dishId}`, formData)
       .pipe(
         tap(response => console.log('Dish image upload successful:', response)),
+        catchError(this.handleError)
+      );
+  }
+
+  uploadRestaurantLogo(file: File, restaurantId: number): Observable<AppResponse<string>> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<AppResponse<string>>(`${this.baseUrl}/cloudinary/upload-restaurant-logo/${restaurantId}`, formData)
+      .pipe(
+        tap(response => console.log('Restaurant logo upload successful:', response)),
+        catchError(this.handleError)
+      );
+  }
+
+  uploadRestaurantCover(file: File, restaurantId: number): Observable<AppResponse<string>> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<AppResponse<string>>(`${this.baseUrl}/cloudinary/upload-restaurant-cover/${restaurantId}`, formData)
+      .pipe(
+        tap(response => console.log('Restaurant cover upload successful:', response)),
         catchError(this.handleError)
       );
   }
