@@ -11,8 +11,8 @@ namespace API.Controllers
     [Authorize(Roles = "Admin")]
     public class CmsController : ControllerBase
     {
-        // Remove ICmsService
-        // private readonly ICmsService _cmsService;
+
+        
         private readonly ILogger<CmsController> _logger;
         private readonly IRestaurantManagement _restaurantManagementService; // Added
         private readonly IDishManagementService _dishManagementService; // Added
@@ -27,15 +27,17 @@ namespace API.Controllers
             IDishManagementService dishManagementService,
             ICategoryManagementService categoryManagementService,
             IUserManagementService userManagementService,
-            IOrderService orderService) // Updated constructor
+            IOrderService orderService) 
         {
             _logger = logger;
             _restaurantManagementService = restaurantManagementService;
             _dishManagementService = dishManagementService;
             _categoryManagementService = categoryManagementService;
             _userManagementService = userManagementService;
-            _orderService = orderService; // Added
-        }        [HttpGet("categories")]
+            _orderService = orderService; 
+        }
+
+        [HttpGet("categories")]
         public async Task<AppResponse<List<CategoriesDto>>> GetAllCategories()
         {
             return await _categoryManagementService.GetAllCategoriesAsync();
@@ -48,10 +50,12 @@ namespace API.Controllers
         }
 
         [HttpGet("restaurants")]
-        public async Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurants() // Changed DTO to AdminRestaurantDto
+        public async Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurants()
         {
             return await _restaurantManagementService.GetAllRestaurants();
-        }        [HttpGet("dishes")]
+        }
+
+        [HttpGet("dishes")]
         public async Task<AppResponse<List<DishDto>>> GetAllDishes()
         {
             return await _dishManagementService.GetAllDishesAsync();

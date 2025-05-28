@@ -1,8 +1,5 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using Microsoft.Extensions.Configuration;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 
 namespace API.Services.CmsServiceFolder
 {

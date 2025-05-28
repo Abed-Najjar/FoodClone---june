@@ -113,22 +113,21 @@ export class CmsService {
     console.log(`Getting dishes for restaurant ID: ${restaurantId}`);
     // Using DishManagement controller endpoint which already exists
     return this.http.get<AppResponse<Dish[]>>(`${environment.apiUrl}/DishManagement/restaurant/dishes/${restaurantId}`);
-  }
-  // Restaurants
+  }  // Restaurants
   getAllRestaurants(id?: number): Observable<AppResponse<Restaurant[]>> {
-    return this.http.get<AppResponse<Restaurant[]>>(`${this.baseUrl}/restaurants${id ? `/${id}` : ''}`);
+    return this.http.get<AppResponse<Restaurant[]>>(`${environment.apiUrl}/RestaurantManagement${id ? `/get/${id}` : '/getAll'}`);
   }
 
   createRestaurant(restaurant: any): Observable<AppResponse<Restaurant>> {
-    return this.http.post<AppResponse<Restaurant>>(`${this.baseUrl}/restaurants`, restaurant);
+    return this.http.post<AppResponse<Restaurant>>(`${environment.apiUrl}/RestaurantManagement/create`, restaurant);
   }
   updateRestaurant(id: number, restaurant: any): Observable<AppResponse<Restaurant>> {
-    console.log(`Sending update to: ${this.baseUrl}/restaurants/${id}`);
+    console.log(`Sending update to: ${environment.apiUrl}/RestaurantManagement/update/${id}`);
     console.log('Request data:', restaurant);
-    return this.http.put<AppResponse<Restaurant>>(`${this.baseUrl}/restaurants/${id}`, restaurant);
+    return this.http.put<AppResponse<Restaurant>>(`${environment.apiUrl}/RestaurantManagement/update/${id}`, restaurant);
   }
   deleteRestaurant(id: number): Observable<AppResponse<boolean>> {
-    return this.http.delete<AppResponse<boolean>>(`${this.baseUrl}/restaurants/${id}`);
+    return this.http.delete<AppResponse<boolean>>(`${environment.apiUrl}/RestaurantManagement/delete/${id}`);
   }
 
   // Dishes

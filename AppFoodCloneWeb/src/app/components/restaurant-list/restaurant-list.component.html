@@ -27,9 +27,9 @@
             <li><a class="dropdown-item" href="#">Name: A-Z</a></li>
             <li><a class="dropdown-item" href="#">Name: Z-A</a></li>
           </ul>
-        </div>
-        <div class="form-check form-switch mt-2">
-          <input class="form-check-input" type="checkbox" id="openOnly">
+        </div>        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" id="openOnly" 
+                 [(ngModel)]="showOpenOnly">
           <label class="form-check-label" for="openOnly">Open now</label>
         </div>
       </div>
@@ -46,10 +46,8 @@
 
     <div *ngIf="error" class="col-12">
       <div class="alert alert-danger">{{ error }}</div>
-    </div>
-
-    <div *ngFor="let restaurant of filteredRestaurants" class="col-md-6 col-xl-4 mb-4">
-      <div class="card h-100 restaurant-card">
+    </div>    <div *ngFor="let restaurant of filteredRestaurants" class="col-md-6 col-xl-4 mb-4">
+      <div class="card h-100 restaurant-card" [ngClass]="{'closed': !restaurant.isOpen}">
         <div class="restaurant-card-header">
           <!-- Use the larger range of restaurant cover images with fallback to placeholder -->
           <img [src]="restaurant.coverImageUrl || 'https://images.unsplash.com/photo-' + (1517248135467 + restaurant.id * 10000) + '-4c7edcad34c4?w=800&q=80'"
@@ -79,11 +77,16 @@
             <span class="badge bg-light text-dark me-1">Fast Food</span>
             <span class="badge bg-light text-dark me-1">Delivery</span>
             <span *ngIf="restaurant.id % 2 === 0" class="badge bg-light text-dark">Pickup</span>
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center">
+          </div>          <div class="d-flex justify-content-between align-items-center">
             <small class="text-muted">{{ restaurant.openingHours }}</small>
-            <a [routerLink]="['/restaurants', restaurant.id]" class="btn btn-sm btn-primary">View Menu</a>
+            <a [routerLink]="['/restaurants', restaurant.id]" 
+               class="btn btn-sm"
+               [ngClass]="restaurant.isOpen ? 'btn-primary' : 'btn-secondary'"
+               [class.disabled]="!restaurant.isOpen"
+               [attr.aria-disabled]="!restaurant.isOpen"
+               [style.pointer-events]="!restaurant.isOpen ? 'none' : 'auto'">
+              {{ restaurant.isOpen ? 'View Menu' : 'Closed' }}
+            </a>
           </div>
         </div>
       </div>

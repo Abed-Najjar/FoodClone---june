@@ -1,11 +1,7 @@
-using System;
 using API.Data;
 using API.Models;
 using API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace API.Repositories.Implementations;
 
@@ -16,6 +12,7 @@ public class CategoryRepository : ICategoryRepository
     {
         _context = context;
     }
+    
     public async Task<Category> GetCategoryByIdAsync(int id)
     {
         var result = await _context.Categories.FindAsync(id);
@@ -31,27 +28,27 @@ public class CategoryRepository : ICategoryRepository
         return await _context.Categories.Include(c => c.Dishes).ToListAsync();
     }
 
-    public async Task<List<Category>> GetCategoriesByRestaurantAsync(int restaurantId)
+    public async Task<List<Category>> GetAllCategoriesAsync()
+    {
+        return await _context.Categories.ToListAsync();
+    }    public async Task<List<Category>> GetCategoriesByRestaurantAsync(int restaurantId)
     {
         return await _context.RestaurantsCategories
             .Where(rc => rc.RestaurantId == restaurantId)
+            .Include(rc => rc.Category)
+            .ThenInclude(c => c.Dishes)
             .Select(rc => rc.Category)
-            .Include(c => c.Dishes)
             .ToListAsync();
     }
 
     public async Task<Category> CreateCategoryAsync(Category category)
     {
         await _context.Categories.AddAsync(category);
-        await _context.SaveChangesAsync();
         return category;
-    }
-
-    public async Task<Category> UpdateCategoryAsync(Category category)
+    }    public Task<Category> UpdateCategoryAsync(Category category)
     {
         _context.Categories.Update(category);
-        await _context.SaveChangesAsync();
-        return category;
+        return Task.FromResult(category);
     }
 
     public async Task<bool> DeleteCategoryAsync(int id)
@@ -62,6 +59,35 @@ public class CategoryRepository : ICategoryRepository
             return false;
         }
         _context.Categories.Remove(category);
-        return await _context.SaveChangesAsync() > 0;
+        return true;
+    }
+
+    public async Task<Category?> FindAsync(int id)
+    {
+        return await _context.Categories.FindAsync(id);
+    }
+
+    public async Task<RestaurantsCategories> CreateRestaurantCategoryAsync(RestaurantsCategories restaurantCategory)
+    {
+        await _context.RestaurantsCategories.AddAsync(restaurantCategory);
+        return restaurantCategory;
+    }
+
+    public async Task<List<RestaurantsCategories>> GetRestaurantCategoriesByCategoryIdAsync(int categoryId)
+    {
+        return await _context.RestaurantsCategories
+            .Where(rc => rc.CategoryId == categoryId)
+            .ToListAsync();
+    }
+
+    public Task DeleteRestaurantCategoriesAsync(List<RestaurantsCategories> restaurantCategories)
+    {
+        _context.RestaurantsCategories.RemoveRange(restaurantCategories);
+        return Task.CompletedTask;
+    }
+
+    public async Task<Restaurant?> FindRestaurantAsync(int restaurantId)
+    {
+        return await _context.Restaurants.FindAsync(restaurantId);
     }
 }

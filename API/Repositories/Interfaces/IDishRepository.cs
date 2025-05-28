@@ -6,17 +6,13 @@ namespace API.Repositories.Interfaces
     {
         Task<Dish> AddDishAsync(Dish dish);
         Task<Dish> GetDishByIdAsync(int id);
-        Task<List<Dish>> GetDisheshByRestaurantIdAsync(int restaurantId);
+        Task<List<Dish>> GetDishesByRestaurantIdAsync(int restaurantId);
         Task<List<Dish>> GetDishesByCategoryIdAsync(int categoryId);
         Task<Dish> GetDishByIdWithIncludesAsync(int id);
-        Task<List<Dish>> GetAllDishesWithIncludesAsync(); // Added method
+        Task<List<Dish>> GetAllDishesWithIncludesAsync();
         Task<Dish> UpdateDishAsync(Dish dish);
         Task<Dish> DeleteDishAsync(int id);
-        Task<bool> SaveChangesAsync();
-        
-
-
+        Task<Dish?> FindAsync(int id);
+        Task<List<Dish>> GetAllDishesAsync();
     }
-
-    
 }

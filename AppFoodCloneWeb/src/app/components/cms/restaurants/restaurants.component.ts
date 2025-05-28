@@ -39,8 +39,7 @@ export class RestaurantsComponent implements OnInit {
     private imageUtil: ImageUtilService,
     private imageUploadService: ImageUploadService,
     private navigationService: CmsNavigationService
-  ) {
-    this.restaurantForm = this.fb.group({
+  ) {    this.restaurantForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required],
       logoUrl: ['', Validators.required],
@@ -51,7 +50,7 @@ export class RestaurantsComponent implements OnInit {
       openingHoursTo: ['22:00'],
       rating: [4.0, [Validators.required, Validators.min(0), Validators.max(5)]],
       reviewCount: [0],
-      isOpen: [true],
+      isOpen: ['true'], // Initialize as string to match select options
       email: ['', [Validators.required, Validators.email]]
     });
   }
@@ -100,7 +99,7 @@ export class RestaurantsComponent implements OnInit {
     this.restaurantForm.reset({
       rating: 4.0,
       reviewCount: 0,
-      isOpen: true,
+      isOpen: 'true', // Set as string to match select options
       openingHoursFrom: '09:00',
       openingHoursTo: '22:00'
     });
@@ -132,9 +131,7 @@ export class RestaurantsComponent implements OnInit {
       } else {
         console.log('Failed to parse opening hours, using defaults');
       }
-    }
-
-    this.restaurantForm.patchValue({
+    }    this.restaurantForm.patchValue({
       name: restaurant.name,
       description: restaurant.description,
       logoUrl: restaurant.logoUrl,
@@ -145,7 +142,7 @@ export class RestaurantsComponent implements OnInit {
       openingHoursTo: openingHoursTo,
       rating: restaurant.rating,
       reviewCount: restaurant.reviewCount,
-      isOpen: restaurant.isOpen,
+      isOpen: restaurant.isOpen.toString(), // Convert boolean to string for select
       email: restaurant.email
     });
     this.showForm = true;
@@ -258,7 +255,7 @@ export class RestaurantsComponent implements OnInit {
     const openingHoursTo = formValue.openingHoursTo || '22:00';
     const openingHours = `${openingHoursFrom} - ${openingHoursTo}`;
 
-    console.log('Opening hours combined value:', openingHours); const restaurantData = {
+    console.log('Opening hours combined value:', openingHours);    const restaurantData = {
       id: this.isEditing ? this.currentRestaurantId : 0,
       name: formValue.name,
       description: formValue.description,
@@ -269,7 +266,7 @@ export class RestaurantsComponent implements OnInit {
       openingHours: openingHours,
       rating: formValue.rating,
       reviewCount: formValue.reviewCount || 0,
-      isOpen: formValue.isOpen,
+      isOpen: formValue.isOpen === 'true' || formValue.isOpen === true, // Convert string to boolean
       email: formValue.email,
       categories: [],
       deliveryFee: 0,

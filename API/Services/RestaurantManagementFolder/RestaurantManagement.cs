@@ -1,20 +1,16 @@
 using API.AppResponse;
-using API.Data;
 using API.DTOs;
 using API.Models;
-using API.Repositories.Interfaces;
+using API.UoW;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 public class RestaurantManagement : IRestaurantManagement
 {
-    private readonly IRestaurantRepository _restaurantRepository;
-    private readonly AppDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public RestaurantManagement(AppDbContext context, IRestaurantRepository restaurantRepository)
+    public RestaurantManagement(IUnitOfWork unitOfWork)
     {
-        _restaurantRepository = restaurantRepository;
-        _context = context;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<AppResponse<AdminRestaurantDto>> CreateRestaurant([FromBody] RestaurantCreateDto dto)
@@ -38,8 +34,8 @@ public class RestaurantManagement : IRestaurantManagement
                 OpeningHours = dto.OpeningHours,
             };
 
-            await _restaurantRepository.CreateRestaurantAsync(restaurant);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.RestaurantRepository.CreateRestaurantAsync(restaurant);
+            await _unitOfWork.CompleteAsync();
 
             var AdminRestaurantDto = new AdminRestaurantDto
             {
@@ -48,7 +44,7 @@ public class RestaurantManagement : IRestaurantManagement
                 Description = restaurant.Description,
                 LogoUrl = restaurant.LogoUrl,
                 CoverImageUrl = restaurant.CoverImageUrl,
-                Categories = restaurant.Categories.Select(c => c.Name).ToList(),
+                Categories = restaurant.Categories?.Select(c => c.Name).ToList() ?? new List<string>(),
                 Address = restaurant.Address,
                 PhoneNumber = restaurant.PhoneNumber,
                 Email = restaurant.Email,
@@ -72,9 +68,7 @@ public class RestaurantManagement : IRestaurantManagement
     {
         try
         {
-            var restaurant = await _context.Restaurants
-                .Include(r => r.Categories)
-                .FirstOrDefaultAsync(r => r.Id == id);
+            var restaurant = await _unitOfWork.RestaurantRepository.GetRestaurantWithCategoriesAsync(id);
 
             if (restaurant == null)
             {
@@ -89,7 +83,7 @@ public class RestaurantManagement : IRestaurantManagement
                 Description = restaurant.Description,
                 LogoUrl = restaurant.LogoUrl,
                 CoverImageUrl = restaurant.CoverImageUrl,
-                Categories = restaurant.Categories.Select(c => c.Name).ToList(),
+                Categories = restaurant.Categories?.Select(c => c.Name).ToList() ?? new List<string>(),
                 Address = restaurant.Address,
                 PhoneNumber = restaurant.PhoneNumber,
                 Email = restaurant.Email,
@@ -101,8 +95,8 @@ public class RestaurantManagement : IRestaurantManagement
                 Suspended = restaurant.IsSupended
             };
 
-            _context.Restaurants.Remove(restaurant);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.RestaurantRepository.DeleteRestaurantAsync(id);
+            await _unitOfWork.CompleteAsync();
 
             return new AppResponse<AdminRestaurantDto>(AdminRestaurantDto, "Restaurant deleted successfully", 200, true);
         }
@@ -116,9 +110,7 @@ public class RestaurantManagement : IRestaurantManagement
     {
         try
         {
-            var restaurants = await _context.Restaurants
-                .Include(r => r.Categories)
-                .ToListAsync();
+            var restaurants = await _unitOfWork.RestaurantRepository.GetAllRestaurantsWithCategoriesAsync();
 
             if (restaurants == null || !restaurants.Any())
             {
@@ -132,7 +124,7 @@ public class RestaurantManagement : IRestaurantManagement
                 Description = restaurant.Description,
                 LogoUrl = restaurant.LogoUrl,
                 CoverImageUrl = restaurant.CoverImageUrl,
-                Categories = restaurant.Categories.Select(c => c.Name).ToList(),
+                Categories = restaurant.Categories?.Select(c => c.Name).ToList() ?? new List<string>(),
                 Address = restaurant.Address,
                 PhoneNumber = restaurant.PhoneNumber,
                 Email = restaurant.Email,
@@ -156,9 +148,7 @@ public class RestaurantManagement : IRestaurantManagement
     {
         try
         {
-            var restaurant = await _context.Restaurants
-                .Include(r => r.Categories)
-                .FirstOrDefaultAsync(r => r.Id == id);
+            var restaurant = await _unitOfWork.RestaurantRepository.GetRestaurantWithCategoriesAsync(id);
 
             if (restaurant == null)
             {
@@ -172,7 +162,7 @@ public class RestaurantManagement : IRestaurantManagement
                 Description = restaurant.Description,
                 LogoUrl = restaurant.LogoUrl,
                 CoverImageUrl = restaurant.CoverImageUrl,
-                Categories = restaurant.Categories.Select(c => c.Name).ToList(),
+                Categories = restaurant.Categories?.Select(c => c.Name).ToList() ?? new List<string>(),
                 Address = restaurant.Address,
                 PhoneNumber = restaurant.PhoneNumber,
                 Email = restaurant.Email,
@@ -196,7 +186,7 @@ public class RestaurantManagement : IRestaurantManagement
     {
         try
         {
-            var restaurant = await _context.Restaurants.FindAsync(id);
+            var restaurant = await _unitOfWork.RestaurantRepository.FindAsync(id);
 
             if (restaurant == null)
             {
@@ -204,8 +194,8 @@ public class RestaurantManagement : IRestaurantManagement
             }
 
             restaurant.IsSupended = true;
-            _context.Restaurants.Update(restaurant);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.RestaurantRepository.UpdateRestaurantAsync(restaurant);
+            await _unitOfWork.CompleteAsync();
 
             return new AppResponse<bool>(true, "Restaurant suspended successfully", 200, true);
         }
@@ -219,7 +209,7 @@ public class RestaurantManagement : IRestaurantManagement
     {
         try
         {
-            var restaurant = await _context.Restaurants.FindAsync(id);
+            var restaurant = await _unitOfWork.RestaurantRepository.FindAsync(id);
 
             if (restaurant == null)
             {
@@ -227,8 +217,8 @@ public class RestaurantManagement : IRestaurantManagement
             }
 
             restaurant.IsSupended = false;
-            _context.Restaurants.Update(restaurant);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.RestaurantRepository.UpdateRestaurantAsync(restaurant);
+            await _unitOfWork.CompleteAsync();
 
             return new AppResponse<bool>(true, "Restaurant unsuspended successfully", 200, true);
         }
@@ -246,16 +236,14 @@ public class RestaurantManagement : IRestaurantManagement
             {
                 return new AppResponse<AdminRestaurantDto>(null, "Invalid data", 400, false);
             }
-            var restaurant = await _context.Restaurants
-                .Include(r => r.Categories)
-                .ThenInclude(c => c.Dishes)
-                .FirstOrDefaultAsync(r => r.Id == id);
+            
+            var restaurant = await _unitOfWork.RestaurantRepository.GetRestaurantWithCategoriesAndDishesAsync(id);
 
             if (restaurant == null)
             {
                 return new AppResponse<AdminRestaurantDto>(null, "Restaurant not found", 404, false);
             }
-
+            
             restaurant.Name = dto.Name ?? restaurant.Name;
             restaurant.Description = dto.Description ?? restaurant.Description;
             restaurant.LogoUrl = dto.LogoUrl ?? restaurant.LogoUrl;
@@ -264,10 +252,17 @@ public class RestaurantManagement : IRestaurantManagement
             restaurant.PhoneNumber = dto.PhoneNumber ?? restaurant.PhoneNumber;
             restaurant.Email = dto.Email ?? restaurant.Email;
             restaurant.OpeningHours = dto.OpeningHours ?? restaurant.OpeningHours;
-            restaurant.IsSupended = dto.Issuspended;
+            
+            // Update IsOpen if provided in DTO
+            if (dto.IsOpen.HasValue)
+            {
+                restaurant.IsOpen = dto.IsOpen.Value;
+            }
+            
+            restaurant.IsSupended = dto.IsSuspended;
 
-            _context.Restaurants.Update(restaurant);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.RestaurantRepository.UpdateRestaurantAsync(restaurant);
+            await _unitOfWork.CompleteAsync();
 
             var AdminRestaurantDto = new AdminRestaurantDto
             {
@@ -276,7 +271,7 @@ public class RestaurantManagement : IRestaurantManagement
                 Description = restaurant.Description,
                 LogoUrl = restaurant.LogoUrl,
                 CoverImageUrl = restaurant.CoverImageUrl,
-                Categories = restaurant.Categories.Select(c => c.Name).ToList(),
+                Categories = restaurant.Categories?.Select(c => c.Name).ToList() ?? new List<string>(),
                 Address = restaurant.Address,
                 PhoneNumber = restaurant.PhoneNumber,
                 Email = restaurant.Email,
@@ -300,11 +295,7 @@ public class RestaurantManagement : IRestaurantManagement
     {
         try
         {
-            // Replace direct Category.RestaurantId access
-            var categoryRestaurants = await _context.RestaurantsCategories
-                .Where(rc => rc.CategoryId == categoryId)
-                .Select(rc => rc.RestaurantId)
-                .ToListAsync();
+            var categoryRestaurants = await _unitOfWork.RestaurantRepository.GetCategoryRestaurantsAsync(categoryId);
 
             if (categoryRestaurants == null || !categoryRestaurants.Any())
             {
@@ -323,7 +314,7 @@ public class RestaurantManagement : IRestaurantManagement
     {
         try
         {
-            var restaurant = await _context.Restaurants.FindAsync(id);
+            var restaurant = await _unitOfWork.RestaurantRepository.FindAsync(id);
 
             if (restaurant == null)
             {
@@ -331,8 +322,8 @@ public class RestaurantManagement : IRestaurantManagement
             }
 
             restaurant.IsOpen = true;
-            _context.Restaurants.Update(restaurant);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.RestaurantRepository.UpdateRestaurantAsync(restaurant);
+            await _unitOfWork.CompleteAsync();
 
             return new AppResponse<AdminRestaurantDto>(new AdminRestaurantDto { Id = restaurant.Id }, "Restaurant opened successfully", 200, true);
         }
@@ -346,7 +337,7 @@ public class RestaurantManagement : IRestaurantManagement
     {
         try
         {
-            var restaurant = await _context.Restaurants.FindAsync(id);
+            var restaurant = await _unitOfWork.RestaurantRepository.FindAsync(id);
 
             if (restaurant == null)
             {
@@ -354,8 +345,8 @@ public class RestaurantManagement : IRestaurantManagement
             }
 
             restaurant.IsOpen = false;
-            _context.Restaurants.Update(restaurant);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.RestaurantRepository.UpdateRestaurantAsync(restaurant);
+            await _unitOfWork.CompleteAsync();
 
             return new AppResponse<AdminRestaurantDto>(new AdminRestaurantDto { Id = restaurant.Id }, "Restaurant closed successfully", 200, true);
         }

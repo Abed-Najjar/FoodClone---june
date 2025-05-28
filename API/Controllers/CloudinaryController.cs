@@ -5,6 +5,7 @@ using System;
 using API.Services.CmsServiceFolder;
 using API.Repositories.Interfaces;
 using API.AppResponse;
+using API.Data;
 
 namespace API.Controllers
 {
@@ -15,13 +16,17 @@ namespace API.Controllers
         private readonly ICloudinaryService _cloudinaryService;
         private readonly IRestaurantRepository _restaurantRepository;
         private readonly IDishRepository _dishRepository;
+        private readonly AppDbContext _context;
 
-        public CloudinaryController(ICloudinaryService cloudinaryService, IRestaurantRepository restaurantRepository, IDishRepository dishRepository)
+        public CloudinaryController(ICloudinaryService cloudinaryService, IRestaurantRepository restaurantRepository, IDishRepository dishRepository, AppDbContext context)
         {
             _cloudinaryService = cloudinaryService;
             _restaurantRepository = restaurantRepository;
             _dishRepository = dishRepository;
-        }[HttpPost("upload-image")]
+            _context = context;
+        }
+        
+        [HttpPost("upload-image")]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -29,7 +34,9 @@ namespace API.Controllers
 
             var url = await _cloudinaryService.UploadImageAsync(file);
             return Ok(new { url });
-        }        [HttpPost("upload-restaurant-logo/{restaurantId}")]
+        }
+        
+        [HttpPost("upload-restaurant-logo/{restaurantId}")]
         public async Task<IActionResult> UploadRestaurantLogo(int restaurantId, IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -40,11 +47,11 @@ namespace API.Controllers
                 var url = await _cloudinaryService.UploadImageAsync(file, "restaurants/logos");
                 var restaurant = await _restaurantRepository.GetRestaurantByIdAsync(restaurantId);
                 if (restaurant == null)
-                    return NotFound(new AppResponse.AppResponse<string>(null, "Restaurant not found", 404, false));
+                return NotFound(new AppResponse.AppResponse<string>(null, "Restaurant not found", 404, false));
                 
                 restaurant.LogoUrl = url;
                 await _restaurantRepository.UpdateRestaurantAsync(restaurant);
-                await _restaurantRepository.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 
                 return Ok(new AppResponse.AppResponse<string>(url, "Logo image uploaded successfully", 200, true));
             }
@@ -52,7 +59,9 @@ namespace API.Controllers
             {
                 return StatusCode(500, new AppResponse.AppResponse<string>(null, $"Error uploading image: {ex.Message}", 500, false));
             }
-        }        [HttpPost("upload-restaurant-cover/{restaurantId}")]
+        }
+        
+        [HttpPost("upload-restaurant-cover/{restaurantId}")]
         public async Task<IActionResult> UploadRestaurantCover(int restaurantId, IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -62,12 +71,11 @@ namespace API.Controllers
             {
                 var url = await _cloudinaryService.UploadImageAsync(file, "restaurants/covers");
                 var restaurant = await _restaurantRepository.GetRestaurantByIdAsync(restaurantId);
-                if (restaurant == null)
-                    return NotFound(new AppResponse.AppResponse<string>(null, "Restaurant not found", 404, false));
+                if (restaurant == null)                return NotFound(new AppResponse.AppResponse<string>(null, "Restaurant not found", 404, false));
                 
                 restaurant.CoverImageUrl = url;
                 await _restaurantRepository.UpdateRestaurantAsync(restaurant);
-                await _restaurantRepository.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 
                 return Ok(new AppResponse.AppResponse<string>(url, "Cover image uploaded successfully", 200, true));
             }
@@ -92,10 +100,9 @@ namespace API.Controllers
                 var dish = await _dishRepository.GetDishByIdAsync(dishId);
                 if (dish == null)
                     return NotFound(new AppResponse.AppResponse<string>(null, "Dish not found", 404, false));
-                
-                dish.ImageUrl = url;
+                  dish.ImageUrl = url;
                 await _dishRepository.UpdateDishAsync(dish);
-                await _dishRepository.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 
                 // Return success response with the URL
                 return Ok(new AppResponse.AppResponse<string>(url, "Image uploaded successfully", 200, true));

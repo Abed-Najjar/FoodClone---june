@@ -1,31 +1,27 @@
 using API.AppResponse;
-using API.Data;
 using API.DTOs;
 using API.Models;
 using API.Services.Argon;
 using API.Services.TokenServiceFolder;
+using API.UoW;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 public class UserManagementService : IUserManagementService
 {
-    private readonly AppDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IArgonHashing _argonHashing;
     private readonly ITokenService _tokenService;
 
-    public UserManagementService(AppDbContext context, IArgonHashing argonHashing, ITokenService tokenService)
+    public UserManagementService(IUnitOfWork unitOfWork, IArgonHashing argonHashing, ITokenService tokenService)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
         _argonHashing = argonHashing;
         _tokenService = tokenService;
-    }
-
-    public async Task<AppResponse<UserDto>> CreateUser([FromBody] UserInputDto dto)
+    }    public async Task<AppResponse<UserDto>> CreateUser([FromBody] UserInputDto dto)
     {
         try
             {
-                var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == dto.Email);
+                var existingUser = await _unitOfWork.UserRepository.GetUserByEmailAsync(dto.Email);
 
                 if (existingUser != null)
                 {
@@ -41,8 +37,8 @@ public class UserManagementService : IUserManagementService
                     CreatedAt = DateTime.UtcNow
                 };
 
-                await _context.Users.AddAsync(user);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.UserRepository.CreateUserAsync(user);
+                await _unitOfWork.CompleteAsync();
 
 
                 var userDto = new UserDto
@@ -60,21 +56,19 @@ public class UserManagementService : IUserManagementService
             {
                 return new AppResponse<UserDto>(null, ex.Message, 500, false);
             }
-    }
-
-    public async Task<AppResponse<bool>> DeleteUser(int id)
+    }    public async Task<AppResponse<bool>> DeleteUser(int id)
     {
         try
             {
-                var user = await _context.Users.FindAsync(id);
+                var user = await _unitOfWork.UserRepository.FindAsync(id);
 
                 if (user == null)
                 {
                     return new AppResponse<bool>(false, "User not found", 404, false);
                 }
 
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.UserRepository.DeleteUserAsync(id);
+                await _unitOfWork.CompleteAsync();
 
                 return new AppResponse<bool>(true, "User deleted successfully", 200, true);
 
@@ -83,15 +77,11 @@ public class UserManagementService : IUserManagementService
             {
                 return new AppResponse<bool>(false, ex.Message, 500, false);
             }
-    }
-
-    public async Task<AppResponse<List<UserDto>>> GetAllUsers()
+    }    public async Task<AppResponse<List<UserDto>>> GetAllUsers()
     {
         try
             {
-                var users = await _context.Users
-                .Where(u => u.Role != API.Enums.Roles.Admin)
-                .ToListAsync();
+                var users = await _unitOfWork.UserRepository.GetAllUsersExceptRoleAsync(API.Enums.Roles.Admin);
 
                 if (users == null || !users.Any())
                 {
@@ -114,13 +104,11 @@ public class UserManagementService : IUserManagementService
                 return new AppResponse<List<UserDto>>(null, ex.Message, 500, false);
             }
     }
-
-
     public async Task<AppResponse<UserDto>> GetUser(int id)
     {
         try
             {
-                var user = await _context.Users.FindAsync(id);
+                var user = await _unitOfWork.UserRepository.FindAsync(id);
 
                 if (user == null)
                 {
@@ -143,13 +131,11 @@ public class UserManagementService : IUserManagementService
                 return new AppResponse<UserDto>(null, ex.Message, 500, false);
             }
     }
-
-
     public async Task<AppResponse<UserDto>> UpdateUser(int id, [FromBody] UserInputDto dto)
     {
         try
             {
-                var user = await _context.Users.FindAsync(id);
+                var user = await _unitOfWork.UserRepository.FindAsync(id);
 
                 if (user == null)
                 {
@@ -162,8 +148,8 @@ public class UserManagementService : IUserManagementService
                 user.Role = dto.Role != null ? (API.Enums.Roles)Enum.Parse(typeof(API.Enums.Roles), dto.Role) : user.Role;
                 user.PasswordHash = await _argonHashing.HashPasswordAsync(dto.Password);
 
-                _context.Users.Update(user);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.UserRepository.UpdateUserAsync(user);
+                await _unitOfWork.CompleteAsync();
 
                 var userDto = new UserDto
                 {

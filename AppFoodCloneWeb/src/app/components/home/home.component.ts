@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Restaurant } from '../../models/restaurant.model';
 import { RestaurantService } from '../../services/restaurant.service';
+import { HomeService } from '../../services/home.service';
 import { CartService } from '../../services/cart.service';
 import { Dish } from '../../models/dish.model';
 import { ImageUtilService } from '../../services/image-util.service';
@@ -27,33 +28,48 @@ export class HomeComponent implements OnInit {
   searchTerm = '';
   selectedCategory: string | null = null;
   heroImage: string = '';
+  
   constructor(
     private restaurantService: RestaurantService,
+    private homeService: HomeService,
     private cartService: CartService,
     private imageUtilService: ImageUtilService
-  ) {}
-  ngOnInit(): void {
-    this.loadRestaurants();
+  ) {}  ngOnInit(): void {
+    this.loadFeaturedRestaurants();
+    this.loadAllRestaurants();
     this.loadPopularDishes();
     this.heroImage = this.getRandomHeroImage();
   }
-
-  loadRestaurants(): void {
+  loadFeaturedRestaurants(): void {
     this.loading = true;
-    this.restaurantService.getAllRestaurants().subscribe({
-      next: (response) => {
+    this.homeService.getFeaturedRestaurants().subscribe({
+      next: (response: any) => {
+        if (response.success) {
+          this.featuredRestaurants = response.data;
+        } else {
+          this.error = response.errorMessage;
+        }
+        this.loading = false;
+      },
+      error: (err: any) => {
+        this.error = 'Failed to load featured restaurants. Please try again later.';
+        this.loading = false;
+        console.error('Error fetching featured restaurants:', err);
+      }
+    });
+  }
+  loadAllRestaurants(): void {
+    this.homeService.getAllRestaurants().subscribe({
+      next: (response: any) => {
         if (response.success) {
           this.allRestaurants = response.data;
           this.filteredRestaurants = [...this.allRestaurants];
-          this.featuredRestaurants = this.allRestaurants.slice(0, 8);
-          this.loading = false;
         } else {
           this.error = response.errorMessage;
-          this.loading = false;
-        }      },
-      error: (err) => {
+        }
+      },
+      error: (err: any) => {
         this.error = 'Failed to load restaurants. Please try again later.';
-        this.loading = false;
         console.error('Error fetching restaurants:', err);
       }
     });
@@ -67,9 +83,7 @@ export class HomeComponent implements OnInit {
   filterByCategory(category: string | null): void {
     this.selectedCategory = category === 'all' ? null : category;
     this.applyFilters();
-  }
-
-  applyFilters(): void {
+  }  applyFilters(): void {
     let results = [...this.allRestaurants];
 
     // Apply search filter
@@ -93,96 +107,41 @@ export class HomeComponent implements OnInit {
     }
 
     this.filteredRestaurants = results;
+    // Update featured restaurants to reflect filtered results (first 8)
     this.featuredRestaurants = results.slice(0, 8);
   }
-
   resetFilters(): void {
     this.searchTerm = '';
     this.selectedCategory = null;
     this.filteredRestaurants = [...this.allRestaurants];
     this.featuredRestaurants = this.allRestaurants.slice(0, 8);
-  }  // Load popular dishes from the database
+  }// Load popular dishes from the database
   loadPopularDishes(): void {
     this.dishesLoading = true;
     
-    // First get all restaurants, then fetch dishes from each restaurant
-    this.restaurantService.getAllRestaurants().subscribe({
-      next: (restaurantsResponse) => {
-        if (restaurantsResponse.success && restaurantsResponse.data && restaurantsResponse.data.length > 0) {
-          this.loadDishesFromRestaurants(restaurantsResponse.data);
+    this.homeService.getPopularDishes().subscribe({
+      next: (response: any) => {
+        if (response.success) {
+          this.popularDishes = response.data.map((dish: any) => ({
+            ...dish,
+            imageUrl: dish.imageUrl || this.imageUtilService.getRandomDishImage(),
+            restaurantLogoUrl: dish.restaurantLogoUrl || this.getRestaurantLogoImage({ id: dish.restaurantId } as Restaurant)
+          }));
+          this.dishesLoading = false;
+          
+          if (this.popularDishes.length === 0) {
+            this.dishesError = 'No popular dishes available at the moment';
+          }
         } else {
-          this.dishesError = 'No restaurants available to load dishes from';
+          this.dishesError = response.errorMessage;
           this.dishesLoading = false;
         }
       },
-      error: (err) => {
-        this.dishesError = 'Failed to load restaurants for dishes. Please try again later.';
+      error: (err: any) => {
+        this.dishesError = 'Failed to load popular dishes. Please try again later.';
         this.dishesLoading = false;
-        console.error('Error fetching restaurants for dishes:', err);
+        console.error('Error fetching popular dishes:', err);
       }
-    });
-  }
-
-  // Load dishes from multiple restaurants
-  private loadDishesFromRestaurants(restaurants: Restaurant[]): void {
-    const allDishes: Dish[] = [];
-    let completedRequests = 0;
-    const totalRequests = Math.min(restaurants.length, 3); // Limit to first 3 restaurants for performance
-
-    if (totalRequests === 0) {
-      this.dishesError = 'No restaurants available';
-      this.dishesLoading = false;
-      return;
-    }
-
-    // Get dishes from first few restaurants
-    restaurants.slice(0, totalRequests).forEach(restaurant => {
-      this.restaurantService.getRestaurantDishes(restaurant.id).subscribe({
-        
-        next: (dishesResponse) => {
-          completedRequests++;            if (dishesResponse.success && dishesResponse.data) {            // Convert UserRestaurantDishesDto to Dish model
-            const convertedDishes: Dish[] = dishesResponse.data
-              .map(dish => ({
-                id: dish.id,
-                name: dish.name,
-                description: dish.description,
-                price: dish.price,
-                imageUrl: dish.imageUrl || this.imageUtilService.getRandomDishImage(),
-                restaurantId: restaurant.id,
-                restaurantName: restaurant.name,
-                categoryId: dish.categoryId,
-                isAvailable: dish.isAvailable, // Make sure this is preserved from the backend
-                restaurantLogoUrl: restaurant.logoUrl || this.getRestaurantLogoImage(restaurant)
-              }));
-            
-            allDishes.push(...convertedDishes);
-          }          // Check if all requests completed
-          if (completedRequests === totalRequests) {
-            // Only show available dishes
-            this.popularDishes = allDishes.slice(0, 8);
-            
-            this.dishesLoading = false;
-            
-            if (this.popularDishes.length === 0) {
-              this.dishesError = 'No available dishes at the moment';
-            }
-          }
-        },
-        error: (err) => {
-          completedRequests++;
-          console.error(`Error fetching dishes for restaurant ${restaurant.id}:`, err);
-            // Check if all requests completed (including failed ones)
-          if (completedRequests === totalRequests) {
-            if (allDishes.length > 0) {
-              this.popularDishes = allDishes.slice(0, 8);
-              this.dishesLoading = false;
-            } else {
-              this.dishesError = 'Failed to load available dishes from restaurants';
-              this.dishesLoading = false;
-            }
-          }
-        }
-      });
     });
   }
 

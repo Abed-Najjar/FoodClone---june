@@ -62,9 +62,7 @@ namespace API.DTOs
         [Required]
         public required string OpeningHours { get; set; }
 
-    }
-
-    // DTO for updating an existing restaurant
+    }    // DTO for updating an existing restaurant
     public class RestaurantUpdateDto
     {
         [StringLength(100)]
@@ -86,7 +84,9 @@ namespace API.DTOs
 
         public string? OpeningHours { get; set; }
 
-        public bool Issuspended { get; set; }
+        public bool? IsOpen { get; set; }
+        
+        public bool IsSuspended { get; set; }
         
     }
   

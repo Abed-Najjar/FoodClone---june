@@ -1,29 +1,22 @@
 using API.AppResponse;
-using API.Data;
 using API.DTOs;
 using API.Models;
-using API.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using API.UoW;
 
 public class DishManagementService : IDishManagementService
 {
-    private readonly IRestaurantRepository _restaurantRepository;
-    private readonly IDishRepository _dishRepository;
-    private readonly ICategoryRepository _categoryRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public DishManagementService(IRestaurantRepository restaurantRepository, IDishRepository dishRepository, ICategoryRepository categoryRepository)
+    public DishManagementService(IUnitOfWork unitOfWork)
     {
-        
-        _restaurantRepository = restaurantRepository;
-        _categoryRepository = categoryRepository;
-        _dishRepository = dishRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<AppResponse<AdminRestaurantDishDto>> CreateDish(CreateDishDto dishDto)
     {
         try
         {
-            var restaurant = await _restaurantRepository.GetRestaurantByIdAsync(dishDto.RestaurantId);
+            var restaurant = await _unitOfWork.RestaurantRepository.GetRestaurantByIdAsync(dishDto.RestaurantId);
             if (restaurant == null)
             {
                 return new AppResponse<AdminRestaurantDishDto>(null, "Restaurant not found", 404, false);
@@ -31,12 +24,14 @@ public class DishManagementService : IDishManagementService
 
             if (dishDto.CategoryId.HasValue)
             {
-                var category = await _categoryRepository.GetCategoryByIdAsync(dishDto.CategoryId.Value);
+                var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(dishDto.CategoryId.Value);
                 if (category == null)
                 {
                     return new AppResponse<AdminRestaurantDishDto>(null, "Category not found", 404, false);
                 }
-            }            var dish = new Dish
+            }
+
+            var dish = new Dish
             {
                 Name = dishDto.Name,
                 Description = dishDto.Description,
@@ -47,9 +42,11 @@ public class DishManagementService : IDishManagementService
                 CategoryId = dishDto.CategoryId,
                 IsAvailable = dishDto.IsAvailable
             };
+            
+            await _unitOfWork.DishRepository.AddDishAsync(dish);
+            await _unitOfWork.CompleteAsync();
 
-            await _dishRepository.AddDishAsync(dish);
-            await _dishRepository.SaveChangesAsync();            var responseDto = new AdminRestaurantDishDto
+            var responseDto = new AdminRestaurantDishDto
             {
                 Id = dish.Id,
                 Name = dish.Name,
@@ -71,19 +68,18 @@ public class DishManagementService : IDishManagementService
         }
     }
 
-
     public async Task<AppResponse<bool>> DeleteDish(int id)
     {
         try
         {
-            var dish = await _dishRepository.GetDishByIdAsync(id);
+            var dish = await _unitOfWork.DishRepository.GetDishByIdAsync(id);
             if (dish == null)
             {
                 return new AppResponse<bool>(false, "Dish not found", 404, false);
             }
-
-            await _dishRepository.DeleteDishAsync(dish.Id);
-            await _dishRepository.SaveChangesAsync();
+            
+            await _unitOfWork.DishRepository.DeleteDishAsync(dish.Id);
+            await _unitOfWork.CompleteAsync();
 
             return new AppResponse<bool>(true, "Dish deleted successfully", 200, true);
         }
@@ -93,17 +89,18 @@ public class DishManagementService : IDishManagementService
         }
     }
 
-
     public async Task<AppResponse<AdminRestaurantDishDto>> GetDishById(int id)
     {
         try
         {
-            var dish = await _dishRepository.GetDishByIdWithIncludesAsync(id);
+            var dish = await _unitOfWork.DishRepository.GetDishByIdWithIncludesAsync(id);
 
             if (dish == null)
             {
                 return new AppResponse<AdminRestaurantDishDto>(null, "Dish not found", 404, false);
-            }            var dishDto = new AdminRestaurantDishDto
+            }
+            
+            var dishDto = new AdminRestaurantDishDto
             {
                 Id = dish.Id,
                 Name = dish.Name,
@@ -123,11 +120,13 @@ public class DishManagementService : IDishManagementService
         {
             return new AppResponse<AdminRestaurantDishDto>(null, ex.Message, 500, false);
         }
-    }    public async Task<AppResponse<List<AdminRestaurantDishDto>>> GetDishesInRestaurant(int restaurantId)
+    }
+
+    public async Task<AppResponse<List<AdminRestaurantDishDto>>> GetDishesInRestaurant(int restaurantId)
     {
         try
         {
-            var dishes = await _dishRepository.GetDisheshByRestaurantIdAsync(restaurantId);
+            var dishes = await _unitOfWork.DishRepository.GetDishesByRestaurantIdAsync(restaurantId);
 
             if (!dishes.Any())
             {
@@ -157,9 +156,10 @@ public class DishManagementService : IDishManagementService
     }
 
     public async Task<AppResponse<List<AdminRestaurantDishDto>>> GetDishesByCategory(int categoryId)
-    {        try
+    {
+        try
         {
-            var dishes = await _dishRepository.GetDishesByCategoryIdAsync(categoryId);
+            var dishes = await _unitOfWork.DishRepository.GetDishesByCategoryIdAsync(categoryId);
 
             if (!dishes.Any())
             {
@@ -181,18 +181,18 @@ public class DishManagementService : IDishManagementService
             }).ToList();
 
             return new AppResponse<List<AdminRestaurantDishDto>>(dishDtos, "Dishes retrieved successfully", 200, true);
-
         }
         catch (Exception ex)
         {
             return new AppResponse<List<AdminRestaurantDishDto>>(null, ex.Message, 500, false);
         }
     }
+
     public async Task<AppResponse<AdminRestaurantDishDto>> UpdateDish(int id, UpdateDishDto dishDto)
     {
         try
         {
-            var dish = await _dishRepository.GetDishByIdWithIncludesAsync(id);
+            var dish = await _unitOfWork.DishRepository.GetDishByIdWithIncludesAsync(id);
 
             if (dish == null)
             {
@@ -202,7 +202,7 @@ public class DishManagementService : IDishManagementService
             // Validate restaurant exists if restaurantId is being changed
             if (dishDto.RestaurantId != dish.RestaurantId)
             {
-                var restaurant = await _restaurantRepository.GetRestaurantByIdAsync(dishDto.RestaurantId);
+                var restaurant = await _unitOfWork.RestaurantRepository.GetRestaurantByIdAsync(dishDto.RestaurantId);
                 if (restaurant == null)
                 {
                     return new AppResponse<AdminRestaurantDishDto>(null, "Restaurant not found", 404, false);
@@ -218,7 +218,7 @@ public class DishManagementService : IDishManagementService
             
             if (dishDto.CategoryId.HasValue)
             {
-                var category = await _categoryRepository.GetCategoryByIdAsync(dishDto.CategoryId.Value);
+                var category = await _unitOfWork.CategoryRepository.GetCategoryByIdAsync(dishDto.CategoryId.Value);
                 if (category == null)
                 {
                     return new AppResponse<AdminRestaurantDishDto>(null, "Category not found", 404, false);
@@ -226,7 +226,9 @@ public class DishManagementService : IDishManagementService
                 dish.CategoryId = dishDto.CategoryId;
             }
 
-            await _dishRepository.SaveChangesAsync();var responseDto = new AdminRestaurantDishDto
+            await _unitOfWork.CompleteAsync();
+
+            var responseDto = new AdminRestaurantDishDto
             {
                 Id = dish.Id,
                 Name = dish.Name,
@@ -246,19 +248,20 @@ public class DishManagementService : IDishManagementService
         {
             return new AppResponse<AdminRestaurantDishDto>(null, ex.Message, 500, false);
         }
-
     }
     
     public async Task<AppResponse<List<DishDto>>> GetAllDishesAsync()
     {
         try
         {
-            var dishes = await _dishRepository.GetAllDishesWithIncludesAsync();
+            var dishes = await _unitOfWork.DishRepository.GetAllDishesWithIncludesAsync();
 
             if (!dishes.Any())
             {
                 return new AppResponse<List<DishDto>>(null, "No dishes found", 404, false);
-            }            var dishDtos = dishes.Select(d => new DishDto
+            }
+            
+            var dishDtos = dishes.Select(d => new DishDto
             {
                 Id = d.Id,
                 Name = d.Name,

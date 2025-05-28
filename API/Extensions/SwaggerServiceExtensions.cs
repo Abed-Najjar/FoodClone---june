@@ -1,10 +1,4 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.OpenApi.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace API.Extensions
 {

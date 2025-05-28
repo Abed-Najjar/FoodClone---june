@@ -5,7 +5,6 @@ using API.Models;
 using API.Repositories.Interfaces;
 using API.Services.Argon;
 using API.Services.TokenServiceFolder.AuthServiceFolder;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Services.TokenServiceFolder.AuthService
 {

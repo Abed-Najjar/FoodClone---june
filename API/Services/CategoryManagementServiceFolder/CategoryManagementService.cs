@@ -1,63 +1,62 @@
 using API.AppResponse;
-using API.Data;
 using API.DTOs;
 using API.Models;
-using Microsoft.EntityFrameworkCore;
+using API.UoW;
+
+
+
 
 public class CategoryManagementService : ICategoryManagementService
 {
-    private readonly AppDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CategoryManagementService(AppDbContext context)
+    public CategoryManagementService(IUnitOfWork unitOfWork)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<AppResponse<List<CategoriesDto>>> GetAllCategoriesAsync()
     {
         try
         {
-            var categories = await _context.Categories
-                .Select(c => new CategoriesDto
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    ImageUrl = c.ImageUrl,
-                    // RestaurantId and RestaurantName are not part of CategoriesDto
-                    // If these are needed, CategoriesDto should be updated or a different DTO used.
-                })
-                .ToListAsync();
+            var categories = await _unitOfWork.CategoryRepository.GetAllCategoriesAsync();
 
             if (!categories.Any())
             {
                 return new AppResponse<List<CategoriesDto>>(null, "No categories found", 404, false);
             }
 
-            return new AppResponse<List<CategoriesDto>>(categories, "Categories retrieved successfully", 200, true);
+            var categoriesDto = categories.Select(c => new CategoriesDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                ImageUrl = c.ImageUrl
+            }).ToList();
+
+            return new AppResponse<List<CategoriesDto>>(categoriesDto, "Categories retrieved successfully", 200, true);
         }
         catch (Exception ex)
         {
             return new AppResponse<List<CategoriesDto>>(null, ex.Message, 500, false);
         }
-    }
-
-    public async Task<AppResponse<CategoryDto>> CreateCategory(CreateCategoryDto categoryDto)
+    }    public async Task<AppResponse<CategoryDto>> CreateCategory(CreateCategoryDto categoryDto)
     {
         try
         {
-            var restaurant = await _context.Restaurants.FindAsync(categoryDto.RestaurantId);
+            var restaurant = await _unitOfWork.RestaurantRepository.GetRestaurantByIdAsync(categoryDto.RestaurantId);
             if (restaurant == null)
             {
                 return new AppResponse<CategoryDto>(null, "Restaurant not found", 404, false);
-            }            var category = new Category
+            }
+
+            var category = new Category
             {
                 Name = categoryDto.Name,
                 Description = categoryDto.Description,
                 ImageUrl = categoryDto.ImageUrl
             };
 
-            await _context.Categories.AddAsync(category);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.CategoryRepository.CreateCategoryAsync(category);
             
             var restaurantCategory = new RestaurantsCategories
             {
@@ -67,8 +66,10 @@ public class CategoryManagementService : ICategoryManagementService
                 Category = category
             };
 
-            await _context.RestaurantsCategories.AddAsync(restaurantCategory);
-            await _context.SaveChangesAsync();            var responseDto = new CategoryDto
+            await _unitOfWork.CategoryRepository.CreateRestaurantCategoryAsync(restaurantCategory);
+            await _unitOfWork.CompleteAsync();
+
+            var responseDto = new CategoryDto
             {
                 Id = category.Id,
                 Name = category.Name,
@@ -90,23 +91,21 @@ public class CategoryManagementService : ICategoryManagementService
     {
         try
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _unitOfWork.CategoryRepository.FindAsync(id);
             if (category == null)
             {
                 return new AppResponse<bool>(false, "Category not found", 404, false);
             }
-
-            var restaurantCategories = await _context.RestaurantsCategories
-                .Where(rc => rc.CategoryId == category.Id)
-                .ToListAsync();
+            
+            var restaurantCategories = await _unitOfWork.CategoryRepository.GetRestaurantCategoriesByCategoryIdAsync(id);
             
             if (restaurantCategories.Any())
             {
-                _context.RestaurantsCategories.RemoveRange(restaurantCategories);
+                await _unitOfWork.CategoryRepository.DeleteRestaurantCategoriesAsync(restaurantCategories);
             }
 
-            _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.CategoryRepository.DeleteCategoryAsync(id);
+            await _unitOfWork.CompleteAsync();
 
             return new AppResponse<bool>(true, "Category deleted successfully", 200, true);
         }
@@ -120,26 +119,21 @@ public class CategoryManagementService : ICategoryManagementService
     {
         try
         {
-            var categories = await _context.RestaurantsCategories
-                .Include(rc => rc.Category)
-                .ThenInclude(c => c.Dishes)
-                .Include(rc => rc.Restaurant)
-                .Where(rc => rc.RestaurantId == restaurantId)
-                .ToListAsync();
+            var categories = await _unitOfWork.CategoryRepository.GetCategoriesByRestaurantAsync(restaurantId);
 
             if (!categories.Any())
             {
                 return new AppResponse<List<CategoryDto>>(null, "No categories found for this restaurant", 404, false);
             }
 
-            var categoryDtos = categories.Select(rc => new CategoryDto
+            var categoryDtos = categories.Select(c => new CategoryDto
             {
-                Id = rc.Category.Id,
-                Name = rc.Category.Name,
-                ImageUrl = rc.Category.ImageUrl,
-                RestaurantId = rc.Restaurant.Id,
-                RestaurantName = rc.Restaurant.Name,
-                Dishes = rc.Category.Dishes.Select(d => new AdminRestaurantDishDto
+                Id = c.Id,
+                Name = c.Name,
+                ImageUrl = c.ImageUrl,
+                RestaurantId = restaurantId,
+                RestaurantName = "", // Will be populated from context if needed
+                Dishes = c.Dishes?.Select(d => new AdminRestaurantDishDto
                 {
                     Id = d.Id,
                     Name = d.Name,
@@ -149,8 +143,9 @@ public class CategoryManagementService : ICategoryManagementService
                     RestaurantId = d.RestaurantId,
                     RestaurantName = d.Restaurant?.Name ?? string.Empty,
                     CategoryId = d.CategoryId,
-                    CategoryName = d.Category?.Name
-                }).ToList()
+                    CategoryName = d.Category?.Name ?? string.Empty,
+                    IsAvailable = d.IsAvailable
+                }).ToList() ?? new List<AdminRestaurantDishDto>()
             }).ToList();
 
             return new AppResponse<List<CategoryDto>>(categoryDtos, "Categories retrieved successfully", 200, true);
@@ -160,29 +155,25 @@ public class CategoryManagementService : ICategoryManagementService
             return new AppResponse<List<CategoryDto>>(null, ex.Message, 500, false);
         }
     }
-
+    
     public async Task<AppResponse<CategoryDto>> GetCategoriesByRestaurantId(int restaurantId)
     {
         try
         {
-            var categories = await _context.RestaurantsCategories
-                .Include(rc => rc.Category)
-                .Include(rc => rc.Restaurant)
-                .Where(rc => rc.RestaurantId == restaurantId)
-                .ToListAsync();
+            var categories = await _unitOfWork.CategoryRepository.GetCategoriesByRestaurantAsync(restaurantId);
 
             if (!categories.Any())
             {
                 return new AppResponse<CategoryDto>(null, "No categories found for this restaurant", 404, false);
             }
 
-            var categoryDto = categories.Select(rc => new CategoryDto
+            var categoryDto = categories.Select(c => new CategoryDto
             {
-                Id = rc.Category.Id,
-                Name = rc.Category.Name,
-                ImageUrl = rc.Category.ImageUrl,
-                RestaurantId = rc.Restaurant.Id,
-                RestaurantName = rc.Restaurant.Name
+                Id = c.Id,
+                Name = c.Name,
+                ImageUrl = c.ImageUrl,
+                RestaurantId = restaurantId,
+                RestaurantName = ""
             }).ToList();
 
             return new AppResponse<CategoryDto>(categoryDto.FirstOrDefault(), "Categories retrieved successfully", 200, true);
@@ -197,23 +188,22 @@ public class CategoryManagementService : ICategoryManagementService
     {
         try
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _unitOfWork.CategoryRepository.FindAsync(id);
             if (category == null)
             {
                 return new AppResponse<CategoryDto>(null, "Category not found", 404, false);
             }
 
-            var restaurantCategory = await _context.RestaurantsCategories
-                .Include(rc => rc.Restaurant)
-                .FirstOrDefaultAsync(rc => rc.CategoryId == category.Id);
+            var restaurantCategories = await _unitOfWork.CategoryRepository.GetRestaurantCategoriesByCategoryIdAsync(id);
+            var restaurantCategory = restaurantCategories.FirstOrDefault();
 
             var categoryDto = new CategoryDto
             {
                 Id = category.Id,
                 Name = category.Name,
                 ImageUrl = category.ImageUrl,
-                RestaurantId = restaurantCategory?.Restaurant?.Id ?? 0,
-                RestaurantName = restaurantCategory?.Restaurant?.Name ?? string.Empty
+                RestaurantId = restaurantCategory?.RestaurantId ?? 0,
+                RestaurantName = ""
             };
 
             return new AppResponse<CategoryDto>(categoryDto, "Category retrieved successfully", 200, true); 
@@ -228,28 +218,31 @@ public class CategoryManagementService : ICategoryManagementService
     {
         try
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _unitOfWork.CategoryRepository.FindAsync(id);
 
             if (category == null)
             {
                 return new AppResponse<CategoryDto>(null, "Category not found", 404, false);
-            }            if (categoryDto.Name != null) category.Name = categoryDto.Name;
+            }
+
+            if (categoryDto.Name != null) category.Name = categoryDto.Name;
             if (categoryDto.Description != null) category.Description = categoryDto.Description;
             if (categoryDto.ImageUrl != null) category.ImageUrl = categoryDto.ImageUrl;
 
-            var restaurantCategory = await _context.RestaurantsCategories
-                .Include(rc => rc.Restaurant)
-                .FirstOrDefaultAsync(rc => rc.CategoryId == category.Id);
+            await _unitOfWork.CategoryRepository.UpdateCategoryAsync(category);
 
-            await _context.SaveChangesAsync();
+            var restaurantCategories = await _unitOfWork.CategoryRepository.GetRestaurantCategoriesByCategoryIdAsync(id);
+            var restaurantCategory = restaurantCategories.FirstOrDefault();
+
+            await _unitOfWork.CompleteAsync();
 
             var responseDto = new CategoryDto
             {
                 Id = category.Id,
                 Name = category.Name,
                 ImageUrl = category.ImageUrl,
-                RestaurantId = restaurantCategory?.Restaurant?.Id ?? 0,
-                RestaurantName = restaurantCategory?.Restaurant?.Name ?? string.Empty
+                RestaurantId = restaurantCategory?.RestaurantId ?? 0,
+                RestaurantName = ""
             };
 
             return new AppResponse<CategoryDto>(responseDto, "Category updated successfully", 200, true);

@@ -296,6 +296,20 @@
   cursor: not-allowed;
 }
 
+/* Disabled button styles for closed restaurants */
+.btn.disabled,
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}
+
+.btn-outline-secondary.disabled,
+.btn-outline-secondary:disabled {
+  color: #6c757d;
+  border-color: #6c757d;
+  background-color: #f8f9fa;
+}
+
 /* Restaurant info styles for dish cards */
 .restaurant-info {
   border-bottom: 1px solid #f0f0f0;
@@ -391,6 +405,24 @@
   flex-direction: column;
   height: 100%;
   min-height: 280px;
+}
+
+/* Closed restaurant card styling */
+.restaurant-card.closed {
+  opacity: 0.8;
+}
+
+.restaurant-card.closed .card-body {
+  background-color: #f8f9fa;
+}
+
+/* Badge styling enhancements */
+.badge.bg-danger {
+  background-color: #dc3545 !important;
+}
+
+.badge.bg-success {
+  background-color: #198754 !important;
 }
 
 /* Responsive adjustments */
