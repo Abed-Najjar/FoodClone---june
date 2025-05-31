@@ -14,13 +14,13 @@ import { environment } from '../../environments/environment';
 export class RestaurantService {
   private baseUrl: string;
   constructor(private http: HttpClient) {
-    this.baseUrl = `${environment.apiUrl}/User`;
+    this.baseUrl = environment.apiUrl;
   }
 
   // Get all restaurants (this can use HomeController for consistency)
   getAllRestaurants(): Observable<AppResponse<Restaurant[]>> {
-    console.log(`Fetching restaurants from: ${environment.apiUrl}/Home/restaurants`);
-    return this.http.get<AppResponse<Restaurant[]>>(`${environment.apiUrl}/Home/restaurants`)
+    console.log(`Fetching restaurants from: ${this.baseUrl}/Home/restaurants`);
+    return this.http.get<AppResponse<Restaurant[]>>(`${this.baseUrl}/Home/restaurants`)
       .pipe(
         catchError((error: any) => {
           console.error('Error fetching restaurants:', error);
@@ -28,11 +28,11 @@ export class RestaurantService {
         })
       );
   }
-
-  // Get dishes for a specific restaurant (uses UserController endpoint)
+  // Get dishes for a specific restaurant (uses public Home controller endpoint)
   getRestaurantDishes(restaurantId: number): Observable<AppResponse<Dish[]>> {
-    console.log(`Fetching dishes from: ${this.baseUrl}/dishes/${restaurantId}`);
-    return this.http.get<AppResponse<Dish[]>>(`${this.baseUrl}/dishes/${restaurantId}`)
+    const dishUrl = `${this.baseUrl}/Home/restaurants/${restaurantId}/dishes`;
+    console.log(`Fetching dishes from: ${dishUrl}`);
+    return this.http.get<AppResponse<Dish[]>>(dishUrl)
       .pipe(
         catchError((error: any) => {
           console.error(`Error fetching dishes for restaurant ${restaurantId}:`, error);
@@ -41,10 +41,11 @@ export class RestaurantService {
       );
   }
 
-  // Get categories for a specific restaurant (uses UserController endpoint)
+  // Get categories for a specific restaurant (uses CMS controller endpoint)
   getRestaurantCategories(restaurantId: number): Observable<AppResponse<Category[]>> {
-    console.log(`Fetching categories from: ${this.baseUrl}/categories/${restaurantId}`);
-    return this.http.get<AppResponse<Category[]>>(`${this.baseUrl}/categories/${restaurantId}`)
+    const categoryUrl = `${this.baseUrl}/cms/categories/${restaurantId}`;
+    console.log(`Fetching categories from: ${categoryUrl}`);
+    return this.http.get<AppResponse<Category[]>>(categoryUrl)
       .pipe(
         catchError((error: any) => {
           console.error(`Error fetching categories for restaurant ${restaurantId}:`, error);

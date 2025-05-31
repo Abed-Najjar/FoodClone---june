@@ -5,6 +5,8 @@ import { RestaurantDetailComponent } from './components/restaurant-detail/restau
 import { CartComponent } from './components/cart/cart.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { OtpVerificationComponent } from './components/otp-verification/otp-verification.component';
 import { AdminLoginComponent } from './components/admin-login/admin-login.component';
 import { CmsDashboardComponent } from './components/cms/dashboard/cms-dashboard.component';
 import { CategoriesComponent } from './components/cms/categories/categories.component';
@@ -20,7 +22,9 @@ import { AdminGuard } from './guards/admin.guard';
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { path: '', component: HomeComponent, canActivate: [authGuard] },  { path: 'restaurants', component: RestaurantListComponent, canActivate: [authGuard] },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'verify-otp', component: OtpVerificationComponent },
+  { path: '', component: HomeComponent, canActivate: [authGuard] },{ path: 'restaurants', component: RestaurantListComponent, canActivate: [authGuard] },
   { path: 'restaurants/:id', component: RestaurantDetailComponent, canActivate: [authGuard] },
   { path: 'cart', component: CartComponent, canActivate: [authGuard] },
   { path: 'addresses', component: AddressListComponent, canActivate: [authGuard] },

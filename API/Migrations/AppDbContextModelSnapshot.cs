@@ -221,6 +221,53 @@ namespace API.Migrations
                     b.ToTable("OrderDishes", (string)null);
                 });
 
+            modelBuilder.Entity("API.Models.Otp", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiryDate")
+                        .HasDatabaseName("IX_Otp_ExpiryDate");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("Email", "Type", "IsUsed")
+                        .HasDatabaseName("IX_Otp_Email_Type_IsUsed");
+
+                    b.ToTable("Otps");
+                });
+
             modelBuilder.Entity("API.Models.Restaurant", b =>
                 {
                     b.Property<int>("Id")
@@ -431,6 +478,16 @@ namespace API.Migrations
                     b.Navigation("Dish");
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("API.Models.Otp", b =>
+                {
+                    b.HasOne("API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("API.Models.RestaurantsCategories", b =>

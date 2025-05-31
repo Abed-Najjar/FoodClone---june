@@ -4,6 +4,8 @@ import { Observable, Subject } from 'rxjs';
 import { User, UserLogin, UserRegister } from '../models/user.model';
 import { AppResponse } from '../models/app-response.model';
 import { environment } from '../../environments/environment';
+import { OtpService } from './otp.service';
+import { OtpType } from '../models/otp.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +15,7 @@ export class AuthService {
   private currentUser: User | null = null;
   public loginStatusChange = new Subject<boolean>();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private otpService: OtpService) {
     // Load user from localStorage if available
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -83,9 +85,66 @@ export class AuthService {
   isAdmin(): boolean {
     return this.currentUser?.rolename?.toLowerCase() === 'admin';
   }
-
   // Check if the current user has a specific role
   hasRole(role: string): boolean {
     return this.currentUser?.rolename?.toLowerCase() === role.toLowerCase();
+  }
+
+  // OTP-based authentication methods
+  
+  /**
+   * Start forgot password process by sending OTP
+   */
+  requestPasswordReset(email: string): Observable<any> {
+    return this.otpService.generateForgotPasswordOtp(email);
+  }
+  /**
+   * Reset password using OTP
+   */
+  resetPasswordWithOtp(email: string, newPassword: string, otpCode: string): Observable<any> {
+    console.log('Auth Service - Reset password with OTP:', {
+      email,
+      newPassword: newPassword ? '[SET]' : '[EMPTY]',
+      otpCode
+    });
+    return this.otpService.resetPasswordWithOtp({
+      email,
+      newPassword,
+      otpCode
+    });
+  }
+
+  /**
+   * Request OTP for registration
+   */
+  requestRegistrationOtp(email: string): Observable<any> {
+    return this.otpService.generateRegistrationOtp(email);
+  }
+
+  /**
+   * Register with OTP verification
+   */
+  registerWithOtp(user: UserRegister, otpCode: string): Observable<AppResponse<User>> {
+    return this.otpService.registerWithOtp({
+      username: user.username,
+      email: user.email,
+      password: user.password,
+      address: user.address,
+      otpCode
+    });
+  }
+
+  /**
+   * Verify email with OTP
+   */
+  verifyEmail(email: string, otpCode: string): Observable<any> {
+    return this.otpService.verifyRegistrationOtp(email, otpCode);
+  }
+
+  /**
+   * Resend OTP for any purpose
+   */
+  resendOtp(email: string, type: OtpType): Observable<any> {
+    return this.otpService.resendOtp(email, type);
   }
 }

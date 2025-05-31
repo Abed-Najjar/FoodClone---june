@@ -7,15 +7,14 @@ namespace API.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
-        }
-
-        public DbSet<User> Users { get; set; }
+        }        public DbSet<User> Users { get; set; }
         public DbSet<Restaurant> Restaurants { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Dish> Dishes { get; set; }        public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDish> OrderDishes { get; set; }
         public DbSet<Address> Addresses { get; set; }
         public DbSet<RestaurantsCategories> RestaurantsCategories { get; set; }
+        public DbSet<Otp> Otps { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -104,14 +103,32 @@ namespace API.Data
                 
             modelBuilder.Entity<Order>()
                 .Property<DateTime>("UpdatedAt")
-                .HasDefaultValueSql("GETDATE()");
-                
-            // Configure Address-User relationship
+                .HasDefaultValueSql("GETDATE()");            // Configure Address-User relationship
             modelBuilder.Entity<Address>()
                 .HasOne(a => a.User)
                 .WithMany(u => u.Addresses)
                 .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure Otp-User relationship
+            modelBuilder.Entity<Otp>()
+                .HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure Otp entity
+            modelBuilder.Entity<Otp>()
+                .Property(o => o.Type)
+                .HasConversion<string>(); // Store enum as string
+
+            modelBuilder.Entity<Otp>()
+                .HasIndex(o => new { o.Email, o.Type, o.IsUsed })
+                .HasDatabaseName("IX_Otp_Email_Type_IsUsed");
+
+            modelBuilder.Entity<Otp>()
+                .HasIndex(o => o.ExpiryDate)
+                .HasDatabaseName("IX_Otp_ExpiryDate");
         }
         
         /*

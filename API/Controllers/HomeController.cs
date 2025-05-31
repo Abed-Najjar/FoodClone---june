@@ -93,6 +93,42 @@ namespace API.Controllers
                 _logger.LogError(ex, "Error occurred while fetching featured restaurants for home page");
                 return new AppResponse<List<AdminRestaurantDto>>(null, "Error fetching featured restaurants", 500, false);
             }
+        }        /// <summary>
+        /// Get dishes for a specific restaurant
+        /// </summary>
+        /// <param name="restaurantId">Restaurant ID</param>
+        /// <returns>List of dishes for the restaurant</returns>
+        [HttpGet("restaurants/{restaurantId}/dishes")]
+        public async Task<AppResponse<List<DishDto>>> GetRestaurantDishes(int restaurantId)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching dishes for restaurant ID: {RestaurantId}", restaurantId);
+                
+                // Get all dishes and filter by restaurant ID
+                var allDishesResponse = await _dishManagementService.GetAllDishesAsync();
+                
+                if (!allDishesResponse.Success || allDishesResponse.Data == null)
+                {
+                    return allDishesResponse;
+                }
+
+                // Filter dishes by restaurant ID
+                var restaurantDishes = allDishesResponse.Data
+                    .Where(d => d.RestaurantId == restaurantId)
+                    .ToList();
+                
+                return new AppResponse<List<DishDto>>(
+                    restaurantDishes, 
+                    "Restaurant dishes retrieved successfully", 
+                    200, 
+                    true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching dishes for restaurant ID: {RestaurantId}", restaurantId);
+                return new AppResponse<List<DishDto>>(null, "Error fetching restaurant dishes", 500, false);
+            }
         }
 
         /// <summary>

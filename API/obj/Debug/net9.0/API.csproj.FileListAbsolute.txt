@@ -1666,3 +1666,5 @@ C:\Users\x_sly\OneDrive\Desktop\.NET Projects\Technzone Practice\FoodCloneLast\a
 C:\Users\x_sly\OneDrive\Desktop\.NET Projects\Technzone Practice\FoodCloneLast\api\obj\Debug\net9.0\API.pdb
 C:\Users\x_sly\OneDrive\Desktop\.NET Projects\Technzone Practice\FoodCloneLast\api\obj\Debug\net9.0\API.genruntimeconfig.cache
 C:\Users\x_sly\OneDrive\Desktop\.NET Projects\Technzone Practice\FoodCloneLast\api\obj\Debug\net9.0\ref\API.dll
+C:\Users\x_sly\OneDrive\Desktop\.NET Projects\Technzone Practice\FoodCloneLast\api\bin\Debug\net9.0\MailKit.dll
+C:\Users\x_sly\OneDrive\Desktop\.NET Projects\Technzone Practice\FoodCloneLast\api\bin\Debug\net9.0\MimeKit.dll

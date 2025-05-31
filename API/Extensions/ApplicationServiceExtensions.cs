@@ -2,8 +2,10 @@ using API.Data;
 using API.Repositories.Implementations;
 using API.Repositories.Interfaces;
 using API.Services.Argon;
-using API.Services.CmsServiceFolder; 
+using API.Services.CmsServiceFolder;
+using API.Services.EmailService;
 using API.Services.OrderServiceFolder; 
+using API.Services.OtpService;
 using API.Services.TokenServiceFolder;
 using API.Services.TokenServiceFolder.AuthService;
 using API.Services.TokenServiceFolder.AuthServiceFolder;
@@ -37,25 +39,26 @@ namespace API.Extensions
 
 
             // Services Registration
-            services.AddScoped<ITokenService, TokenService>();
             services.AddHttpContextAccessor();
-            services.AddScoped<IArgonHashing, ArgonHashing>();
-            services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IDishManagementService, DishManagementService>();
-
-            services.AddScoped<IOrderService, OrderService>(); // Added
-            services.AddScoped<IUserManagementService, UserManagementService>();
-            services.AddScoped<IRestaurantManagement, RestaurantManagement>();
-            services.AddScoped<ICategoryManagementService, CategoryManagementService>();
-            services.AddScoped<ICloudinaryService, CloudinaryService>();
+            services.AddTransient<ITokenService, TokenService>();
+            services.AddTransient<IArgonHashing, ArgonHashing>();
+            services.AddTransient<IAuthService, AuthService>();
+            services.AddTransient<IDishManagementService, DishManagementService>();
+            services.AddTransient<IOrderService, OrderService>();
+            services.AddTransient<IUserManagementService, UserManagementService>();
+            services.AddTransient<IRestaurantManagement, RestaurantManagement>();
+            services.AddTransient<ICategoryManagementService, CategoryManagementService>();            services.AddTransient<ICloudinaryService, CloudinaryService>();
+            services.AddTransient<IEmailService, EmailService>();
+            services.AddTransient<IOtpService, OtpService>();
 
             // Reposiries Registration
             services.AddScoped<IRestaurantRepository, RestaurantRepository>();
             services.AddScoped<IDishRepository, DishRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IOrderRepository, OrderRepository>(); // Added
-            services.AddScoped<IAddressRepository, AddressRepository>(); // Added
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IAddressRepository, AddressRepository>();
+            services.AddScoped<IOtpRepository, OtpRepository>();
             
             // Register Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();

@@ -1,0 +1,81 @@
+<div class="otp-verification-container">
+  <div class="otp-card">
+    <div class="otp-header">
+      <h2>{{ title }}</h2>
+      <p class="subtitle">{{ subtitle }}</p>
+      <p class="email-display">{{ email }}</p>
+    </div>    <div class="otp-form">
+      <div class="otp-input-container">
+        <label for="otpCode" class="form-label">Enter 6-digit verification code</label>
+        <input
+          type="text"
+          id="otpCode"
+          class="form-control otp-single-input"
+          placeholder="000000"
+          maxlength="6"
+          [(ngModel)]="otpCode"
+          (input)="onOtpInput($event)"
+          (paste)="onOtpPaste($event)"
+          autocomplete="off"
+          inputmode="numeric"
+          pattern="[0-9]{6}"
+          spellcheck="false"
+        />
+        <small class="form-text text-muted">Enter the 6-digit code sent to your email</small>
+      </div>
+
+      <div class="alert alert-error" *ngIf="error">
+        <i class="fas fa-exclamation-triangle"></i>
+        {{ error }}
+      </div>
+
+      <div class="alert alert-success" *ngIf="success">
+        <i class="fas fa-check-circle"></i>
+        {{ success }}
+      </div>
+
+      <div class="otp-actions">        
+        <button 
+          type="button" 
+          class="btn btn-success btn-verify"
+          (click)="verifyOtp()"
+          [disabled]="loading || !isOtpComplete()"
+          [class.loading]="loading"
+        >
+          <span *ngIf="!loading">Verify Code</span>
+          <span *ngIf="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            Verifying...
+          </span>
+        </button>
+      </div>
+
+      <div class="resend-section">
+        <div *ngIf="timeLeft > 0" class="timer">
+          Resend code in {{ formatTime(timeLeft) }}
+        </div>
+        
+        <button 
+          *ngIf="canResend"
+          type="button" 
+          class="btn btn-link resend-btn"
+          (click)="resendOtp()"
+          [disabled]="resending"
+        >
+          <span *ngIf="!resending">Resend Code</span>
+          <span *ngIf="resending">
+            <i class="fas fa-spinner fa-spin"></i>
+            Sending...
+          </span>
+        </button>
+      </div>
+
+      <div class="help-text">
+        <p>
+          <i class="fas fa-info-circle"></i>
+          If you don't receive the code, please check your spam folder or try again.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

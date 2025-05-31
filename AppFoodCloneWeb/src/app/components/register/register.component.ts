@@ -3,23 +3,30 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { OtpService } from '../../services/otp.service';
 import { UserRegister } from '../../models/user.model';
+import { OtpType, GenerateOtpRequest, RegistrationWithOtpRequest } from '../../models/otp.model';
+import { OtpVerificationComponent } from '../otp-verification/otp-verification.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, OtpVerificationComponent],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
 export class RegisterComponent implements OnInit {
+  step: 'form' | 'otp' = 'form';
   registerForm!: FormGroup;
   loading = false;
   error = '';
+  success = '';
+  email = '';
 
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
+    private otpService: OtpService,
     private router: Router
   ) {}
 
@@ -55,7 +62,6 @@ export class RegisterComponent implements OnInit {
 
   // Getter for easy access to form fields
   get f() { return this.registerForm.controls; }  
-
   onSubmit(): void {
     // Mark all fields as touched to show validation errors
     if (this.registerForm.invalid) {
@@ -67,6 +73,46 @@ export class RegisterComponent implements OnInit {
       return;
     }
 
+    this.loading = true;
+    this.error = '';
+    this.email = this.f['email'].value;
+
+    // Generate OTP for registration
+    const otpRequest: GenerateOtpRequest = {
+      email: this.email,
+      type: OtpType.Registration
+    };
+
+    this.otpService.generateOtp(otpRequest).subscribe({
+      next: (response) => {
+        this.loading = false;
+        this.success = 'OTP sent successfully! Please check your email and verify to complete registration.';
+        this.step = 'otp';
+      },
+      error: (err) => {
+        console.error('OTP generation error:', err);
+        this.loading = false;
+        if (err.error && err.error.message) {
+          this.error = err.error.message;
+        } else if (err.status === 400) {
+          this.error = 'Invalid email address. Please check and try again.';
+        } else if (err.status === 409) {
+          this.error = 'Email already in use. Please try a different email or login.';
+        } else {
+          this.error = 'Failed to send OTP. Please try again.';
+        }
+      }
+    });
+  }
+
+  onOtpVerified(event: { verified: boolean, otpCode?: string }): void {
+    if (event.verified && event.otpCode) {
+      this.completeRegistration(event.otpCode);
+    } else {
+      this.error = 'Invalid OTP. Please try again.';
+      this.success = '';
+    }
+  }  completeRegistration(otpCode: string): void {
     this.loading = true;
     this.error = '';
 
@@ -81,64 +127,64 @@ export class RegisterComponent implements OnInit {
       addressArray = [];
     }
 
-    // Debug log to check payload
-    console.log('Form data:', this.registerForm.value);
-
     const user: UserRegister = {
       username: this.f['username'].value,
       email: this.f['email'].value,
       password: this.f['password'].value,
       address: addressArray
     };
-    // Debug log the API request
-    console.log('Sending registration request:', user);
-    
-    this.authService.register(user).subscribe({
+
+    // Debug logging
+    console.log('Registration data being sent:', {
+      username: user.username,
+      email: user.email,
+      password: user.password ? '[PASSWORD SET]' : '[NO PASSWORD]',
+      address: user.address,
+      otpCode: otpCode
+    });
+
+    this.authService.registerWithOtp(user, otpCode).subscribe({
       next: (response) => {
+        this.loading = false;
         if (response.success && response.data) {
           this.authService.setCurrentUser(response.data);
-          this.router.navigate(['/']).then(() => {
-            // Force reload to update the header
-            window.location.reload();
-          });
+          this.success = 'Registration completed successfully! Redirecting...';
+          setTimeout(() => {
+            this.router.navigate(['/']).then(() => {
+              window.location.reload();
+            });
+          }, 2000);
         } else {
-          this.error = response.errorMessage || 'Registration failed. No specific error message provided.';
-          console.error('Registration failed:', response.errorMessage || 'No specific error message provided.');
-          this.loading = false;
+          this.error = response.errorMessage || 'Registration failed. Please try again.';
         }
       },
       error: (err) => {
         console.error('Registration error:', err);
-        console.error('Error details:', {
-          status: err.status,
-          statusText: err.statusText,
-          error: err.error,
-          message: err.message,
-          name: err.name
-        });
+        this.loading = false;
         
         if (err.error && err.error.message) {
           this.error = err.error.message;
-          console.error('Error message from server:', err.error.message);
         } else if (err.error && typeof err.error === 'string') {
           this.error = err.error;
-          console.error('Error string from server:', err.error);
         } else if (err.error && err.error.errors) {
-          // ASP.NET Core model state errors
           const errors = err.error.errors;
           this.error = Object.values(errors).flat().join(' ') || 'Invalid form data. Please check your inputs.';
-          console.error('Model state errors:', errors);
         } else if (err.status === 400) {
-          this.error = 'Invalid form data. Please check your inputs.';
+          this.error = 'Invalid form data or OTP. Please check your inputs.';
         } else if (err.status === 409) {
-          this.error = 'Email already in use. Please try a different email or login.';
+          this.error = 'Email already in use. Please try a different email.';
         } else if (err.status === 500) {
           this.error = 'Server error. Please try again later.';
         } else {
           this.error = 'An error occurred during registration. Please try again.';
         }
-        this.loading = false;
       }
     });
+  }
+
+  goBackToForm(): void {
+    this.step = 'form';
+    this.error = '';
+    this.success = '';
   }
 }
