@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Maps API Test</title>
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+            background-color: #f8f9fa;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Google Maps API Test</h1>
+    <div id="status" class="status">Loading...</div>
+    <div id="map"></div>
+
+    <script>
+        function initMap() {
+            console.log('initMap called');
+            document.getElementById('status').innerHTML = 'Google Maps API loaded successfully!';
+            document.getElementById('status').className = 'status success';
+              // Create map
+            const map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 15,
+                center: { lat: 31.9454, lng: 35.9284 }, // Center of Jordan
+                mapTypeControl: true
+            });
+
+            // Add marker
+            const marker = new google.maps.Marker({
+                position: { lat: 31.9454, lng: 35.9284 },
+                map: map,
+                title: 'Test Location'
+            });
+
+            console.log('Map initialized successfully');
+        }
+
+        function handleMapError() {
+            console.error('Google Maps API failed to load');
+            document.getElementById('status').innerHTML = 'Failed to load Google Maps API. Check API key and network connection.';
+            document.getElementById('status').className = 'status error';
+        }
+
+        // Test script loading
+        console.log('Loading Google Maps API script...');
+        
+        window.initMap = initMap;
+    </script>    <script async defer 
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB_meL0N-2zg3ZzCw22LcUrSiTAYtXVbBE&callback=initMap&libraries=places"
+            onerror="handleMapError()">
+    </script>
+</body>
+</html>

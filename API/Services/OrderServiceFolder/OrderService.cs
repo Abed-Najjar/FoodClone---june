@@ -21,9 +21,7 @@ namespace API.Services.OrderServiceFolder
             {
                 _logger.LogInformation("GetAllOrdersAsync called");
 
-                var orders = await _unitOfWork.OrderRepository.GetAllOrdersAsync();
-
-                if (orders == null || !orders.Any())
+                var orders = await _unitOfWork.OrderRepository.GetAllOrdersAsync();                if (orders == null || !orders.Any())
                 {
                     return new AppResponse<List<OrderDto>>(null, "No orders found.", 200, false);
                 }
@@ -41,6 +39,9 @@ namespace API.Services.OrderServiceFolder
                     RestaurantName = o.Restaurant?.Name ?? "Unknown",
                     EmployeeId = o.EmployeeId ?? 0,
                     EmployeeName = o.Employee?.UserName ?? "Not Assigned",
+                    DeliveryAddressId = o.DeliveryAddressId,
+                    DeliveryAddress = o.DeliveryAddress?.FormattedAddress ?? "",
+                    DeliveryInstructions = o.DeliveryInstructions ?? "",
                     OrderItems = o.OrderItems?.Select(oi => new OrderItemDto
                     {
                         Id = oi.Id,
@@ -266,6 +267,139 @@ namespace API.Services.OrderServiceFolder
             {
                 _logger.LogError(ex, $"Error occurred while updating order status for ID: {id}");
                 return new AppResponse<bool>(false, ex.Message, 500, false);
+            }
+        }
+
+        public async Task<AppResponse<OrderDto>> CreateOrderAsync(OrderCreateDto orderCreateDto, int userId)
+        {
+            try
+            {
+                _logger.LogInformation($"CreateOrderAsync called for user ID: {userId}");
+
+                // Validate input
+                if (orderCreateDto.OrderItems == null || !orderCreateDto.OrderItems.Any())
+                {
+                    return new AppResponse<OrderDto>(null, "Order must contain at least one item.", 400, false);
+                }
+
+                // Verify restaurant exists
+                var restaurant = await _unitOfWork.OrderRepository.GetRestaurantByIdAsync(orderCreateDto.RestaurantId);
+                if (restaurant == null)
+                {
+                    return new AppResponse<OrderDto>(null, "Restaurant not found.", 404, false);
+                }
+
+                // Check if restaurant is open
+                if (!restaurant.IsOpen)
+                {
+                    return new AppResponse<OrderDto>(null, "Restaurant is currently closed.", 400, false);
+                }
+
+                var orderItems = new List<Models.OrderDish>();
+                decimal subtotal = 0;
+
+                // Validate each order item and calculate subtotal
+                foreach (var item in orderCreateDto.OrderItems)
+                {
+                    var dish = await _unitOfWork.OrderRepository.GetDishByIdAsync(item.DishId);
+                    if (dish == null)
+                    {
+                        return new AppResponse<OrderDto>(null, $"Dish with ID {item.DishId} not found.", 404, false);
+                    }
+
+                    if (!dish.IsAvailable)
+                    {
+                        return new AppResponse<OrderDto>(null, $"Dish '{dish.Name}' is currently unavailable.", 400, false);
+                    }
+
+                    if (dish.RestaurantId != orderCreateDto.RestaurantId)
+                    {
+                        return new AppResponse<OrderDto>(null, $"Dish '{dish.Name}' does not belong to the selected restaurant.", 400, false);
+                    }
+
+                    if (item.Quantity <= 0)
+                    {
+                        return new AppResponse<OrderDto>(null, $"Invalid quantity for dish '{dish.Name}'.", 400, false);
+                    }
+
+                    var orderItem = new Models.OrderDish
+                    {
+                        DishId = item.DishId,
+                        Quantity = item.Quantity,
+                        UnitPrice = dish.Price
+                    };
+
+                    orderItems.Add(orderItem);
+                    subtotal += dish.Price * item.Quantity;
+                }                // Calculate order totals
+                decimal deliveryFee = restaurant.DeliveryFee;
+                decimal taxRate = 0.15m; // 15% tax rate - could be configurable
+                decimal taxAmount = subtotal * taxRate;
+                decimal totalAmount = subtotal + deliveryFee + taxAmount;
+
+                // Validate delivery address if provided
+                string? deliveryAddressText = null;
+                if (orderCreateDto.DeliveryAddressId.HasValue)
+                {
+                    var address = await _unitOfWork.OrderRepository.GetAddressByIdAsync(orderCreateDto.DeliveryAddressId.Value, userId);
+                    if (address == null)
+                    {
+                        return new AppResponse<OrderDto>(null, "Invalid delivery address selected.", 400, false);
+                    }
+                    deliveryAddressText = address.FormattedAddress;
+                }
+
+                // Create the order
+                var order = new Models.Order
+                {
+                    UserId = userId,
+                    RestaurantId = orderCreateDto.RestaurantId,
+                    PaymentMethod = orderCreateDto.PaymentMethod ?? "Cash",
+                    Status = "Pending",
+                    TotalAmount = totalAmount,
+                    CreatedAt = DateTime.UtcNow,
+                    DeliveryAddressId = orderCreateDto.DeliveryAddressId,
+                    DeliveryInstructions = orderCreateDto.DeliveryInstructions,
+                    OrderItems = orderItems
+                };
+
+                // Save the order
+                var createdOrder = await _unitOfWork.OrderRepository.CreateOrderAsync(order);
+                await _unitOfWork.CompleteAsync();                // Convert to DTO
+                var orderDto = new OrderDto
+                {
+                    Id = createdOrder.Id,
+                    UserId = createdOrder.UserId,
+                    RestaurantId = createdOrder.RestaurantId,
+                    TotalAmount = createdOrder.TotalAmount,
+                    Status = createdOrder.Status,
+                    PaymentMethod = createdOrder.PaymentMethod,
+                    OrderDate = createdOrder.CreatedAt,
+                    UserName = createdOrder.User?.UserName ?? "Unknown",
+                    RestaurantName = createdOrder.Restaurant?.Name ?? restaurant.Name,
+                    EmployeeId = createdOrder.EmployeeId ?? 0,
+                    EmployeeName = createdOrder.Employee?.UserName ?? "Not Assigned",
+                    DeliveryAddressId = createdOrder.DeliveryAddressId,
+                    DeliveryAddress = deliveryAddressText ?? "",
+                    DeliveryInstructions = createdOrder.DeliveryInstructions ?? "",
+                    OrderItems = createdOrder.OrderItems?.Select(oi => new OrderItemDto
+                    {
+                        Id = oi.Id,
+                        DishId = oi.DishId,
+                        DishName = oi.Dish?.Name ?? "Unknown",
+                        UnitPrice = oi.UnitPrice,
+                        Quantity = oi.Quantity,
+                        TotalPrice = oi.Quantity * oi.UnitPrice
+                    }).ToList() ?? new List<OrderItemDto>()
+                };
+
+                _logger.LogInformation($"Order created successfully with ID: {createdOrder.Id}");
+                return new AppResponse<OrderDto>(orderDto, "Order created successfully.", 201, true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred while creating order for user ID: {userId}");
+                return new AppResponse<OrderDto>(null, ex.Message, 500, false);
             }
         }
     }

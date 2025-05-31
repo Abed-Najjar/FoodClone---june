@@ -205,8 +205,87 @@
   left: 0;
   width: 50px;
   height: 3px;
-  background-color: var(--primary-color);
-  border-radius: 2px;
+  background-color: var(--primary-color);  border-radius: 2px;
+}
+
+/* Availability Summary Styles */
+.availability-summary {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 15px;
+  padding: 20px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.availability-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.availability-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.availability-stats .stat-item.available {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.availability-stats .stat-item.unavailable {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.availability-stats .stat-item.total {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+  border: 1px solid rgba(0, 123, 255, 0.2);
+}
+
+.availability-percentage {
+  text-align: right;
+}
+
+.percentage-text {
+  font-weight: 600;
+  color: var(--dark-color);
+  font-size: 1rem;
+}
+
+.progress {
+  border-radius: 10px;
+  background-color: rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+  border-radius: 10px;
+  transition: width 0.6s ease;
+}
+
+@media (max-width: 768px) {
+  .availability-summary .row > div {
+    text-align: center !important;
+  }
+  
+  .availability-stats {
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  
+  .availability-percentage {
+    text-align: center !important;
+  }
 }
 
 .dish-card {
@@ -216,11 +295,16 @@
   transition: all 0.3s ease;
   height: 100%;
   box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  position: relative;
 }
 
-.dish-card:hover {
+.dish-card:hover:not(.dish-unavailable) {
   transform: translateY(-8px);
   box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.dish-card.dish-unavailable {
+  border: 2px solid #ffebee;
 }
 
 .dish-image {
@@ -229,7 +313,7 @@
   transition: transform 0.5s;
 }
 
-.dish-card:hover .dish-image {
+.dish-card:hover:not(.dish-unavailable) .dish-image {
   transform: scale(1.05);
 }
 
@@ -269,32 +353,72 @@
 
 /* Unavailable dish styles */
 .dish-unavailable {
-  opacity: 0.7;
+  opacity: 0.75;
   position: relative;
+  border: 2px solid #ff6b6b;
 }
 
 .dish-unavailable .dish-image {
-  filter: grayscale(50%);
+  filter: grayscale(60%) brightness(0.8);
+}
+
+.dish-unavailable::before {
+  content: 'OUT OF STOCK';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(220, 53, 69, 0.95);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  z-index: 2;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
 .dish-unavailable:hover {
   transform: none;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.2);
 }
 
 .unavailable-badge {
   background-color: #dc3545 !important;
   font-weight: 600;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
 }
 
 .availability-status .badge {
-  font-size: 0.75rem;
-  padding: 4px 8px;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  font-weight: 600;
+  border-radius: 15px;
+}
+
+.availability-status .bg-success {
+  background-color: #28a745 !important;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.availability-status .bg-danger {
+  background-color: #dc3545 !important;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
 }
 
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  background-color: #e9ecef !important;
+  border-color: #e9ecef !important;
+  color: #6c757d !important;
 }
 
 /* Availability filter styles */

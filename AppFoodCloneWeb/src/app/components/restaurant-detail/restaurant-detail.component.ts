@@ -169,8 +169,25 @@ export class RestaurantDetailComponent implements OnInit {
       this.dishQuantities[dish.id] = currentQuantity - 1;
     }
   }
-
   resetQuantity(dish: Dish): void {
     this.dishQuantities[dish.id] = 1;
+  }
+
+  // Availability statistics
+  getAvailableDishesCount(): number {
+    return this.filteredDishes.filter(dish => dish.isAvailable).length;
+  }
+
+  getUnavailableDishesCount(): number {
+    return this.filteredDishes.filter(dish => !dish.isAvailable).length;
+  }
+
+  getTotalDishesCount(): number {
+    return this.filteredDishes.length;
+  }
+
+  getAvailabilityPercentage(): number {
+    if (this.getTotalDishesCount() === 0) return 0;
+    return Math.round((this.getAvailableDishesCount() / this.getTotalDishesCount()) * 100);
   }
 }

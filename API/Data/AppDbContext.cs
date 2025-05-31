@@ -7,10 +7,13 @@ namespace API.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
-        }        public DbSet<User> Users { get; set; }
+        }
+
+        public DbSet<User> Users { get; set; }
         public DbSet<Restaurant> Restaurants { get; set; }
         public DbSet<Category> Categories { get; set; }
-        public DbSet<Dish> Dishes { get; set; }        public DbSet<Order> Orders { get; set; }
+        public DbSet<Dish> Dishes { get; set; }
+        public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDish> OrderDishes { get; set; }
         public DbSet<Address> Addresses { get; set; }
         public DbSet<RestaurantsCategories> RestaurantsCategories { get; set; }
@@ -91,19 +94,21 @@ namespace API.Data
             modelBuilder.Entity<Order>()
                 .Property(o => o.EmployeeId)
                 .IsRequired(false);
-                
-            // Enhancement 4: Add uniqueness constraint for dish names within a restaurant
+                  // Enhancement 4: Add uniqueness constraint for dish names within a restaurant
             modelBuilder.Entity<Dish>()
                 .HasIndex(d => new { d.RestaurantId, d.Name })
                 .IsUnique();
-                  // Enhancement 5: Add timestamps for auditing
+                
+            // Enhancement 5: Add timestamps for auditing (SQLite compatible)
             modelBuilder.Entity<Order>()
                 .Property<DateTime>("CreatedAt")
-                .HasDefaultValueSql("GETDATE()");
+                .HasDefaultValueSql("datetime('now')");
                 
             modelBuilder.Entity<Order>()
                 .Property<DateTime>("UpdatedAt")
-                .HasDefaultValueSql("GETDATE()");            // Configure Address-User relationship
+                .HasDefaultValueSql("datetime('now')");
+
+            // Configure Address-User relationship
             modelBuilder.Entity<Address>()
                 .HasOne(a => a.User)
                 .WithMany(u => u.Addresses)
@@ -115,7 +120,7 @@ namespace API.Data
                 .HasOne(o => o.User)
                 .WithMany()
                 .HasForeignKey(o => o.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure Otp entity
             modelBuilder.Entity<Otp>()

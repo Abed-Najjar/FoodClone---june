@@ -5,9 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { Restaurant } from '../../models/restaurant.model';
 import { RestaurantService } from '../../services/restaurant.service';
 import { HomeService } from '../../services/home.service';
-import { CartService } from '../../services/cart.service';
 import { Dish } from '../../models/dish.model';
 import { ImageUtilService } from '../../services/image-util.service';
+import { OrderService } from '../../services/order.service';
+import { AuthService } from '../../services/auth.service';
+import { Order } from '../../models/order.model';
 
 @Component({
   selector: 'app-home',
@@ -28,18 +30,31 @@ export class HomeComponent implements OnInit {
   searchTerm = '';
   selectedCategory: string | null = null;
   heroImage: string = '';
+  // Current order tracking properties
+  currentOrders: Order[] = [];
+  ordersLoading = false;
+  ordersError = '';  showOrderTracking = false;
   
+  // Expose Math to template
+  Math = Math;
+
   constructor(
     private restaurantService: RestaurantService,
     private homeService: HomeService,
-    private cartService: CartService,
-    private imageUtilService: ImageUtilService
-  ) {}  ngOnInit(): void {
+    private imageUtilService: ImageUtilService,
+    private orderService: OrderService,
+    private authService: AuthService
+  ) {}
+  ngOnInit(): void {
     this.loadFeaturedRestaurants();
     this.loadAllRestaurants();
     this.loadPopularDishes();
-    this.heroImage = this.getRandomHeroImage();
+    this.heroImage = this.getRandomHeroImage();    // Load current orders if user is logged in
+    if (this.authService.isLoggedIn()) {
+      this.loadCurrentOrders();
+    }
   }
+
   loadFeaturedRestaurants(): void {
     this.loading = true;
     this.homeService.getFeaturedRestaurants().subscribe({
@@ -58,6 +73,7 @@ export class HomeComponent implements OnInit {
       }
     });
   }
+
   loadAllRestaurants(): void {
     this.homeService.getAllRestaurants().subscribe({
       next: (response: any) => {
@@ -83,7 +99,9 @@ export class HomeComponent implements OnInit {
   filterByCategory(category: string | null): void {
     this.selectedCategory = category === 'all' ? null : category;
     this.applyFilters();
-  }  applyFilters(): void {
+  }
+
+  applyFilters(): void {
     let results = [...this.allRestaurants];
 
     // Apply search filter
@@ -110,15 +128,18 @@ export class HomeComponent implements OnInit {
     // Update featured restaurants to reflect filtered results (first 8)
     this.featuredRestaurants = results.slice(0, 8);
   }
+
   resetFilters(): void {
     this.searchTerm = '';
     this.selectedCategory = null;
     this.filteredRestaurants = [...this.allRestaurants];
     this.featuredRestaurants = this.allRestaurants.slice(0, 8);
-  }// Load popular dishes from the database
+  }
+
+  // Load popular dishes from the database
   loadPopularDishes(): void {
     this.dishesLoading = true;
-    
+
     this.homeService.getPopularDishes().subscribe({
       next: (response: any) => {
         if (response.success) {
@@ -128,7 +149,7 @@ export class HomeComponent implements OnInit {
             restaurantLogoUrl: dish.restaurantLogoUrl || this.getRestaurantLogoImage({ id: dish.restaurantId } as Restaurant)
           }));
           this.dishesLoading = false;
-          
+
           if (this.popularDishes.length === 0) {
             this.dishesError = 'No popular dishes available at the moment';
           }
@@ -143,6 +164,121 @@ export class HomeComponent implements OnInit {
         console.error('Error fetching popular dishes:', err);
       }
     });
+  }
+  // Load current orders for the current user (orders that are in progress)
+  loadCurrentOrders(): void {
+    this.ordersLoading = true;
+    this.ordersError = '';
+      this.orderService.getMyOrders().subscribe({
+      next: (response: any) => {
+        if (response.success) {
+          // Filter for current orders (not delivered or cancelled)
+          const activeStatuses = ['pending', 'confirmed', 'preparing', 'out_for_delivery', 'out for delivery'];
+          this.currentOrders = response.data
+            .filter((order: Order) => activeStatuses.includes(order.status.toLowerCase()))
+            .sort((a: Order, b: Order) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
+          
+          // Only show order tracking section if there are current orders
+          this.showOrderTracking = this.currentOrders.length > 0;
+        } else {
+          this.ordersError = response.errorMessage || 'Failed to load orders';
+          this.showOrderTracking = false;
+        }
+        this.ordersLoading = false;
+      },
+      error: (err: any) => {
+        this.ordersError = 'Failed to load current orders. Please try again later.';
+        this.ordersLoading = false;
+        this.showOrderTracking = false;
+        console.error('Error fetching current orders:', err);
+      }
+    });
+  }
+
+  // Get order status color class
+  getOrderStatusClass(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'status-pending';
+      case 'confirmed':
+        return 'status-confirmed';
+      case 'preparing':
+        return 'status-preparing';
+      case 'out_for_delivery':
+      case 'out for delivery':
+        return 'status-delivery';
+      case 'delivered':
+        return 'status-delivered';
+      case 'cancelled':
+        return 'status-cancelled';
+      default:
+        return 'status-pending';
+    }
+  }
+
+  // Get formatted order status text
+  getFormattedOrderStatus(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'out_for_delivery':
+        return 'Out for Delivery';
+      case 'out for delivery':
+        return 'Out for Delivery';
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    }
+  }
+  // Get order status icon
+  getOrderStatusIcon(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bi-clock';
+      case 'confirmed':
+        return 'bi-check-circle';
+      case 'preparing':
+        return 'bi-fire';
+      case 'out_for_delivery':
+      case 'out for delivery':
+        return 'bi-truck';
+      case 'delivered':
+        return 'bi-check-circle-fill';
+      case 'cancelled':
+        return 'bi-x-circle';
+      default:
+        return 'bi-clock';
+    }
+  }
+
+  // Get estimated delivery time based on order status
+  getEstimatedDeliveryTime(order: Order): string {
+    const orderTime = new Date(order.orderDate);
+    const now = new Date();
+    const minutesElapsed = Math.floor((now.getTime() - orderTime.getTime()) / (1000 * 60));
+    
+    switch (order.status.toLowerCase()) {
+      case 'pending':
+        return '5-10 min for confirmation';
+      case 'confirmed':
+        return '20-30 min preparation';
+      case 'preparing':
+        const prepTime = Math.max(15 - minutesElapsed, 5);
+        return `${prepTime}-${prepTime + 10} min remaining`;
+      case 'out_for_delivery':
+      case 'out for delivery':
+        return '10-15 min delivery';
+      default:
+        return 'Processing...';
+    }
+  }
+
+  // Refresh current orders
+  refreshOrders(): void {
+    this.loadCurrentOrders();
+  }
+
+  // Track order in real-time
+  trackOrder(orderId: number): void {
+    // Navigate to order tracking page - you can implement this route
+    console.log('Track order in real-time:', orderId);
   }
 
   // Get a random hero image
@@ -162,7 +298,6 @@ export class HomeComponent implements OnInit {
     const imageIndex = (restaurant.id % 8) + 1;
     return `https://images.unsplash.com/photo-${1517248135467 + restaurant.id * 10000}-4c7edcad34c4?w=800&q=80`;
   }
-
   // Get a restaurant logo image with fallback
   getRestaurantLogoImage(restaurant: Restaurant): string {
     if (restaurant.logoUrl) {
@@ -170,32 +305,5 @@ export class HomeComponent implements OnInit {
     }
     const imageIndex = (restaurant.id % 8) + 1;
     return `https://images.unsplash.com/photo-${1594041680534 + restaurant.id * 10000}-e8c8cdebd659?w=200&q=80`;
-  }
-
-
-  // Add dish to cart
-  addToCart(dish: Dish): void {
-    // Check if dish is available before adding to cart
-    if (!dish.isAvailable) {
-      alert(`${dish.name} is currently unavailable and cannot be added to cart.`);
-      return;
-    }
-    
-    // Find a restaurant for this dish
-    const restaurant = this.allRestaurants.find(r => r.id === dish.restaurantId) ||
-                      { id: dish.restaurantId, name: dish.restaurantName || 'Restaurant ' + dish.restaurantId };
-
-    // The dish already follows the Dish model, just ensure all required properties are present
-    const cartDish: Dish = {
-      ...dish,
-      restaurantName: dish.restaurantName || restaurant?.name || 'Restaurant',
-      isAvailable: dish.isAvailable // Keep the original availability status
-    };
-
-    // Add to cart with a quantity of 1
-    this.cartService.addToCart(cartDish, 1);
-
-    // Show a notification (in a real app)
-    alert(`Added ${dish.name} to your cart!`);
   }
 }

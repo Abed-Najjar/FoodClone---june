@@ -12,4 +12,8 @@ public interface IOrderRepository
     Task<List<Order>> GetOrdersByRestaurantAsync(int restaurantId);
     Task<List<Order>> GetOrdersByEmployeeAsync(int employeeId);
     Task<bool> UpdateOrderStatusAsync(int id, string status);
+    Task<Order> CreateOrderAsync(Order order);
+    Task<Dish?> GetDishByIdAsync(int dishId);
+    Task<Restaurant?> GetRestaurantByIdAsync(int restaurantId);
+    Task<Address?> GetAddressByIdAsync(int addressId, int userId);
 }

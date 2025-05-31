@@ -12,77 +12,70 @@ namespace API.Repositories.Implementations
         public OrderRepository(AppDbContext context)
         {
             _context = context;
-        }
-
-        public async Task<List<Order>> GetAllOrdersAsync()
+        }        public async Task<List<Order>> GetAllOrdersAsync()
         {
             var orders = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.Restaurant)
                 .Include(o => o.Employee)
+                .Include(o => o.DeliveryAddress)
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Dish)
                 .ToListAsync();
 
             return orders;
-        }
-    
-        public async Task<Order?> GetOrderByIdAsync(int id)
+        }        public async Task<Order?> GetOrderByIdAsync(int id)
         {
             var order = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.Restaurant)
                 .Include(o => o.Employee)
+                .Include(o => o.DeliveryAddress)
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Dish)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             return order;
-        }
-
-        public async Task<List<Order>> GetOrdersByUserAsync(int userId)
+        }        public async Task<List<Order>> GetOrdersByUserAsync(int userId)
         {
             var orders = await _context.Orders
                 .Where(o => o.UserId == userId)
                 .Include(o => o.User)
                 .Include(o => o.Restaurant)
                 .Include(o => o.Employee)
+                .Include(o => o.DeliveryAddress)
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Dish)
                 .ToListAsync();
         
             return orders;
-        }
-
-        public async Task<List<Order>> GetOrdersByRestaurantAsync(int restaurantId)
+        }        public async Task<List<Order>> GetOrdersByRestaurantAsync(int restaurantId)
         {
             var orders = await _context.Orders
                 .Where(o => o.RestaurantId == restaurantId)
                 .Include(o => o.User)
                 .Include(o => o.Restaurant)
                 .Include(o => o.Employee)
+                .Include(o => o.DeliveryAddress)
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Dish)
                 .ToListAsync();
 
             return orders;
-        }
-
-        public async Task<List<Order>> GetOrdersByEmployeeAsync(int employeeId)
+        }        public async Task<List<Order>> GetOrdersByEmployeeAsync(int employeeId)
         {
             var orders = await _context.Orders
                 .Where(o => o.EmployeeId == employeeId)
                 .Include(o => o.User)
                 .Include(o => o.Restaurant)
                 .Include(o => o.Employee)
+                .Include(o => o.DeliveryAddress)
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Dish)
                 .ToListAsync();
 
             return orders;
-        }
-
-        public async Task<bool> UpdateOrderStatusAsync(int id, string status)
+        }public async Task<bool> UpdateOrderStatusAsync(int id, string status)
         {
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
@@ -94,6 +87,32 @@ namespace API.Repositories.Implementations
             _context.Orders.Update(order);
 
             return true;
+        }
+
+        public async Task<Order> CreateOrderAsync(Order order)
+        {
+            await _context.Orders.AddAsync(order);
+            await _context.SaveChangesAsync();
+            
+            // Return the order with all navigation properties loaded
+            return await GetOrderByIdAsync(order.Id) ?? order;
+        }
+
+        public async Task<Dish?> GetDishByIdAsync(int dishId)
+        {
+            return await _context.Dishes
+                .Include(d => d.Restaurant)
+                .FirstOrDefaultAsync(d => d.Id == dishId);
+        }        public async Task<Restaurant?> GetRestaurantByIdAsync(int restaurantId)
+        {
+            return await _context.Restaurants
+                .FirstOrDefaultAsync(r => r.Id == restaurantId);
+        }
+
+        public async Task<Address?> GetAddressByIdAsync(int addressId, int userId)
+        {
+            return await _context.Addresses
+                .FirstOrDefaultAsync(a => a.Id == addressId && a.UserId == userId);
         }
     }
 }

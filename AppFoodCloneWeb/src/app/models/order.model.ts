@@ -9,6 +9,8 @@ export interface OrderItem {
 export interface OrderCreate {
   restaurantId: number;
   paymentMethod: string;
+  deliveryAddressId?: number;
+  deliveryInstructions?: string;
   orderItems: {
     dishId: number;
     quantity: number;
@@ -30,6 +32,8 @@ export interface Order {
   restaurantId: number;
   restaurantName: string;
   deliveryFee?: number;
+  deliveryAddressId?: number;
+  deliveryInstructions?: string;
   orderItems: OrderItem[];
   dishes: {
     name: string;

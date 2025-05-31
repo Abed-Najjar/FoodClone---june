@@ -41,9 +41,42 @@
       </div>
     </div>
   </div>
-
   <div class="container content-container">
-    <h2 class="menu-section-title">Menu</h2>    <!-- Categories navigation -->
+    <h2 class="menu-section-title">Menu</h2>
+    
+    <!-- Availability Summary -->
+    <div class="availability-summary mb-4" *ngIf="dishes.length > 0">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="availability-stats d-flex gap-3 flex-wrap">
+            <div class="stat-item available">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>{{ getAvailableDishesCount() }} Available</span>
+            </div>
+            <div class="stat-item unavailable" *ngIf="getUnavailableDishesCount() > 0">
+              <i class="bi bi-x-circle-fill"></i>
+              <span>{{ getUnavailableDishesCount() }} Out of Stock</span>
+            </div>
+            <div class="stat-item total">
+              <i class="bi bi-collection-fill"></i>
+              <span>{{ getTotalDishesCount() }} Total Items</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <div class="availability-percentage">
+            <span class="percentage-text">{{ getAvailabilityPercentage() }}% Available</span>
+            <div class="progress mt-2" style="height: 8px;">
+              <div class="progress-bar bg-success" 
+                   [style.width.%]="getAvailabilityPercentage()">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Categories navigation -->
     <div class="category-nav">
       <button class="btn" (click)="setActiveCategory(null)"
               [ngClass]="activeCategory === null ? 'btn-primary' : 'btn-outline-primary'">
@@ -73,23 +106,22 @@
             <img [src]="dish.imageUrl || '/assets/images/dish-' + ((i % 8) + 1) + '.jpg'"
                 class="card-img-top dish-image"
                 alt="{{ dish.name }}">
-            <span *ngIf="i % 5 === 0" class="dish-badge">Popular</span>
-            <span *ngIf="i % 7 === 0" class="dish-badge">New</span>
             <span *ngIf="!dish.isAvailable" class="dish-badge unavailable-badge">Unavailable</span>
           </div>
           <div class="card-body">
             <span class="dish-category">{{ getCategoryName(dish.categoryId) }}</span>
             <h5 class="card-title">{{ dish.name }}</h5>
-            <p class="card-text">{{ dish.description }}</p>
-
-            <!-- Availability Status -->
-            <div class="availability-status mb-2">
-              <span *ngIf="dish.isAvailable" class="badge bg-success">
-                <i class="bi bi-check-circle me-1"></i>Available
-              </span>
-              <span *ngIf="!dish.isAvailable" class="badge bg-danger">
-                <i class="bi bi-x-circle me-1"></i>Currently Unavailable
-              </span>
+            <p class="card-text">{{ dish.description }}</p>            <!-- Availability Status and Price -->
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="price">${{ dish.price.toFixed(2) }}</span>
+              <div class="availability-status">
+                <span *ngIf="dish.isAvailable" class="badge bg-success">
+                  <i class="bi bi-check-circle me-1"></i>Available Now
+                </span>
+                <span *ngIf="!dish.isAvailable" class="badge bg-danger">
+                  <i class="bi bi-x-circle me-1"></i>Out of Stock
+                </span>
+              </div>
             </div>
 
             <div class="dish-options" *ngIf="i % 3 === 0">
@@ -101,28 +133,26 @@
               <div class="dish-option">
                 <i class="bi bi-fire text-danger"></i> Spicy
               </div>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center mt-3">
-              <span class="price">${{ dish.price.toFixed(2) }}</span>
+            </div>            <div class="d-flex justify-content-between align-items-center mt-3">
               <div class="quantity-control" *ngIf="dish.isAvailable">
                 <div class="quantity-btn" (click)="decreaseQuantity(dish)">-</div>
                 <span class="quantity-value">{{ getQuantity(dish) }}</span>
                 <div class="quantity-btn" (click)="increaseQuantity(dish)">+</div>
               </div>
               <div *ngIf="!dish.isAvailable" class="text-muted">
-                <small>Quantity controls disabled</small>
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                <small>Currently out of stock</small>
               </div>
             </div>
 
             <button 
               class="btn w-100 mt-3" 
               [class.btn-primary]="dish.isAvailable"
-              [class.btn-secondary]="!dish.isAvailable"
+              [class.btn-outline-secondary]="!dish.isAvailable"
               [disabled]="!dish.isAvailable"
               (click)="addToCart(dish)">
               <i class="bi" [class.bi-cart-plus]="dish.isAvailable" [class.bi-cart-x]="!dish.isAvailable" class="me-2"></i>
-              {{ dish.isAvailable ? 'Add to Cart' : 'Unavailable' }}
+              {{ dish.isAvailable ? 'Add to Cart' : 'Out of Stock' }}
             </button>
           </div>
         </div>

@@ -432,3 +432,360 @@
     margin-bottom: 10px;
   }
 }
+
+/* Current Order Tracking Section Styles */
+.order-tracking-section {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.orders-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+}
+
+.current-order-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+  position: relative;
+  overflow: hidden;
+}
+
+.current-order-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #007bff, #0056b3);
+}
+
+.current-order-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.order-info h5.restaurant-name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.order-id {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-family: monospace;
+}
+
+.order-status-section {
+  text-align: right;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-icon {
+  font-size: 1.2rem;
+}
+
+.status-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-pending .status-icon,
+.status-pending.status-badge {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-confirmed .status-icon,
+.status-confirmed.status-badge {
+  background-color: #cff4fc;
+  color: #055160;
+}
+
+.status-preparing .status-icon,
+.status-preparing.status-badge {
+  background-color: #ffeaa7;
+  color: #8b6914;
+}
+
+.status-delivery .status-icon,
+.status-delivery.status-badge {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-delivered .status-icon,
+.status-delivered.status-badge {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-cancelled .status-icon,
+.status-cancelled.status-badge {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.order-progress {
+  margin: 1.5rem 0;
+}
+
+.progress-timeline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  padding: 1rem 0;
+}
+
+.progress-timeline::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background-color: #e9ecef;
+  z-index: 1;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 2;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.timeline-step i {
+  font-size: 1.5rem;
+  color: #dee2e6;
+  padding: 0.5rem;
+  border-radius: 50%;
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.timeline-step span {
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-weight: 500;
+  text-align: center;
+}
+
+.timeline-step.completed i {
+  color: #28a745;
+  background: #d4edda;
+}
+
+.timeline-step.completed span {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.timeline-step.current {
+  transform: scale(1.1);
+}
+
+.timeline-step.current i {
+  color: #007bff;
+  background: #cff4fc;
+  animation: pulse 2s infinite;
+}
+
+.timeline-step.current span {
+  color: #007bff;
+  font-weight: 600;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.order-details {
+  margin-bottom: 1rem;
+}
+
+.estimated-time {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.estimated-time i {
+  color: #007bff;
+  font-size: 1.1rem;
+}
+
+.time-text {
+  font-weight: 600;
+  color: #495057;
+}
+
+.order-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.order-items-summary {
+  flex: 1;
+}
+
+.item-count {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.items-preview {
+  font-size: 0.9rem;
+  color: #495057;
+  line-height: 1.4;
+}
+
+.order-total {
+  text-align: right;
+  font-size: 1.2rem;
+  color: #28a745;
+  font-weight: 600;
+}
+
+.order-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.order-actions .btn {
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.empty-orders {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.empty-orders i {
+  font-size: 4rem;
+  color: #dee2e6;
+  margin-bottom: 1rem;
+}
+
+/* Responsive adjustments for current order tracking */
+@media (max-width: 768px) {
+  .order-tracking-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .orders-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .order-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .order-status-section {
+    text-align: left;
+  }
+
+  .status-indicator {
+    justify-content: flex-start;
+  }
+
+  .order-summary {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .order-total {
+    text-align: left;
+  }
+
+  .order-actions {
+    justify-content: flex-start;
+  }
+
+  .progress-timeline {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .progress-timeline::before {
+    display: none;
+  }
+
+  .timeline-step {
+    flex-direction: row;
+    flex: 1;
+    min-width: calc(50% - 0.5rem);
+  }
+}

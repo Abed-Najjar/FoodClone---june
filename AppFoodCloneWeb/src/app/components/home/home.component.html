@@ -65,6 +65,106 @@
       </div>
       <div class="category-name">Vegetarian</div>
     </div>
+  </div>  <!-- Current Order Tracking Section (only for logged-in users with active orders) -->
+  <div *ngIf="showOrderTracking" class="order-tracking-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="bi bi-truck me-2"></i>Track Your Orders
+      </h2>
+      <button *ngIf="!ordersLoading && currentOrders.length > 0" 
+              class="btn btn-outline-primary btn-sm" 
+              (click)="refreshOrders()">
+        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+      </button>
+    </div>
+    
+    <div *ngIf="ordersLoading" class="text-center py-3">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading orders...</span>
+      </div>
+      <p class="mt-2 text-muted">Loading your current orders...</p>
+    </div>
+
+    <div *ngIf="ordersError" class="alert alert-warning">
+      <i class="bi bi-exclamation-triangle me-2"></i>{{ ordersError }}
+      <button class="btn btn-sm btn-outline-primary ms-2" (click)="refreshOrders()">
+        Try Again
+      </button>
+    </div>
+
+    <div *ngIf="!ordersLoading && !ordersError && currentOrders.length > 0" class="orders-grid">
+      <div *ngFor="let order of currentOrders" class="current-order-card">
+        <div class="order-header">
+          <div class="order-info">
+            <h5 class="restaurant-name">{{ order.restaurantName }}</h5>
+            <p class="order-id">Order #{{ order.id }}</p>
+          </div>
+          <div class="order-status-section">
+            <div class="status-indicator">
+              <i class="{{ getOrderStatusIcon(order.status) }} status-icon" 
+                 [ngClass]="getOrderStatusClass(order.status)"></i>
+              <span class="status-badge" [ngClass]="getOrderStatusClass(order.status)">
+                {{ getFormattedOrderStatus(order.status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="order-progress">
+          <div class="progress-timeline">
+            <div class="timeline-step" [class.completed]="['confirmed', 'preparing', 'out_for_delivery', 'out for delivery', 'delivered'].includes(order.status.toLowerCase())">
+              <i class="bi bi-check-circle"></i>
+              <span>Confirmed</span>
+            </div>
+            <div class="timeline-step" [class.completed]="['preparing', 'out_for_delivery', 'out for delivery', 'delivered'].includes(order.status.toLowerCase())" 
+                 [class.current]="order.status.toLowerCase() === 'preparing'">
+              <i class="bi bi-fire"></i>
+              <span>Preparing</span>
+            </div>
+            <div class="timeline-step" [class.completed]="['out_for_delivery', 'out for delivery', 'delivered'].includes(order.status.toLowerCase())"
+                 [class.current]="['out_for_delivery', 'out for delivery'].includes(order.status.toLowerCase())">
+              <i class="bi bi-truck"></i>
+              <span>On the way</span>
+            </div>
+            <div class="timeline-step" [class.completed]="order.status.toLowerCase() === 'delivered'">
+              <i class="bi bi-house"></i>
+              <span>Delivered</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="order-details">
+          <div class="estimated-time">
+            <i class="bi bi-clock me-2"></i>
+            <span class="time-text">{{ getEstimatedDeliveryTime(order) }}</span>
+          </div>
+          
+          <div class="order-summary">
+            <div class="order-items-summary">
+              <span class="item-count">{{ order.dishes.length }} item(s)</span>
+              <div class="items-preview">
+                <span *ngFor="let dish of order.dishes.slice(0, 2); let i = index">
+                  {{ dish.quantity }}x {{ dish.name }}<span *ngIf="i < Math.min(order.dishes.length, 2) - 1">, </span>
+                </span>
+                <span *ngIf="order.dishes.length > 2"> +{{ order.dishes.length - 2 }} more</span>
+              </div>
+            </div>
+            <div class="order-total">
+              <strong>${{ order.totalAmount.toFixed(2) }}</strong>
+            </div>
+          </div>
+        </div>
+        
+        <div class="order-actions">
+          <button class="btn btn-outline-primary btn-sm" (click)="trackOrder(order.id)">
+            <i class="bi bi-geo-alt me-1"></i>Live Tracking
+          </button>
+          <a class="btn btn-primary btn-sm" [routerLink]="['/orders', order.id]">
+            <i class="bi bi-eye me-1"></i>View Details
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Featured Restaurants Section -->
@@ -178,17 +278,17 @@
           </div>
           
           <!-- Price and Action Section -->
-          <div class="dish-footer mt-auto">
+          <div class="dish-footer mt-auto">            
             <div class="d-flex justify-content-between align-items-center">
-              <span class="fw-bold fs-5 text-primary">${{ dish.price }}</span>              <button 
+              <span class="fw-bold fs-5 text-primary">${{ dish.price }}</span>              
+              <a 
+                [routerLink]="['/restaurants', dish.restaurantId]" 
                 class="btn btn-sm" 
                 [class.btn-primary]="dish.isAvailable"
-                [class.btn-secondary]="!dish.isAvailable"
-                [disabled]="!dish.isAvailable"
-                (click)="addToCart(dish)">
-                <i class="bi" [class.bi-cart-plus]="dish.isAvailable" [class.bi-cart-x]="!dish.isAvailable" class="me-1"></i>
-                {{ dish.isAvailable ? 'Add to cart' : 'Unavailable' }}
-              </button>
+                [class.btn-secondary]="!dish.isAvailable">
+                <i class="bi bi-shop me-1"></i>
+                Go to Restaurant
+              </a>
             </div>
           </div>
         </div>

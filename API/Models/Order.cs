@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Models
-{
-    public class Order
+{    public class Order
     {
         public int Id { get; set; }
         public virtual ICollection<OrderDish> OrderItems { get; set; } = new List<OrderDish>();
@@ -18,6 +17,11 @@ namespace API.Models
 
         public int? EmployeeId { get; set; } // Nullable to allow order creation without delivery person
         public virtual User? Employee { get; set; } // Fixed the nullable reference
+
+        // Delivery address information
+        public int? DeliveryAddressId { get; set; }
+        public virtual Address? DeliveryAddress { get; set; }
+        public string? DeliveryInstructions { get; set; } = string.Empty;
 
         [NotMapped]
         public decimal CalculatedTotalAmount => OrderItems.Sum(item => item.Quantity * item.UnitPrice);

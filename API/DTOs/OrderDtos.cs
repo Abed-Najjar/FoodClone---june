@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace API.DTOs
-{
-    // DTO for returning order data to clients
+{    // DTO for returning order data to clients
     public class OrderDto
     {
         public int Id { get; set; }
@@ -25,6 +24,11 @@ namespace API.DTOs
         public int EmployeeId { get; set; }
         public string EmployeeName { get; set; } = string.Empty;
         
+        // Delivery address information
+        public int? DeliveryAddressId { get; set; }
+        public string? DeliveryAddress { get; set; } = string.Empty;
+        public string? DeliveryInstructions { get; set; } = string.Empty;
+        
         // Order items
         public List<OrderItemDto> OrderItems { get; set; } = new List<OrderItemDto>();
     }
@@ -38,9 +42,7 @@ namespace API.DTOs
         public decimal UnitPrice { get; set; }
         public int Quantity { get; set; }
         public decimal TotalPrice { get; set; }
-    }
-
-    public class OrderCreateDto
+    }    public class OrderCreateDto
     {
         // No ID field - will be auto-generated
         public string? PaymentMethod { get; set; }
@@ -50,7 +52,10 @@ namespace API.DTOs
 
         [Required]
         public required List<OrderItemCreateDto> OrderItems { get; set; } = new();
-  
+
+        // Delivery address - can be null for pickup orders
+        public int? DeliveryAddressId { get; set; }
+        public string? DeliveryInstructions { get; set; }
     }
 
     public class OrderItemCreateDto
@@ -88,6 +93,13 @@ namespace API.DTOs
         public int? EmployeeId { get; set; }
         public string Status { get; set; } = string.Empty;
         public string PaymentMethod { get; set; } = string.Empty;
+    }
+
+    // DTO for updating order status
+    public class UpdateOrderStatusDto
+    {
+        [Required]
+        public string Status { get; set; } = string.Empty;
     }
 
     // DTO for filtering and pagination of orders

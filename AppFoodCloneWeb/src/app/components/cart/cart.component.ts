@@ -1,13 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CartService, CartItem } from '../../services/cart.service';
+import { OrderService } from '../../services/order.service';
+import { AddressSelectionComponent } from '../address-selection/address-selection.component';
+import { Address } from '../../models/address.model';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, AddressSelectionComponent],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.css'
 })
@@ -18,8 +21,21 @@ export class CartComponent implements OnInit {
   tax = 0;
   promoCode: string = '';
   promoDiscount = 0;
+  isCheckingOut = false;
+  selectedPaymentMethod = 'Cash';
+  paymentMethods = ['Cash', 'Credit Card', 'Debit Card', 'Online Payment'];
+  
+  // Address-related properties
+  selectedAddress: Address | null = null;
+  deliveryInstructions: string = '';
+  showAddressSelection = true;
 
-  constructor(private cartService: CartService) {}
+  constructor(
+    private cartService: CartService,
+    private orderService: OrderService,
+    private router: Router
+  ) {}
+
   ngOnInit(): void {
     this.cartService.cart$.subscribe(items => {
       this.cartItems = items;
@@ -84,8 +100,62 @@ export class CartComponent implements OnInit {
       this.cartService.clearCart();
     }
   }
-
   getGrandTotal(): number {
     return this.totalPrice + this.deliveryFee + this.tax - this.promoDiscount;
+  }
+
+  onAddressSelected(address: Address): void {
+    this.selectedAddress = address;
+  }
+  checkout(): void {
+    if (this.cartItems.length === 0) {
+      alert('Your cart is empty');
+      return;
+    }
+
+    // Check if address is selected
+    if (!this.selectedAddress) {
+      alert('Please select a delivery address');
+      return;
+    }
+
+    // Get restaurant ID from the first item (assuming all items are from the same restaurant)
+    const restaurantId = this.cartItems[0].dish.restaurantId;
+    
+    // Validate that all items are from the same restaurant
+    const differentRestaurant = this.cartItems.some(item => item.dish.restaurantId !== restaurantId);
+    if (differentRestaurant) {
+      alert('All items must be from the same restaurant');
+      return;
+    }
+
+    this.isCheckingOut = true;
+
+    // Convert cart to order with address information
+    const orderData = this.orderService.cartToOrderCreate(
+      this.cartItems, 
+      restaurantId, 
+      this.selectedPaymentMethod,
+      this.selectedAddress.id,
+      this.deliveryInstructions || undefined
+    );
+
+    this.orderService.createOrder(orderData).subscribe({
+      next: (response) => {
+        if (response.success) {
+          alert('Order placed successfully!');
+          this.cartService.clearCart();
+          this.router.navigate(['/orders', response.data?.id]);
+        } else {
+          alert('Failed to place order: ' + response.errorMessage);
+        }
+        this.isCheckingOut = false;
+      },
+      error: (error) => {
+        console.error('Error placing order:', error);
+        alert('Failed to place order. Please try again.');
+        this.isCheckingOut = false;
+      }
+    });
   }
 }

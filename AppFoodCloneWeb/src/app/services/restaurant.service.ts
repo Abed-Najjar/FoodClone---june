@@ -40,10 +40,9 @@ export class RestaurantService {
         })
       );
   }
-
-  // Get categories for a specific restaurant (uses CMS controller endpoint)
+  // Get categories for a specific restaurant (uses public Home controller endpoint)
   getRestaurantCategories(restaurantId: number): Observable<AppResponse<Category[]>> {
-    const categoryUrl = `${this.baseUrl}/cms/categories/${restaurantId}`;
+    const categoryUrl = `${this.baseUrl}/Home/restaurants/${restaurantId}/categories`;
     console.log(`Fetching categories from: ${categoryUrl}`);
     return this.http.get<AppResponse<Category[]>>(categoryUrl)
       .pipe(

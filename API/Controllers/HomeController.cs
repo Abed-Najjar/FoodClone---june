@@ -8,19 +8,21 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [AllowAnonymous]
-    public class HomeController : ControllerBase
-    {
+    public class HomeController : ControllerBase    {
         private readonly IRestaurantManagement _restaurantManagementService;
         private readonly IDishManagementService _dishManagementService;
+        private readonly ICategoryManagementService _categoryManagementService;
         private readonly ILogger<HomeController> _logger;
 
         public HomeController(
             IRestaurantManagement restaurantManagementService,
             IDishManagementService dishManagementService,
+            ICategoryManagementService categoryManagementService,
             ILogger<HomeController> logger)
         {
             _restaurantManagementService = restaurantManagementService;
             _dishManagementService = dishManagementService;
+            _categoryManagementService = categoryManagementService;
             _logger = logger;
         }
 
@@ -128,6 +130,25 @@ namespace API.Controllers
             {
                 _logger.LogError(ex, "Error occurred while fetching dishes for restaurant ID: {RestaurantId}", restaurantId);
                 return new AppResponse<List<DishDto>>(null, "Error fetching restaurant dishes", 500, false);
+            }        }
+
+        /// <summary>
+        /// Get categories for a specific restaurant
+        /// </summary>
+        /// <param name="restaurantId">Restaurant ID</param>
+        /// <returns>List of categories for the restaurant</returns>
+        [HttpGet("restaurants/{restaurantId}/categories")]
+        public async Task<AppResponse<List<CategoryDto>>> GetRestaurantCategories(int restaurantId)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching categories for restaurant ID: {RestaurantId}", restaurantId);
+                return await _categoryManagementService.GetCategories(restaurantId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching categories for restaurant ID: {RestaurantId}", restaurantId);
+                return new AppResponse<List<CategoryDto>>(null, "Error fetching restaurant categories", 500, false);
             }
         }
 
