@@ -49,6 +49,13 @@ namespace API.Repositories.Implementations
                 .ToListAsync();
         
             return orders;
+        }
+
+        public async Task<int> GetOrderCountByUserIdAsync(int userId)
+        {
+            return await _context.Orders
+                .Where(o => o.UserId == userId)
+                .CountAsync();
         }        public async Task<List<Order>> GetOrdersByRestaurantAsync(int restaurantId)
         {
             var orders = await _context.Orders

@@ -1,3 +1,262 @@
+/* Live Order Indicator Card */
+.live-order-indicator {
+  position: fixed;
+  top: max(80px, calc(env(safe-area-inset-top, 20px) + 60px));
+  right: max(20px, env(safe-area-inset-right, 20px));
+  z-index: 1050;
+  animation: slideInRight 0.5s ease-out;
+  max-width: calc(100vw - 40px);
+}
+
+.live-order-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 2px solid #e74c3c;
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 8px 25px rgba(231, 76, 60, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 300px;
+  min-width: 250px;
+  position: relative;
+  overflow: hidden;
+}
+
+.live-order-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #e74c3c, #f39c12, #e74c3c);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.live-order-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(231, 76, 60, 0.3);
+  border-color: #c0392b;
+}
+
+.live-indicator-dot {
+  width: 12px;
+  height: 12px;
+  background: #e74c3c;
+  border-radius: 50%;
+  animation: pulse-live 1.5s infinite;
+  flex-shrink: 0;
+}
+
+.order-summary-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.order-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.order-count i {
+  color: #e74c3c;
+  font-size: 1rem;
+}
+
+.count-text {
+  font-weight: 700;
+}
+
+.order-status-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.restaurant-name {
+  font-size: 0.85rem;
+  color: #5d6d7e;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  align-self: flex-start;
+}
+
+.status-pending,
+.status-placed {
+  background: #3498db;
+  color: white;
+}
+
+.status-confirmed {
+  background: #f39c12;
+  color: white;
+}
+
+.status-preparing {
+  background: #9b59b6;
+  color: white;
+}
+
+.status-out-for-delivery,
+.status-out_for_delivery {
+  background: #e67e22;
+  color: white;
+}
+
+.status-delivered {
+  background: #27ae60;
+  color: white;
+}
+
+.status-cancelled {
+  background: #e74c3c;
+  color: white;
+}
+
+.quick-action {
+  display: flex;
+  align-items: center;
+  color: #7f8c8d;
+  transition: color 0.3s ease;
+  flex-shrink: 0;
+}
+
+.live-order-card:hover .quick-action {
+  color: #e74c3c;
+}
+
+.quick-action i {
+  font-size: 1.2rem;
+}
+
+/* Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-live {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .live-order-card {
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 992px) {
+  .live-order-card {
+    max-width: 260px;
+  }
+}
+
+@media (max-width: 768px) {
+  .live-order-indicator {
+    position: fixed;
+    top: max(70px, calc(env(safe-area-inset-top, 10px) + 60px));
+    right: max(10px, env(safe-area-inset-right, 10px));
+    left: max(10px, env(safe-area-inset-left, 10px));
+    max-width: none;
+  }
+  
+  .live-order-card {
+    max-width: none;
+    min-width: auto;
+    padding: 12px 16px;
+  }
+  
+  .order-count {
+    font-size: 0.9rem;
+  }
+  
+  .restaurant-name {
+    font-size: 0.8rem;
+  }
+  
+  .status-badge {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .live-order-indicator {
+    position: fixed;
+    top: max(65px, calc(env(safe-area-inset-top, 10px) + 55px));
+    right: max(10px, env(safe-area-inset-right, 10px));
+    left: max(10px, env(safe-area-inset-left, 10px));
+  }
+  
+  .live-order-card {
+    padding: 10px 12px;
+    gap: 12px;
+    max-width: none;
+    min-width: auto;
+  }
+  
+  .order-summary-info {
+    gap: 4px;
+  }
+  
+  .order-count {
+    font-size: 0.85rem;
+  }
+  
+  .restaurant-name {
+    font-size: 0.75rem;
+  }
+  
+  .status-badge {
+    font-size: 0.65rem;
+    padding: 1px 6px;
+  }
+}
+
 .hero-section {
   height: 500px;
   background-size: cover;
@@ -787,5 +1046,176 @@
     flex-direction: row;
     flex: 1;
     min-width: calc(50% - 0.5rem);
+  }
+}
+
+/* Simple Order Tracking Widget Styles */
+.simple-order-widget {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e9ecef;
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.widget-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.order-count-badge {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.view-all-btn {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.view-all-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.widget-orders {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.widget-order-item {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.widget-order-item:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+}
+
+.widget-order-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.widget-restaurant-name {
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+}
+
+.widget-order-id {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.widget-order-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-preparing {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-on-the-way {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-delivered {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-cancelled {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.widget-empty-state {
+  text-align: center;
+  padding: 2rem 0;
+  color: #6c757d;
+}
+
+.widget-empty-state i {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #dee2e6;
+}
+
+.widget-empty-state p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Responsive styles for simple widget */
+@media (max-width: 768px) {
+  .simple-order-widget {
+    margin: 1.5rem 0;
+    padding: 1rem;
+  }
+
+  .widget-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .widget-title {
+    font-size: 1.2rem;
+  }
+
+  .widget-order-info {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .widget-order-status {
+    align-self: flex-start;
   }
 }

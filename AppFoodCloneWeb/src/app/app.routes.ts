@@ -16,6 +16,9 @@ import { UsersComponent } from './components/cms/users/users.component';
 import { OrdersComponent } from './components/cms/orders/orders.component';
 import { AddressListComponent } from './components/address-management/address-list.component';
 import { AddressFormComponent } from './components/address-management/address-form.component';
+import { OrderTrackingComponent } from './components/order-tracking/order-tracking.component';
+import { ProfileComponent } from './components/profile/profile.component';
+import { ChangePasswordComponent } from './components/change-password/change-password.component';
 import { authGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 
@@ -24,9 +27,13 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'verify-otp', component: OtpVerificationComponent },
-  { path: '', component: HomeComponent, canActivate: [authGuard] },{ path: 'restaurants', component: RestaurantListComponent, canActivate: [authGuard] },
+  { path: '', component: HomeComponent, canActivate: [authGuard] },
+  { path: 'restaurants', component: RestaurantListComponent, canActivate: [authGuard] },
   { path: 'restaurants/:id', component: RestaurantDetailComponent, canActivate: [authGuard] },
   { path: 'cart', component: CartComponent, canActivate: [authGuard] },
+  { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
+  { path: 'change-password', component: ChangePasswordComponent, canActivate: [authGuard] },
+  { path: 'track-orders', component: OrderTrackingComponent, canActivate: [authGuard] },
   { path: 'addresses', component: AddressListComponent, canActivate: [authGuard] },
   { path: 'addresses/new', component: AddressFormComponent, canActivate: [authGuard] },
   { path: 'addresses/edit/:id', component: AddressFormComponent, canActivate: [authGuard] },

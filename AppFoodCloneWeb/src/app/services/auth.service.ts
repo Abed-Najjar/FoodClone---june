@@ -147,4 +147,20 @@ export class AuthService {
   resendOtp(email: string, type: OtpType): Observable<any> {
     return this.otpService.resendOtp(email, type);
   }
+
+  // Profile management methods
+  updateCurrentUserProfile(updatedUser: User): void {
+    this.currentUser = updatedUser;
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    this.loginStatusChange.next(true);
+  }
+
+  refreshCurrentUser(): Observable<AppResponse<User>> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.getToken()}`
+    });
+    
+    return this.http.get<AppResponse<User>>(`${this.baseUrl}/user/profile`, { headers });
+  }
 }

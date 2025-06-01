@@ -10,16 +10,8 @@
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <!-- Navigation links (visible to all) -->
+    <div class="collapse navbar-collapse" id="navbarNav">      <!-- Navigation links (visible to all) -->
       <ul class="navbar-nav me-auto flex-row gap-3">
-         <!-- My Addresses (only visible when logged in) -->
-        <li class="nav-item" *ngIf="isLoggedIn">
-          <a class="nav-link" routerLink="/addresses" routerLinkActive="active">
-            <i class="bi bi-geo-alt-fill fs-5"></i>
-            <span class="d-none d-lg-inline-block ms-1">My Addresses</span>
-          </a>
-        </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
             <i class="bi bi-house me-1"></i> Home
@@ -29,17 +21,9 @@
           <a class="nav-link" routerLink="/restaurants" routerLinkActive="active">
             <i class="bi bi-shop me-1"></i> Restaurants
           </a>
-        </li>
-        <li class="nav-item">
+        </li>          <li class="nav-item">
           <a class="nav-link" routerLink="/offers" routerLinkActive="active">
             <i class="bi bi-tag me-1"></i> Offers
-          </a>
-        </li>
-
-              <!-- Admin Dashboard Link (only visible to admins) -->
-        <li class="nav-item" *ngIf="isLoggedIn && isAdmin()">
-          <a class="nav-link" routerLink="/admin" routerLinkActive="active">
-            <i class="bi bi-speedometer2 me-1"></i> Admin Dashboard
           </a>
         </li>
       </ul>
@@ -68,24 +52,53 @@
           <li class="nav-item">
             <a class="btn btn-register btn-auth" routerLink="/register">Sign Up</a>
           </li>
-        </ng-container>
-
+        </ng-container>        
+        
         <!-- User info and logout button when logged in -->
         <ng-container *ngIf="isLoggedIn">
-          <!-- Simple user info display -->
-          <li class="nav-item mx-2">
-            <a class="nav-link user-info" routerLink="/profile">
-              <img [src]="getUserAvatar()" alt="User" class="user-avatar">
-              <span>{{ username || 'User' }}</span>
-              <span *ngIf="isAdmin()" class="admin-badge ms-2">Admin</span>
-            </a>
-          </li>
-
-          <!-- Direct logout button -->
-          <li class="nav-item">
-            <button class="btn btn-outline-danger" (click)="logout()">
-              <i class="bi bi-box-arrow-right me-2"></i>Logout
-            </button>
+          <!-- User dropdown menu -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle user-dropdown" href="#" id="userDropdown" role="button" 
+               (click)="toggleDropdown($event)"
+               aria-expanded="false">
+              <img [src]="getUserAvatar()" 
+                   alt="User" 
+                   class="user-avatar"
+                   [class.loading]="isLoadingProfile">
+              <span *ngIf="!isLoadingProfile">{{ username || 'User' }}</span>
+              <span *ngIf="isLoadingProfile" class="loading-text">Loading...</span>
+              <span *ngIf="isAdmin() && !isLoadingProfile" class="admin-badge ms-2">Admin</span>
+            </a>            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <!-- Admin Dashboard (only visible to admins) -->
+              <li *ngIf="isAdmin()">
+                <a class="dropdown-item" routerLink="/admin">
+                  <i class="bi bi-speedometer2 me-2"></i>Admin Dashboard
+                </a>
+              </li>
+              <li *ngIf="isAdmin()"><hr class="dropdown-divider"></li>
+              
+              <li>
+                <a class="dropdown-item" routerLink="/profile">
+                  <i class="bi bi-person-circle me-2"></i>My Profile
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" routerLink="/addresses">
+                  <i class="bi bi-geo-alt-fill me-2"></i>My Addresses
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" routerLink="/track-orders">
+                  <i class="bi bi-truck me-2"></i>Track Your Orders
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <button class="dropdown-item text-danger" (click)="logout()">
+                  <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </button>
+              </li>
+            </ul>
           </li>
         </ng-container>
 

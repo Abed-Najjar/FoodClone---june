@@ -1,0 +1,318 @@
+<div class="profile-container">
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="header-content">
+      <div class="profile-avatar-section">
+        <div class="avatar-container">
+          <img [src]="imagePreview || profileImageUrl" 
+               alt="Profile Picture" 
+               class="profile-avatar"
+               onerror="this.src='https://ui-avatars.com/api/?name=User&background=3498db&color=fff&size=200&font-size=0.6'">
+          <div class="avatar-overlay" *ngIf="isEditing">
+            <label for="profileImage" class="avatar-edit-btn">
+              <i class="fas fa-camera"></i>
+            </label>
+            <input type="file" 
+                   id="profileImage" 
+                   accept="image/*" 
+                   (change)="onFileSelected($event)"
+                   style="display: none;">
+            <button *ngIf="selectedFile || imagePreview" 
+                    class="avatar-remove-btn" 
+                    (click)="removeImage()"
+                    title="Remove image">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+        <div class="profile-info" *ngIf="!isEditing">
+          <h1 class="profile-name">{{ currentUser?.username || 'User' }}</h1>
+          <p class="profile-email">{{ currentUser?.email }}</p>
+          <div class="profile-stats">
+            <div class="stat-item">
+              <i class="fas fa-calendar-alt"></i>
+              <span>Member since {{ getFormattedMemberSince() }}</span>
+            </div>
+            <div class="stat-item" *ngIf="currentUser?.lastLogin">
+              <i class="fas fa-clock"></i>
+              <span>Last active {{ currentUser?.lastLogin | date:'medium' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-actions" *ngIf="!isEditing">
+        <button class="btn btn-primary edit-profile-btn" (click)="toggleEdit()">
+          <i class="fas fa-edit"></i>
+          Edit Profile
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Messages -->
+  <div class="alert alert-success" *ngIf="success" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    {{ success }}
+  </div>
+
+  <div class="alert alert-danger" *ngIf="error" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    {{ error }}
+  </div>
+
+  <!-- Profile Content -->
+  <div class="profile-content">
+    <!-- Profile Information Card -->
+    <div class="profile-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-user me-2"></i>
+          Profile Information
+        </h3>
+        <div class="card-actions" *ngIf="isEditing">
+          <button class="btn btn-outline-secondary" (click)="toggleEdit()" [disabled]="isLoading">
+            <i class="fas fa-times"></i>
+            Cancel
+          </button>
+          <button class="btn btn-primary" (click)="onSubmit()" [disabled]="isLoading || !profileForm.valid">
+            <i class="fas fa-spinner fa-spin" *ngIf="isLoading"></i>
+            <i class="fas fa-save" *ngIf="!isLoading"></i>
+            {{ isLoading ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" *ngIf="isEditing">
+          <div class="form-grid">
+            <!-- Username -->
+            <div class="form-group">
+              <label for="username" class="form-label required">Username</label>
+              <input type="text" 
+                     id="username" 
+                     class="form-control" 
+                     formControlName="username"
+                     [class.is-invalid]="hasError('username', 'required') || hasError('username', 'minlength')"
+                     placeholder="Enter your username">
+              <div class="invalid-feedback" *ngIf="username?.errors && username?.touched">
+                {{ getErrorMessage('username') }}
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label for="email" class="form-label required">Email Address</label>
+              <input type="email" 
+                     id="email" 
+                     class="form-control" 
+                     formControlName="email"
+                     [class.is-invalid]="hasError('email', 'required') || hasError('email', 'email')"
+                     placeholder="Enter your email">
+              <div class="invalid-feedback" *ngIf="email?.errors && email?.touched">
+                {{ getErrorMessage('email') }}
+              </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+              <label for="phone" class="form-label">Phone Number</label>
+              <input type="tel" 
+                     id="phone" 
+                     class="form-control" 
+                     formControlName="phone"
+                     [class.is-invalid]="hasError('phone', 'pattern')"
+                     placeholder="Enter your phone number">
+              <div class="invalid-feedback" *ngIf="phone?.errors && phone?.touched">
+                {{ getErrorMessage('phone') }}
+              </div>
+            </div>
+
+            <!-- Date of Birth -->
+            <div class="form-group">
+              <label for="dateOfBirth" class="form-label">Date of Birth</label>
+              <input type="date" 
+                     id="dateOfBirth" 
+                     class="form-control" 
+                     formControlName="dateOfBirth">
+            </div>
+
+            <!-- Gender -->
+            <div class="form-group">
+              <label for="gender" class="form-label">Gender</label>
+              <select id="gender" class="form-control" formControlName="gender">
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+                <option value="prefer-not-to-say">Prefer not to say</option>
+              </select>
+            </div>
+
+            <!-- Address -->
+            <div class="form-group full-width">
+              <label for="address" class="form-label">Address</label>
+              <textarea id="address" 
+                        class="form-control" 
+                        formControlName="address"
+                        rows="3"
+                        placeholder="Enter your address"></textarea>
+            </div>
+
+            <!-- Bio -->
+            <div class="form-group full-width">
+              <label for="bio" class="form-label">Bio</label>
+              <textarea id="bio" 
+                        class="form-control" 
+                        formControlName="bio"
+                        rows="4"
+                        [class.is-invalid]="hasError('bio', 'maxlength')"
+                        placeholder="Tell us about yourself (optional)"></textarea>
+              <div class="form-text">{{ (bio?.value?.length || 0) }}/500 characters</div>
+              <div class="invalid-feedback" *ngIf="bio?.errors && bio?.touched">
+                {{ getErrorMessage('bio') }}
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- View Mode -->
+        <div class="profile-view" *ngIf="!isEditing">
+          <div class="info-grid">
+            <div class="info-item">
+              <label class="info-label">Username</label>
+              <span class="info-value">{{ currentUser?.username || 'Not provided' }}</span>
+            </div>
+
+            <div class="info-item">
+              <label class="info-label">Email</label>
+              <span class="info-value">{{ currentUser?.email || 'Not provided' }}</span>
+            </div>
+
+            <div class="info-item">
+              <label class="info-label">Phone</label>
+              <span class="info-value">{{ currentUser?.phoneNumber || 'Not provided' }}</span>
+            </div>
+
+            <div class="info-item">
+              <label class="info-label">Date of Birth</label>
+              <span class="info-value">{{ currentUser?.dateOfBirth ? (currentUser?.dateOfBirth | date:'mediumDate') : 'Not provided' }}</span>
+            </div>
+
+            <div class="info-item">
+              <label class="info-label">Gender</label>
+              <span class="info-value">{{ currentUser?.gender || 'Not provided' }}</span>
+            </div>
+
+            <div class="info-item">
+              <label class="info-label">Role</label>
+              <span class="info-value">
+                <span class="role-badge" [ngClass]="currentUser?.rolename?.toLowerCase()">
+                  {{ currentUser?.rolename || 'User' }}
+                </span>
+              </span>
+            </div>
+
+            <div class="info-item full-width">
+              <label class="info-label">Address</label>
+              <span class="info-value">{{ getAddressString() }}</span>
+            </div>
+
+            <div class="info-item full-width">
+              <label class="info-label">Bio</label>
+              <span class="info-value">{{ currentUser?.bio || 'Not provided' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Settings Card -->
+    <div class="profile-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-shield-alt me-2"></i>
+          Security Settings
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="security-options">
+          <div class="security-item">
+            <div class="security-info">
+              <h5>Password</h5>
+              <p>Update your password to keep your account secure</p>
+            </div>
+            <button class="btn btn-outline-primary" (click)="changePassword()">
+              <i class="fas fa-key"></i>
+              Change Password
+            </button>
+          </div>
+
+          <div class="security-item danger-zone">
+            <div class="security-info">
+              <h5>Delete Account</h5>
+              <p>Permanently delete your account and all associated data</p>
+            </div>
+            <button class="btn btn-outline-danger" (click)="deleteAccount()">
+              <i class="fas fa-trash"></i>
+              Delete Account
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Statistics Card -->
+    <div class="profile-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-chart-line me-2"></i>
+          Account Statistics
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon orders">
+              <i class="fas fa-shopping-bag"></i>
+            </div>
+            <div class="stat-info">
+              <h4>{{ userStatistics.totalOrders }}</h4>
+              <p>Total Orders</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon favorites">
+              <i class="fas fa-heart"></i>
+            </div>
+            <div class="stat-info">
+              <h4>{{ userStatistics.favoriteRestaurants }}</h4>
+              <p>Favorite Restaurants</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon reviews">
+              <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-info">
+              <h4>{{ userStatistics.reviewsWritten }}</h4>
+              <p>Reviews Written</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon addresses">
+              <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="stat-info">
+              <h4>{{ userStatistics.savedAddresses || getAddressCount() }}</h4>
+              <p>Saved Addresses</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

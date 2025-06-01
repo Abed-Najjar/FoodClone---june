@@ -1,0 +1,9 @@
+<div class="delivery-map-container">
+  <div #mapContainer class="map-container" [style.height]="mapHeight" style="background-color: #e0e0e0; position: relative;">
+    <!-- Loading state -->
+    <div *ngIf="!isMapLoaded" class="map-loading">
+      <div class="spinner"></div>
+      <p>Loading Google Maps...</p>
+    </div>
+  </div>
+</div>

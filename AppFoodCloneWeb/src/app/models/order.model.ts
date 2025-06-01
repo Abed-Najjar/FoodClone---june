@@ -1,6 +1,7 @@
 export interface OrderItem {
   id: number;
   dishId: number;
+  dishName?: string; // Added dish name property
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -15,6 +16,20 @@ export interface OrderCreate {
     dishId: number;
     quantity: number;
   }[];
+}
+
+export interface DeliveryEmployee {
+  id: number;
+  name: string;
+  phone: string;
+  vehicleType: string;
+  currentLocation: {
+    latitude: number;
+    longitude: number;
+    address: string;
+    lastUpdated: Date;
+  };
+  estimatedArrival: Date;
 }
 
 export interface Order {
@@ -34,6 +49,7 @@ export interface Order {
   deliveryFee?: number;
   deliveryAddressId?: number;
   deliveryInstructions?: string;
+  deliveryEmployee?: DeliveryEmployee; // Added delivery employee tracking
   orderItems: OrderItem[];
   dishes: {
     name: string;

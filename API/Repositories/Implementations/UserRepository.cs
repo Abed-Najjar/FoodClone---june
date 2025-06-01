@@ -20,6 +20,11 @@ namespace API.Repositories.Implementations
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
+        public async Task<User?> GetUserByUsernameAsync(string username)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+        }
+
         public async Task<User> CreateUserAsync(User user)
         {
             await _context.Users.AddAsync(user);

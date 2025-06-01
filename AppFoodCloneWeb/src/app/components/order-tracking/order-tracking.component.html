@@ -1,0 +1,356 @@
+<!-- Track Your Orders Page -->
+<div class="order-tracking-container">
+  <div class="header-section">
+    <h2 class="page-title">
+      <i class="fas fa-truck"></i>
+      Track Your Orders
+    </h2>
+    <button class="refresh-btn" (click)="refreshOrders()" [disabled]="isLoading">
+      <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading && orders.length === 0" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading your orders...</p>
+  </div>
+
+  <!-- No Orders -->
+  <div *ngIf="!isLoading && orders.length === 0" class="no-orders">
+    <div class="no-orders-icon">
+      <i class="fas fa-shopping-bag"></i>
+    </div>
+    <h3>No Orders Found</h3>
+    <p>You haven't placed any orders yet. Start exploring restaurants!</p>
+    <button class="browse-btn" routerLink="/restaurants">
+      <i class="fas fa-utensils"></i>
+      Browse Restaurants
+    </button>
+  </div>
+  <!-- Orders List -->
+  <div *ngIf="orders.length > 0" class="orders-grid">
+    <div *ngFor="let order of orders; trackBy: trackByOrderId" class="order-card" [id]="'order-card-' + order.id">      <!-- Collapsible Order Header -->      <div class="order-card-header" 
+           (click)="toggleOrderDetails(order.id)"
+           (keydown.enter)="toggleOrderDetails(order.id)"
+           (keydown.space)="toggleOrderDetails(order.id)"
+           tabindex="0"
+           [attr.aria-expanded]="isOrderExpanded(order.id)"
+           [attr.aria-label]="'Toggle order details for Order #' + order.id">
+        <div class="order-card-left">
+          <div class="order-header">
+            <div class="order-header-compact">
+              <h3 class="order-id">Order #{{ order.id }}</h3>
+              <p class="order-date">{{ order.orderDate | date:'medium' }}</p>
+            </div>
+            <div class="order-summary">
+              <span>{{ order.restaurantName }}</span>
+              <span>•</span>
+              <span>{{ order.orderItems.length }} item{{ order.orderItems.length !== 1 ? 's' : '' }}</span>
+              <span>•</span>
+              <span>{{ (order.totalAmount || order.totalPrice).toFixed(2) }} JOD</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-card-right">
+          <div class="order-status" [ngClass]="'status-' + order.status.toLowerCase()">
+            <span class="status-badge">{{ order.status }}</span>
+          </div>
+          <i class="fas fa-chevron-down expand-icon" 
+             [class.expanded]="isOrderExpanded(order.id)"></i>
+        </div>
+      </div>      <!-- Expandable Order Details -->      <div class="order-card-details" 
+           [class.expanded]="isOrderExpanded(order.id)"
+           [attr.aria-hidden]="!isOrderExpanded(order.id)"
+           [attr.aria-label]="'Order details for Order #' + order.id">
+        <div class="order-card-content"><!-- Customer Information -->
+      <div class="customer-info-section">
+        <h6 class="section-header">
+          <i class="fas fa-user-circle me-2"></i>
+          Customer Information
+        </h6>
+        <div class="customer-info-simple">
+          <div class="info-row">
+            <span class="info-label">Customer:</span>
+            <span class="info-value">{{ order.userName || 'Anonymous Customer' }}</span>
+          </div>
+          
+          <div class="info-row" *ngIf="order.phoneNumber">
+            <span class="info-label">Phone:</span>
+            <span class="info-value">{{ order.phoneNumber }}</span>
+          </div>
+          
+          <div class="info-row" *ngIf="order.userEmail">
+            <span class="info-label">Email:</span>
+            <span class="info-value">{{ order.userEmail }}</span>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Order Date:</span>
+            <span class="info-value">{{ order.orderDate | date:'medium' }}</span>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Payment:</span>
+            <span class="info-value">{{ order.paymentMethod || 'Cash on Delivery' }}</span>
+          </div>
+          
+          <div class="info-row" *ngIf="order.deliveryAddress">
+            <span class="info-label">Address:</span>
+            <span class="info-value">{{ order.deliveryAddress }}</span>
+          </div>
+          
+          <div class="info-row" *ngIf="order.deliveryInstructions">
+            <span class="info-label">Instructions:</span>
+            <span class="info-value">{{ order.deliveryInstructions }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Delivery Tracking Map Section -->
+      <div class="live-tracking-section">
+        <h6 class="section-header">
+          <i class="fas fa-satellite-dish me-2"></i>
+          Live Delivery Tracking
+          <span class="live-indicator" *ngIf="isOrderBeingDelivered(order)">LIVE</span>
+          <span class="restaurant-badge" *ngIf="!isOrderBeingDelivered(order)">
+            <i class="fas fa-store"></i>
+            {{ order.restaurantName }}
+          </span>
+        </h6>
+        
+        <!-- Live Google Maps for Active Deliveries -->
+        <div *ngIf="isOrderBeingDelivered(order)" class="live-map-container">
+          <div class="map-header-info">
+            <div class="delivery-captain-info">
+              <div class="captain-avatar">
+                <i class="fas fa-motorcycle"></i>
+              </div>
+              <div class="captain-details">
+                <span class="captain-name">{{ getDeliveryEmployeeName(order.id) }}</span>
+                <span class="captain-status">{{ getDeliveryStatus(order.id).message }}</span>
+              </div>
+            </div>
+            <div class="delivery-eta" *ngIf="getEstimatedArrival(order.id)">
+              <i class="fas fa-clock"></i>
+              <span>{{ getEstimatedArrival(order.id) }}</span>
+            </div>
+          </div>
+          
+          <!-- Google Maps Component -->
+          <div class="google-map-wrapper">
+            <app-delivery-map 
+              [deliveryLocation]="getDeliveryLocation(order.id)"
+              [destinationAddress]="order.deliveryAddress || 'Your Location'"
+              [mapHeight]="'220px'">
+            </app-delivery-map>
+          </div>
+          
+          <div class="tracking-info-footer">
+            <div class="tracking-stats">
+              <div class="tracking-stat">
+                <i class="fas fa-route"></i>
+                <span>{{ getDeliveryDistance(order.id) || 'Calculating...' }}</span>
+              </div>
+              <div class="tracking-stat">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ getDeliveryLocationText(order.id) || 'Locating driver...' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Restaurant Info for Non-Active Deliveries -->
+        <div *ngIf="!isOrderBeingDelivered(order)" class="restaurant-info-card">
+          <div class="restaurant-header">
+            <div class="restaurant-image-container">
+              <img [src]="getRestaurantLogo(order.restaurantId)" 
+                   class="restaurant-image" 
+                   alt="{{ order.restaurantName }} Logo"
+                   onerror="this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200&q=80'">
+              <div class="restaurant-rating-badge">
+                <i class="fas fa-star"></i>
+                {{ getRestaurantRating(order.restaurantId) }}
+              </div>
+            </div>
+            <div class="restaurant-details">
+              <h5 class="restaurant-name">{{ order.restaurantName || 'Restaurant Name' }}</h5>
+              <div class="restaurant-status">
+                <span class="status-indicator" [ngClass]="getOrderStatusClass(order.status)"></span>
+                <span class="status-text">{{ getFormattedOrderStatus(order.status) }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="restaurant-meta-info">
+            <div class="meta-item">
+              <i class="fas fa-clock"></i>
+              <span>{{ getEstimatedDeliveryTime(order) }}</span>
+            </div>
+            <div class="meta-item">
+              <i class="fas fa-phone"></i>
+              <span>{{ getRestaurantPhone(order.restaurantId) || 'Contact Support' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Items Enhanced -->
+      <div class="order-items-section mb-4">
+        <h6 class="section-header">
+          <i class="bi bi-bag me-2"></i>
+          Order Items ({{ order.orderItems.length }})
+        </h6>
+        <div class="order-items-list">
+          <div *ngFor="let item of order.orderItems" class="order-item-detailed">            <div class="item-image">
+              <img [src]="getDishImage(item)" 
+                   alt="{{ getDishName(item) }}"
+                   onerror="this.src='https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=80&q=80'">
+            </div><div class="item-details">
+              <div class="item-header">
+                <h6 class="item-name">{{ getDishName(item) }}</h6>
+                <span class="item-price">{{ (item.unitPrice * item.quantity).toFixed(2) }} JOD</span>
+              </div>
+              <p class="item-description">{{ getDishDescription(item) }}</p>
+              <div class="item-meta">
+                <span class="quantity-badge">
+                  <i class="bi bi-x me-1"></i>{{ item.quantity }}
+                </span>
+                <span class="unit-price">
+                  {{ item.unitPrice.toFixed(2) }} JOD each
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Tracker -->
+      <div class="progress-tracker">
+        <div class="progress-steps">
+          <div class="step" [class.active]="isStepActive('Placed', order.status)" [class.completed]="isStepCompleted('Placed', order.status)">
+            <div class="step-icon">
+              <i class="fas fa-check"></i>
+            </div>
+            <span class="step-label">Placed</span>
+          </div>
+          
+          <div class="step" [class.active]="isStepActive('Confirmed', order.status)" [class.completed]="isStepCompleted('Confirmed', order.status)">
+            <div class="step-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <span class="step-label">Confirmed</span>
+          </div>
+          
+          <div class="step" [class.active]="isStepActive('Preparing', order.status)" [class.completed]="isStepCompleted('Preparing', order.status)">
+            <div class="step-icon">
+              <i class="fas fa-utensils"></i>
+            </div>
+            <span class="step-label">Preparing</span>
+          </div>
+          
+          <div class="step" [class.active]="isStepActive('Out for Delivery', order.status)" [class.completed]="isStepCompleted('Out for Delivery', order.status)">
+            <div class="step-icon">
+              <i class="fas fa-truck"></i>
+            </div>
+            <span class="step-label">Out for Delivery</span>
+          </div>
+          
+          <div class="step" [class.active]="isStepActive('Delivered', order.status)" [class.completed]="isStepCompleted('Delivered', order.status)">
+            <div class="step-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <span class="step-label">Delivered</span>
+          </div>
+        </div>
+        
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="getProgressPercentage(order.status)"></div>
+        </div>
+      </div>      <!-- Delivery Info -->
+      <div class="delivery-info" *ngIf="order.deliveryAddress">
+        <h5>
+          <i class="fas fa-map-marker-alt"></i>
+          Delivery Address
+        </h5>
+        <p>{{ order.deliveryAddress }}</p>
+        <p *ngIf="order.deliveryInstructions" class="delivery-instructions">
+          <i class="fas fa-comment"></i>
+          Instructions: {{ order.deliveryInstructions }}
+        </p>
+      </div>      <!-- Order Total -->
+      <div class="order-total">
+        <div class="total-row">
+          <span>Subtotal:</span>
+          <span>{{ calculateSubtotal(order) }} JOD</span>
+        </div>
+        <div class="total-row" *ngIf="order.deliveryFee">
+          <span>Delivery Fee:</span>
+          <span>{{ order.deliveryFee.toFixed(2) }} JOD</span>
+        </div>
+        <div class="total-row final-total">
+          <span>Total Amount:</span>
+          <span>{{ (order.totalAmount || order.totalPrice).toFixed(2) }} JOD</span>
+        </div>
+        <div class="total-row payment-method">
+          <span>Payment Method:</span>
+          <span>{{ order.paymentMethod }}</span>
+        </div>
+      </div>      <!-- Action Buttons -->
+      <div class="order-actions" (click)="stopPropagation($event)">
+        <button *ngIf="canCancelOrder(order.status)" 
+                class="cancel-btn" 
+                (click)="cancelOrder(order.id)">
+          <i class="fas fa-times"></i>
+          Cancel Order
+        </button>
+        
+        <button *ngIf="order.status === 'Delivered'" 
+                class="reorder-btn" 
+                (click)="reorderItems(order)">
+          <i class="fas fa-redo"></i>
+          Reorder
+        </button>
+
+        <!-- TEMPORARY: Testing buttons to show Google Maps -->
+        <div class="testing-buttons" style="width: 100%; margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;">
+          <small style="color: #856404; font-weight: 600; display: block; margin-bottom: 8px;">
+            🗺️ Testing: Change status to see Google Maps
+          </small>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="test-btn" 
+                    (click)="changeOrderStatusForTesting(order.id, 'preparing')"
+                    style="background: #9b59b6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem;">
+              Set to Preparing
+            </button>
+            <button class="test-btn" 
+                    (click)="changeOrderStatusForTesting(order.id, 'out for delivery')"
+                    style="background: #e67e22; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem;">
+              Set to Out for Delivery
+            </button>
+            <button class="test-btn" 
+                    (click)="changeOrderStatusForTesting(order.id, 'confirmed')"
+                    style="background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem;">
+              Set to Confirmed
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estimated Delivery Time -->
+      <div class="estimated-time" *ngIf="order.status !== 'Delivered' && order.status !== 'Cancelled'">
+        <i class="fas fa-clock"></i>
+        <span>Estimated delivery: {{ getEstimatedDeliveryTime(order) }}</span>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auto Refresh Info -->
+  <div class="auto-refresh-info" *ngIf="orders.length > 0">
+    <i class="fas fa-info-circle"></i>
+    <span>Orders refresh automatically every 30 seconds</span>
+  </div>
+</div>

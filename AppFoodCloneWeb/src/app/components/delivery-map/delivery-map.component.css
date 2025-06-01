@@ -1,0 +1,250 @@
+.delivery-map-container {
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.delivery-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delivery-info i {
+  font-size: 16px;
+}
+
+.driver-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.vehicle-type {
+  font-size: 12px;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.map-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.map-status.status-picked-up {
+  background: rgba(40, 167, 69, 0.2);
+}
+
+.map-status.status-in-transit {
+  background: rgba(0, 123, 255, 0.2);
+}
+
+.map-status.status-nearby {
+  background: rgba(255, 193, 7, 0.2);
+}
+
+.map-status.status-delivered {
+  background: rgba(40, 167, 69, 0.2);
+}
+
+.map-container {
+  position: relative;
+  width: 100%;
+  background: #f8f9fa;
+  flex: 1;
+  min-height: 200px;
+}
+
+/* When used as background, fill entire container */
+:host-context(.delivery-map-wrapper) .delivery-map-container {
+  height: 100%;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+:host-context(.delivery-map-wrapper) .map-container {
+  height: 100% !important;
+}
+
+.map-container ::ng-deep .gm-style {
+  border-radius: 0 0 12px 12px;
+}
+
+.map-container ::ng-deep .gm-style-iw {
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.map-container ::ng-deep .gm-style-iw-d {
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.map-container ::ng-deep .gm-style-iw-c {
+  padding: 0 !important;
+  border-radius: 8px !important;
+}
+
+.map-container ::ng-deep .gm-style-iw-t::after {
+  display: none !important;
+}
+
+.map-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.distance-info,
+.eta-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.distance-info i,
+.eta-info i {
+  color: #007bff;
+  font-size: 11px;
+}
+
+/* Custom marker styles */
+.delivery-marker,
+.destination-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.delivery-marker i,
+.destination-marker i {
+  font-size: 14px;
+  color: #007bff;
+}
+
+.destination-marker i {
+  color: #28a745;
+}
+
+/* Leaflet popup customization */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.marker-popup {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #333;
+}
+
+.marker-popup strong {
+  color: #007bff;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.marker-popup small {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Remove leaflet attribution */
+.leaflet-control-attribution {
+  display: none !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .map-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .map-footer {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .delivery-info {
+    font-size: 13px;
+  }
+  
+  .driver-name {
+    font-size: 13px;
+  }
+  
+  .vehicle-type {
+    font-size: 11px;
+  }
+}
+
+/* Map loading state */
+.map-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  z-index: 10;
+}
+
+.map-loading .spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e9ecef;
+  border-top-color: #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.map-loading p {
+  margin-top: 15px;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

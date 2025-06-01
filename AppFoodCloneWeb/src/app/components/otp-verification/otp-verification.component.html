@@ -2,11 +2,12 @@
   <div class="otp-card">
     <div class="otp-header">
       <h2>{{ title }}</h2>
-      <p class="subtitle">{{ subtitle }}</p>
+      <p class="subtitle">Enter the 6-digit code sent to</p>
       <p class="email-display">{{ email }}</p>
-    </div>    <div class="otp-form">
+    </div>
+
+    <div class="otp-form">
       <div class="otp-input-container">
-        <label for="otpCode" class="form-label">Enter 6-digit verification code</label>
         <input
           type="text"
           id="otpCode"
@@ -21,7 +22,6 @@
           pattern="[0-9]{6}"
           spellcheck="false"
         />
-        <small class="form-text text-muted">Enter the 6-digit code sent to your email</small>
       </div>
 
       <div class="alert alert-error" *ngIf="error">

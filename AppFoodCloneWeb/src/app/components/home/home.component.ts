@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Restaurant } from '../../models/restaurant.model';
 import { RestaurantService } from '../../services/restaurant.service';
@@ -37,14 +37,16 @@ export class HomeComponent implements OnInit {
   
   // Expose Math to template
   Math = Math;
-
   constructor(
     private restaurantService: RestaurantService,
     private homeService: HomeService,
     private imageUtilService: ImageUtilService,
     private orderService: OrderService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
+
+
   ngOnInit(): void {
     this.loadFeaturedRestaurants();
     this.loadAllRestaurants();
@@ -274,11 +276,15 @@ export class HomeComponent implements OnInit {
   refreshOrders(): void {
     this.loadCurrentOrders();
   }
-
   // Track order in real-time
   trackOrder(orderId: number): void {
-    // Navigate to order tracking page - you can implement this route
-    console.log('Track order in real-time:', orderId);
+    // Navigate to order tracking page
+    this.router.navigate(['/track-orders'], { queryParams: { orderId: orderId } });
+  }
+
+  // Navigate to view all orders
+  viewAllOrders(): void {
+    this.router.navigate(['/track-orders']);
   }
 
   // Get a random hero image

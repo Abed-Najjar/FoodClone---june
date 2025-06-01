@@ -46,6 +46,7 @@ namespace API.Extensions
             services.AddTransient<IDishManagementService, DishManagementService>();
             services.AddTransient<IOrderService, OrderService>();
             services.AddTransient<IUserManagementService, UserManagementService>();
+            services.AddTransient<IUserProfileService, UserProfileService>();
             services.AddTransient<IRestaurantManagement, RestaurantManagement>();
             services.AddTransient<ICategoryManagementService, CategoryManagementService>();            services.AddTransient<ICloudinaryService, CloudinaryService>();
             services.AddTransient<IEmailService, EmailService>();

@@ -11,6 +11,12 @@ namespace API.Models
         public List<string> Address { get; set; } = new List<string>(); // Legacy field - will be deprecated
         public string PhoneNumber { get; set; } = string.Empty;
         
+        // Additional profile fields
+        public DateTime? DateOfBirth { get; set; }
+        public string? Gender { get; set; }
+        public string? Bio { get; set; }
+        public DateTime? LastLogin { get; set; }
+        
         // Navigation property for multiple user addresses
         public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
         public string ImageUrl { get; set; } = string.Empty;
