@@ -1,57 +1,135 @@
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card shadow">
-        <div class="card-header bg-primary text-white text-center">
-          <h3>Login</h3>
-        </div>
-        <div class="card-body">
-          <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
-          
-          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-            <div class="mb-3">
-              <label for="email" class="form-label">Email</label>
-              <input 
-                type="email" 
-                formControlName="email"
-                class="form-control" 
-                [ngClass]="{ 'is-invalid': f['email'].touched && f['email'].errors }"
-                placeholder="Enter your email"
-              />
-              <div *ngIf="f['email'].touched && f['email'].errors" class="invalid-feedback">
-                <div *ngIf="f['email'].errors['required']">Email is required</div>
-                <div *ngIf="f['email'].errors['email']">Enter a valid email address</div>
-              </div>
-            </div>
-            
-            <div class="mb-3">
-              <label for="password" class="form-label">Password</label>
-              <input 
-                type="password" 
-                formControlName="password"
-                class="form-control" 
-                [ngClass]="{ 'is-invalid': f['password'].touched && f['password'].errors }"
-                placeholder="Enter your password"
-              />
-              <div *ngIf="f['password'].touched && f['password'].errors" class="invalid-feedback">
-                <div *ngIf="f['password'].errors['required']">Password is required</div>
-                <div *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters</div>
-              </div>
-            </div>
-              <div class="d-grid gap-2">
-              <button class="btn btn-primary" type="submit" [disabled]="loginForm.invalid || loading">
-                <span *ngIf="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                Login
-              </button>
-            </div>
-          </form>
-          
-          <div class="mt-3 text-center">
-            <p><a routerLink="/forgot-password" class="text-decoration-none">Forgot your password?</a></p>
-            <p class="mb-0">Don't have an account? <a routerLink="/register">Register</a></p>
+<div class="login-container">
+  <div class="login-wrapper">
+    <div class="login-card">
+      <!-- Header Section -->
+      <div class="login-header">
+        <div class="brand-section">
+          <div class="brand-icon">
+            <i class="bi bi-shop"></i>
           </div>
+          <h1 class="brand-title">FoodClone</h1>
+          <p class="brand-subtitle">Welcome back! Sign in to your account</p>
         </div>
       </div>
+
+      <!-- Form Section -->
+      <div class="login-body">
+        <!-- Error Alert -->
+        <div *ngIf="error" class="alert alert-danger error-alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          {{ error }}
+        </div>
+        
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+          <!-- Email Field -->
+          <div class="form-group">
+            <label for="email" class="form-label">Email Address</label>
+            <div class="input-wrapper">
+              <i class="bi bi-envelope input-icon"></i>
+              <input 
+                type="email" 
+                id="email"
+                formControlName="email"
+                class="form-control modern-input" 
+                [ngClass]="{ 
+                  'is-invalid': f['email'].touched && f['email'].errors,
+                  'is-valid': f['email'].touched && !f['email'].errors
+                }"
+                placeholder="Enter your email address"
+                autocomplete="email"
+              />
+            </div>
+            <div *ngIf="f['email'].touched && f['email'].errors" class="error-message">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              <span *ngIf="f['email'].errors['required']">Email is required</span>
+              <span *ngIf="f['email'].errors['email']">Please enter a valid email address</span>
+            </div>
+          </div>
+          
+          <!-- Password Field -->
+          <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-wrapper">
+              <i class="bi bi-lock input-icon"></i>
+              <input 
+                [type]="showPassword ? 'text' : 'password'"
+                id="password"
+                formControlName="password"
+                class="form-control modern-input" 
+                [ngClass]="{ 
+                  'is-invalid': f['password'].touched && f['password'].errors,
+                  'is-valid': f['password'].touched && !f['password'].errors
+                }"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+              />
+              <button 
+                type="button" 
+                class="password-toggle"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              >
+                <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+              </button>
+            </div>
+            <div *ngIf="f['password'].touched && f['password'].errors" class="error-message">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              <span *ngIf="f['password'].errors['required']">Password is required</span>
+              <span *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters long</span>
+            </div>
+          </div>
+
+          <!-- Remember Me & Forgot Password -->
+          <div class="form-options">
+            <div class="remember-me">
+              <input type="checkbox" id="rememberMe" class="form-check-input">
+              <label for="rememberMe" class="form-check-label">Remember me</label>
+            </div>
+            <a routerLink="/forgot-password" class="forgot-password-link">
+              Forgot password?
+            </a>
+          </div>
+
+          <!-- Login Button -->
+          <button 
+            type="submit" 
+            class="btn btn-login"
+            [disabled]="loginForm.invalid || loading"
+            [class.loading]="loading"
+          >
+            <span *ngIf="!loading" class="btn-content">
+              <i class="bi bi-box-arrow-in-right me-2"></i>
+              Sign In
+            </span>
+            <span *ngIf="loading" class="btn-loading">
+              <div class="spinner"></div>
+              Signing In...
+            </span>
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="divider">
+          <span class="divider-text">or</span>
+        </div>
+
+        <!-- Register Link -->
+        <div class="register-section">
+          <p class="register-text">
+            Don't have an account?
+            <a routerLink="/register" class="register-link">Create one now</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background Decoration -->
+    <div class="bg-decoration">
+      <div class="food-icon food-icon-1">🍕</div>
+      <div class="food-icon food-icon-2">🍔</div>
+      <div class="food-icon food-icon-3">🍜</div>
+      <div class="food-icon food-icon-4">🥗</div>
+      <div class="food-icon food-icon-5">🍰</div>
     </div>
   </div>
 </div>

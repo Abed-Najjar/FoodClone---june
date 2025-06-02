@@ -17,6 +17,7 @@ export class LoginComponent implements OnInit {
   loading = false;
   error = '';
   returnUrl = '';
+  showPassword = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -24,6 +25,7 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute
   ) {}
+
   ngOnInit(): void {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
@@ -40,8 +42,18 @@ export class LoginComponent implements OnInit {
   }
 
   // Getter for easy access to form fields
-  get f() { return this.loginForm.controls; }  onSubmit(): void {
+  get f() { return this.loginForm.controls; }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  onSubmit(): void {
     if (this.loginForm.invalid) {
+      // Mark all fields as touched to show validation errors
+      Object.keys(this.loginForm.controls).forEach(key => {
+        this.loginForm.get(key)?.markAsTouched();
+      });
       return;
     }
 
@@ -49,7 +61,7 @@ export class LoginComponent implements OnInit {
     this.error = '';
 
     const credentials: UserLogin = {
-      email: this.f['email'].value,
+      email: this.f['email'].value.trim().toLowerCase(),
       password: this.f['password'].value
     };
 
@@ -62,12 +74,13 @@ export class LoginComponent implements OnInit {
             window.location.reload();
           });
         } else {
-          this.error = response.errorMessage || 'Login failed';
+          this.error = response.errorMessage || 'Login failed. Please check your credentials.';
           this.loading = false;
         }
       },
       error: (err) => {
-        this.error = err.error?.message || 'An error occurred during login';
+        console.error('Login error:', err);
+        this.error = err.error?.message || 'An error occurred during login. Please try again.';
         this.loading = false;
       }
     });

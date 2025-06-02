@@ -3,99 +3,187 @@
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css');
 
 :root {
-  --primary-color: #00a599;
-  --secondary-color: #ff5a5f;
-  --accent-color: #ffb400;
-  --light-color: #f8f9fa;
-  --dark-color: #343a40;
-  --success-color: #28a745;
-  --warning-color: #ffc107;
-  --danger-color: #dc3545;
-  --text-color: #333;
-  --text-muted: #6c757d;
+  /* Sophisticated & Muted Primary Colors */
+  --primary-color: #7B68A2;           /* Soft Lavender - elegant and calming */
+  --primary-dark: #5D4E75;            /* Deeper lavender for depth */
+  --primary-light: #A396C8;           /* Lighter lavender for subtle accents */
+  
+  --secondary-color: #81A684;         /* Sage Green - natural and sophisticated */
+  --secondary-dark: #6B8A6E;          /* Darker sage for contrast */
+  --secondary-light: #A8C4AB;         /* Light sage for success states */
+  
+  --accent-color: #D4A574;            /* Warm Beige - soft and inviting */
+  --accent-dark: #C19A63;             /* Darker beige for emphasis */
+  --accent-light: #E6C4A0;            /* Light beige for backgrounds */
+  
+  /* Muted Semantic Colors */
+  --success-color: #7A9B7A;           /* Muted green for success */
+  --warning-color: #C5A572;           /* Soft amber for warnings */
+  --danger-color: #B5878A;            /* Muted rose for errors */
+  --info-color: #7EA3CC;             /* Soft blue for information */
+  
+  /* Sophisticated Neutral Colors */
+  --background-color: #FAFAF9;        /* Warm off-white background */
+  --surface-color: #FFFFFF;           /* Pure white for cards */
+  --text-primary: #4A4A4A;            /* Soft charcoal for main text */
+  --text-secondary: #6B6B6B;          /* Medium gray for secondary text */
+  --text-muted: #9A9A9A;              /* Light gray for muted text */
+  --border-color: #E8E8E8;            /* Very light gray for borders */
+  --divider-color: #F2F2F2;           /* Ultra light gray for dividers */
+  
+  /* Subtle Gradient Backgrounds */
+  --gradient-primary: linear-gradient(135deg, #7B68A2 0%, #A396C8 100%);
+  --gradient-secondary: linear-gradient(135deg, #81A684 0%, #A8C4AB 100%);
+  --gradient-warm: linear-gradient(135deg, #D4A574 0%, #E6C4A0 100%);
+  --gradient-fresh: linear-gradient(135deg, #7A9B7A 0%, #A8C4AB 100%);
+  --gradient-neutral: linear-gradient(135deg, #F5F5F5 0%, #FAFAF9 100%);
+  
+  /* Food-specific Muted Colors */
+  --healthy-green: #8FAF8F;           /* Muted green for healthy options */
+  --comfort-brown: #C4A484;           /* Warm brown for comfort food */
+  --fresh-blue: #95B5D4;              /* Soft blue for fresh items */
+  --warm-orange: #D4B584;             /* Muted orange for warm dishes */
+  
+  /* Refined Design System */
   --border-radius: 8px;
-  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --transition: all 0.3s ease;
+  --border-radius-small: 6px;
+  --border-radius-large: 12px;
+  --box-shadow: 0 2px 12px rgba(75, 85, 99, 0.06);
+  --box-shadow-hover: 0 4px 20px rgba(75, 85, 99, 0.12);
+  --box-shadow-subtle: 0 1px 6px rgba(75, 85, 99, 0.04);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Elegant Spacing System */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
 }
 
 body {
   font-family: 'Poppins', sans-serif;
-  color: var(--text-color);
-  background-color: #f9f9f9;
+  color: var(--text-primary);
+  background-color: var(--background-color);
   margin: 0;
   padding: 0;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Button Styles */
+/* Elegant Button Styles */
 .btn-primary {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+  font-weight: 500;
+  transition: var(--transition);
+  box-shadow: var(--box-shadow-subtle);
 }
 
 .btn-primary:hover {
-  background-color: #008c83;
-  border-color: #008c83;
+  background: var(--gradient-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow);
+  filter: brightness(1.02);
 }
 
 .btn-secondary {
-  background-color: var(--secondary-color);
-  border-color: var(--secondary-color);
+  background: var(--gradient-secondary);
+  border: none;
+  color: white;
+  font-weight: 500;
+  transition: var(--transition);
+  box-shadow: var(--box-shadow-subtle);
+}
+
+.btn-secondary:hover {
+  background: var(--gradient-secondary);
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow);
+  filter: brightness(1.02);
 }
 
 .btn-outline-primary {
   color: var(--primary-color);
-  border-color: var(--primary-color);
+  border: 1.5px solid var(--primary-color);
+  background: transparent;
+  font-weight: 500;
+  transition: var(--transition);
 }
 
 .btn-outline-primary:hover {
-  background-color: var(--primary-color);
+  background: var(--primary-color);
   color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow-subtle);
 }
 
-/* Card styling */
+/* Refined Card styling */
 .card {
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
-  border: none;
+  border: 1px solid var(--border-color);
   transition: var(--transition);
   overflow: hidden;
+  background: var(--surface-color);
 }
 
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  box-shadow: var(--box-shadow-hover);
+  border-color: var(--primary-light);
 }
 
 .card-img-top {
   height: 180px;
   object-fit: cover;
+  transition: var(--transition);
 }
 
-/* Badge styling */
+.card:hover .card-img-top {
+  transform: scale(1.02);
+}
+
+/* Sophisticated Badge styling */
 .badge {
-  padding: 6px 10px;
+  padding: 6px 12px;
   font-weight: 500;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  letter-spacing: 0.2px;
 }
 
-/* Animation classes */
-.fade-in {
-  animation: fadeIn 0.5s ease-in;
+.badge-primary {
+  background: var(--gradient-primary);
+  color: white;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.badge-secondary {
+  background: var(--gradient-secondary);
+  color: white;
 }
 
-/* Custom restaurant styles */
+.badge-success {
+  background: var(--gradient-fresh);
+  color: white;
+}
+
+.badge-warning {
+  background: var(--gradient-warm);
+  color: white;
+}
+
+/* Food-specific elegant styling */
 .restaurant-cover {
-  height: 300px;
+  height: 280px;
   background-size: cover;
   background-position: center;
   position: relative;
   border-radius: var(--border-radius);
-  margin-bottom: 30px;
+  margin-bottom: var(--spacing-xl);
 }
 
 .restaurant-cover .overlay {
@@ -104,7 +192,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7));
+  background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.4));
   border-radius: var(--border-radius);
 }
 
@@ -113,19 +201,20 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 20px;
+  padding: var(--spacing-lg);
   color: white;
   display: flex;
   align-items: flex-end;
 }
 
 .restaurant-logo {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid white;
-  margin-right: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  margin-right: var(--spacing-md);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .restaurant-details {
@@ -133,21 +222,26 @@ body {
 }
 
 .restaurant-details h1 {
-  margin-bottom: 5px;
-  font-weight: 700;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 600;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .details-row {
   display: flex;
   align-items: center;
-  gap: 15px;
-  margin-top: 8px;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
 }
 
 .rating {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--spacing-xs);
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 10px;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
 }
 
 .rating i {
@@ -155,29 +249,35 @@ body {
 }
 
 .status {
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
 }
 
 .status.open {
-  background-color: var(--success-color);
+  background: var(--gradient-fresh);
+  color: white;
 }
 
 .status.closed {
-  background-color: var(--danger-color);
+  background: linear-gradient(135deg, var(--danger-color) 0%, #D4A5A8 100%);
+  color: white;
 }
 
 .category-nav {
   display: flex;
-  gap: 10px;
+  gap: var(--spacing-sm);
   overflow-x: auto;
-  padding: 15px 0;
-  margin-bottom: 20px;
+  padding: var(--spacing-md) 0;
+  margin-bottom: var(--spacing-lg);
 }
 
 .dish-card {
   height: 100%;
+  transition: var(--transition);
 }
 
 .dish-image {
@@ -186,7 +286,39 @@ body {
 }
 
 .price {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--primary-color);
   font-size: 1.1rem;
+}
+
+/* Subtle animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Elegant food indicators */
+.healthy-indicator {
+  background: var(--gradient-fresh);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+
+.comfort-indicator {
+  background: var(--gradient-warm);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
 }

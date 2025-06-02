@@ -178,7 +178,9 @@ namespace API.Services.OtpService
                 {
                     Email = email,
                     Type = type
-                };                var result = await GenerateOtpAsync(generateDto);
+                };                
+                
+                var result = await GenerateOtpAsync(generateDto);
                 return new AppResponse<bool>(result.Success, result.ErrorMessage ?? "OTP resent successfully", 
                     result.StatusCode, result.Success);
             }

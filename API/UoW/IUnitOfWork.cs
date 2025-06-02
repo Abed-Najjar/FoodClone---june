@@ -10,6 +10,7 @@ namespace API.UoW
         IAddressRepository AddressRepository { get; }
         IDishRepository DishRepository { get; }
         ICategoryRepository CategoryRepository { get; }
+        ICartRepository CartRepository { get; }
         Task<int> CompleteAsync();
     }
 }

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Location } from '../../models/address.model';
 
@@ -14,7 +14,7 @@ interface ExtendedMapOptions extends google.maps.MapOptions {
   templateUrl: './location-picker.component.html',
   styleUrls: ['./location-picker.component.css']
 })
-export class LocationPickerComponent implements OnInit {
+export class LocationPickerComponent implements OnInit, OnChanges {
   @Input() initialLatitude: number = 31.9454;  // Default to center of Jordan
   @Input() initialLongitude: number = 35.9284; // Default to center of Jordan
   @Input() allowSelection: boolean = true;
@@ -117,10 +117,16 @@ export class LocationPickerComponent implements OnInit {
     }
 
     try {
+      // Use default coordinates if initial coordinates are 0,0 (indicating new address)
+      const shouldUseDefaults = this.initialLatitude === 0 && this.initialLongitude === 0;
+      const lat = shouldUseDefaults ? 31.9454 : this.initialLatitude;  // Default to center of Jordan
+      const lng = shouldUseDefaults ? 35.9284 : this.initialLongitude; // Default to center of Jordan
+      const zoom = shouldUseDefaults ? 10 : 15; // Wider zoom for default location, closer for specific addresses
+
       // Option 1: Use type assertion to bypass the type check
       const mapOptions = {
-        zoom: 15,
-        center: { lat: this.initialLatitude, lng: this.initialLongitude },
+        zoom: zoom,
+        center: { lat: lat, lng: lng },
         mapTypeControl: true,
         fullscreenControl: true
       } as google.maps.MapOptions;
@@ -136,7 +142,7 @@ export class LocationPickerComponent implements OnInit {
       this.geocoder = new google.maps.Geocoder();
 
       this.marker = new google.maps.Marker({
-        position: { lat: this.initialLatitude, lng: this.initialLongitude },
+        position: { lat: lat, lng: lng },
         map: this.map,
         title: this.markerTitle,
         draggable: this.allowSelection
@@ -161,8 +167,10 @@ export class LocationPickerComponent implements OnInit {
         });
       }
 
-      // Initial geocoding to get the address of the initial position
-      this.geocodePosition(new google.maps.LatLng(this.initialLatitude, this.initialLongitude));
+      // Only do initial geocoding for specific addresses (not default coordinates)
+      if (!shouldUseDefaults) {
+        this.geocodePosition(new google.maps.LatLng(lat, lng));
+      }
       
       console.log('Google Maps initialized successfully');
       this.isLoading = false;
@@ -208,16 +216,38 @@ export class LocationPickerComponent implements OnInit {
   }
   // Search for an address and update the map
   public searchAddress(address: string): void {
-    if (!this.geocoder) return;
+    if (!this.geocoder || !address.trim()) return;
 
     this.geocoder.geocode({ address }, (results, status) => {
       if (status === google.maps.GeocoderStatus.OK && results && results[0] && this.map) {
         const location = results[0].geometry.location;
+        
+        // Set appropriate zoom level based on the type of location found
+        let zoomLevel = 15; // Default for street-level
+        
+        // Check if it's a city, state, or country level search
+        // Use type assertion as fallback for type safety
+        const resultTypes = results[0].types || (results[0] as any).types || [];
+        if (resultTypes.includes('country')) {
+          zoomLevel = 6;
+        } else if (resultTypes.includes('administrative_area_level_1')) {
+          zoomLevel = 8;
+        } else if (resultTypes.includes('locality')) {
+          zoomLevel = 12;
+        } else if (resultTypes.includes('route') || resultTypes.includes('street_address')) {
+          zoomLevel = 16;
+        }
+
+        // Update map center and zoom
         this.map.setCenter(location);
+        this.map.setZoom(zoomLevel);
+        
+        // Update marker position
         this.updateMarkerPosition(location);
       }
     });
   }
+
   // Retry loading the map
   public retryMapLoad(): void {
     console.log('Retrying map load...');
@@ -239,5 +269,20 @@ export class LocationPickerComponent implements OnInit {
     
     // Reload the API
     this.loadGoogleMapsApi();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Only update if the coordinates actually changed and we have valid coordinates
+    if ((changes['initialLatitude'] || changes['initialLongitude']) && 
+        this.initialLatitude !== 0 && this.initialLongitude !== 0) {
+      
+      // If the map is already initialized, update the position
+      if (this.map && this.marker && !this.isLoading) {
+        const newLatLng = new google.maps.LatLng(this.initialLatitude, this.initialLongitude);
+        this.map.setCenter(newLatLng);
+        this.updateMarkerPosition(newLatLng);
+      }
+      // If map is not yet initialized, the new coordinates will be used when initializeMap() is called
+    }
   }
 }

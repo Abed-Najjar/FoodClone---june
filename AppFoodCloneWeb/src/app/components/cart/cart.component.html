@@ -51,7 +51,7 @@
                       </div>
                     </td>
                     <td class="align-middle">
-                      <span class="item-price">${{ item.dish.price.toFixed(2) }}</span>
+                      <span class="item-price">{{ item.dish.price.toFixed(2) }} JOD</span>
                     </td>
                     <td class="align-middle" style="width: 130px">
                       <div class="quantity-control">
@@ -67,7 +67,7 @@
                       </div>
                     </td>
                     <td class="align-middle">
-                      <span class="item-total">${{ (item.dish.price * item.quantity).toFixed(2) }}</span>
+                      <span class="item-total">{{ (item.dish.price * item.quantity).toFixed(2) }} JOD</span>
                     </td>
                     <td class="align-middle">
                       <button class="remove-btn" (click)="removeItem(item.dish.id)" title="Remove item">
@@ -88,32 +88,94 @@
             <h5 class="mb-0 fw-bold">Order Summary</h5>
           </div>
           <div class="card-body">
-            <div class="total-section">
+            <!-- Loading State for Calculations -->
+            <div *ngIf="isLoadingCalculation" class="text-center py-4">
+              <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+              <span>Calculating totals...</span>
+            </div>
+
+            <!-- Calculation Error -->
+            <div *ngIf="calculationError && !isLoadingCalculation" class="alert alert-danger">
+              <i class="bi bi-exclamation-triangle"></i>
+              {{ calculationError }}
+              <button class="btn btn-sm btn-outline-danger mt-2" (click)="calculateCartTotals()">
+                <i class="bi bi-arrow-clockwise"></i> Retry
+              </button>
+            </div>
+
+            <!-- Order Summary - Backend Calculated Totals -->
+            <div *ngIf="cartCalculation && !isLoadingCalculation && !calculationError" class="total-section">
               <div class="total-row">
                 <span class="total-label">Subtotal</span>
-                <span class="total-value">${{ totalPrice.toFixed(2) }}</span>
+                <span class="total-value">{{ cartCalculation.formattedSubtotal }}</span>
               </div>
               <div class="total-row">
-                <span class="total-label">Delivery Fee</span>
-                <span class="total-value">${{ deliveryFee.toFixed(2) }}</span>
+                <span class="total-label">
+                  Delivery Fee
+                  <span *ngIf="cartCalculation.freeDeliveryApplied" class="badge bg-success ms-1">FREE</span>
+                </span>
+                <span class="total-value" [class.text-success]="cartCalculation.freeDeliveryApplied">
+                  {{ cartCalculation.formattedDeliveryFee }}
+                </span>
               </div>
               <div class="total-row">
-                <span class="total-label">Tax</span>
-                <span class="total-value">${{ tax.toFixed(2) }}</span>
-              </div>              <div class="total-row" *ngIf="promoDiscount > 0">
-                <span class="total-label text-success">Discount</span>
-                <span class="total-value text-success">-${{ promoDiscount.toFixed(2) }}</span>
+                <span class="total-label">Tax ({{ (cartCalculation.taxRate * 100).toFixed(1) }}%)</span>
+                <span class="total-value">{{ cartCalculation.formattedTaxAmount }}</span>
               </div>
+              <div class="total-row" *ngIf="hasDiscount">
+                <span class="total-label text-success">
+                  Discount
+                  <span *ngIf="appliedPromoCode" class="badge bg-success ms-1">{{ appliedPromoCode }}</span>
+                </span>
+                <span class="total-value text-success">-{{ discountAmount.toFixed(2) }} {{ cartCalculation.currency }}</span>
+              </div>
+              <hr>
               <div class="total-row">
                 <span class="total-label fw-bold">Total</span>
-                <span class="grand-total">${{ getGrandTotal().toFixed(2) }}</span>
+                <span class="grand-total">{{ cartCalculation.formattedGrandTotal }}</span>
               </div>
-            </div>            <div class="promo-code mt-4">
+            </div>
+
+            <!-- Promo Code Section -->
+            <div class="promo-code mt-4">
               <div class="input-group">
-                <input type="text" class="form-control" placeholder="Promo code" [(ngModel)]="promoCode">
-                <button class="btn btn-outline-secondary" type="button" (click)="applyPromoCode()">Apply</button>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  placeholder="Enter promo code" 
+                  [(ngModel)]="promoCode"
+                  (input)="onPromoCodeChange()"
+                  [class.is-invalid]="promoError"
+                  [class.is-valid]="appliedPromoCode && !promoError"
+                  maxlength="50">
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button" 
+                  (click)="clearPromoCode()"
+                  *ngIf="promoCode"
+                  [disabled]="isValidatingPromo">
+                  <i class="bi bi-x"></i>
+                </button>
               </div>
-              <small class="text-muted mt-1">Try "WELCOME10" for 10% off or "FREE" for free delivery</small>
+              
+              <!-- Promo Code Loading -->
+              <div *ngIf="isValidatingPromo" class="text-muted mt-1">
+                <small><i class="bi bi-hourglass-split"></i> Validating promo code...</small>
+              </div>
+              
+              <!-- Promo Code Error -->
+              <div *ngIf="promoError" class="text-danger mt-1">
+                <small><i class="bi bi-exclamation-triangle"></i> {{ promoError }}</small>
+              </div>
+              
+              <!-- Promo Code Success -->
+              <div *ngIf="appliedPromoCode && promoMessage && !promoError" class="text-success mt-1">
+                <small><i class="bi bi-check-circle"></i> {{ promoMessage }}</small>
+              </div>
+              
+              <small class="text-muted mt-1" *ngIf="!promoCode && !appliedPromoCode">
+                Have a promo code? Enter it above for discounts.
+              </small>
             </div>
 
             <!-- Address Selection -->
@@ -149,24 +211,37 @@
                     <i class="bi" 
                        [ngClass]="{
                          'bi-cash-coin': method === 'Cash',
-                         'bi-credit-card': method === 'Credit Card',
+                         'bi-credit-card': method === 'Credit Card' || method === 'Debit Card',
+                         'bi-phone': method === 'Online Payment'
                        }"></i>
                     {{ method }}
                   </label>
                 </div>
               </div>
             </div>
-          </div>          <div class="card-footer bg-white">
+          </div>
+          
+          <div class="card-footer bg-white">
+            <!-- Address Warning -->
             <div *ngIf="!selectedAddress" class="alert alert-warning mb-3">
               <i class="bi bi-exclamation-triangle"></i>
               Please select a delivery address to proceed with your order.
             </div>
+            
+            <!-- Calculation Required Warning -->
+            <div *ngIf="!cartCalculation && !isLoadingCalculation && cartItems.length > 0" class="alert alert-warning mb-3">
+              <i class="bi bi-exclamation-triangle"></i>
+              Unable to calculate order total. Please try again.
+            </div>
+            
             <button 
               class="btn btn-primary btn-lg w-100 action-button checkout-btn"
               (click)="checkout()"
-              [disabled]="isCheckingOut || cartItems.length === 0 || !selectedAddress">
+              [disabled]="isCheckingOut || cartItems.length === 0 || !selectedAddress || !cartCalculation || isLoadingCalculation">
               <span *ngIf="!isCheckingOut">
-                <i class="bi bi-credit-card"></i> Place Order
+                <i class="bi bi-credit-card"></i> 
+                Place Order
+                <span *ngIf="cartCalculation"> - {{ cartCalculation.formattedGrandTotal }}</span>
               </span>
               <span *ngIf="isCheckingOut">
                 <span class="spinner-border spinner-border-sm me-2" role="status"></span>

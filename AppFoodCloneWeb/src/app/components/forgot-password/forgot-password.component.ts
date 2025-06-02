@@ -23,6 +23,8 @@ export class ForgotPasswordComponent implements OnInit {
   loading = false;
   error: string = '';
   success: string = '';
+  showNewPassword = false;
+  showConfirmPassword = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -54,14 +56,27 @@ export class ForgotPasswordComponent implements OnInit {
 
   get ef() { return this.emailForm.controls; }
   get rf() { return this.resetPasswordForm.controls; }
+
+  toggleNewPasswordVisibility(): void {
+    this.showNewPassword = !this.showNewPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
   onRequestOtp(): void {
     if (this.emailForm.invalid) {
+      // Mark all fields as touched to show validation errors
+      Object.keys(this.emailForm.controls).forEach(key => {
+        this.emailForm.get(key)?.markAsTouched();
+      });
       return;
     }
 
     this.loading = true;
     this.error = '';
-    this.email = this.emailForm.value.email;
+    this.email = this.emailForm.value.email.trim().toLowerCase();
 
     const request: GenerateOtpRequest = {
       email: this.email,
@@ -80,6 +95,7 @@ export class ForgotPasswordComponent implements OnInit {
       }
     });
   }
+
   onOtpVerified(event: { verified: boolean, otpCode?: string }): void {
     if (event.verified && event.otpCode) {
       this.otpCode = event.otpCode;
@@ -90,8 +106,14 @@ export class ForgotPasswordComponent implements OnInit {
       this.error = 'Invalid OTP. Please try again.';
       this.success = '';
     }
-  }  onResetPassword(): void {
+  }
+
+  onResetPassword(): void {
     if (this.resetPasswordForm.invalid) {
+      // Mark all fields as touched to show validation errors
+      Object.keys(this.resetPasswordForm.controls).forEach(key => {
+        this.resetPasswordForm.get(key)?.markAsTouched();
+      });
       return;
     }
 
@@ -125,8 +147,12 @@ export class ForgotPasswordComponent implements OnInit {
   goBack(): void {
     if (this.step === 'otp') {
       this.step = 'email';
+      this.error = '';
+      this.success = '';
     } else if (this.step === 'password') {
       this.step = 'otp';
+      this.error = '';
+      this.success = '';
     } else {
       this.router.navigate(['/login']);
     }

@@ -34,7 +34,7 @@
               <i class="bi bi-stopwatch"></i> 15–30 min
             </div>
             <div class="stat-item">
-              <i class="bi bi-currency-dollar"></i> Min $10.00
+              <i class="bi bi-currency-dollar"></i> Min 10.00 JOD
             </div>
           </div>
         </div>
@@ -113,7 +113,7 @@
             <h5 class="card-title">{{ dish.name }}</h5>
             <p class="card-text">{{ dish.description }}</p>            <!-- Availability Status and Price -->
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="price">${{ dish.price.toFixed(2) }}</span>
+              <span class="price">{{ dish.price.toFixed(2) }} JOD</span>
               <div class="availability-status">
                 <span *ngIf="dish.isAvailable" class="badge bg-success">
                   <i class="bi bi-check-circle me-1"></i>Available Now

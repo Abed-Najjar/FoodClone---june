@@ -10,7 +10,8 @@ namespace API.UoW
         IRestaurantRepository restaurantRepository,
         IUserRepository userRepository,
         IOrderRepository orderRepository,
-        IAddressRepository addressRepository) : IUnitOfWork
+        IAddressRepository addressRepository,
+        ICartRepository cartRepository) : IUnitOfWork
     {
         private readonly AppDbContext _context = context;
 
@@ -20,6 +21,7 @@ namespace API.UoW
         public IUserRepository UserRepository => userRepository;
         public IOrderRepository OrderRepository => orderRepository;
         public IAddressRepository AddressRepository => addressRepository;
+        public ICartRepository CartRepository => cartRepository;
 
         public async Task<int> CompleteAsync()
         {

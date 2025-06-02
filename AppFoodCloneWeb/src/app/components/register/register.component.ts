@@ -11,7 +11,7 @@ import { OtpVerificationComponent } from '../otp-verification/otp-verification.c
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, OtpVerificationComponent],
+  imports: [CommonModule, ReactiveFormsModule, OtpVerificationComponent, RouterLink],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
@@ -22,6 +22,8 @@ export class RegisterComponent implements OnInit {
   error = '';
   success = '';
   email = '';
+  showPassword = false;
+  showConfirmPassword = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -61,7 +63,16 @@ export class RegisterComponent implements OnInit {
   }
 
   // Getter for easy access to form fields
-  get f() { return this.registerForm.controls; }  
+  get f() { return this.registerForm.controls; }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
   onSubmit(): void {
     // Mark all fields as touched to show validation errors
     if (this.registerForm.invalid) {
@@ -75,7 +86,7 @@ export class RegisterComponent implements OnInit {
 
     this.loading = true;
     this.error = '';
-    this.email = this.f['email'].value;
+    this.email = this.f['email'].value.trim().toLowerCase();
 
     // Generate OTP for registration
     const otpRequest: GenerateOtpRequest = {
@@ -112,7 +123,9 @@ export class RegisterComponent implements OnInit {
       this.error = 'Invalid OTP. Please try again.';
       this.success = '';
     }
-  }  completeRegistration(otpCode: string): void {
+  }
+
+  completeRegistration(otpCode: string): void {
     this.loading = true;
     this.error = '';
 
@@ -128,8 +141,8 @@ export class RegisterComponent implements OnInit {
     }
 
     const user: UserRegister = {
-      username: this.f['username'].value,
-      email: this.f['email'].value,
+      username: this.f['username'].value.trim(),
+      email: this.f['email'].value.trim().toLowerCase(),
       password: this.f['password'].value,
       address: addressArray
     };

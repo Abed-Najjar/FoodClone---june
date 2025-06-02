@@ -132,8 +132,6 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 800px;
-  margin: 0 auto;
 }
 
 .order-card {
@@ -145,8 +143,30 @@
   transition: all 0.3s ease;
 }
 
+.order-card.expandable-card {
+  cursor: pointer;
+  position: relative;
+}
+
+.order-card.expandable-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3498db, #2ecc71, #f39c12);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
 .order-card:hover {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.order-card.expandable-card:hover::before {
+  opacity: 1;
 }
 
 .order-card-header {
@@ -158,6 +178,7 @@
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-bottom: 1px solid #dee2e6;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .order-card-header:hover {
@@ -188,14 +209,95 @@
   gap: 15px;
 }
 
+/* Enhanced expand indicator styles */
+.expand-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: rgba(52, 152, 219, 0.1);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  min-width: 80px;
+  border: 2px solid transparent;
+}
+
+.expand-indicator:hover {
+  background: rgba(52, 152, 219, 0.2);
+  transform: scale(1.05);
+  border-color: rgba(52, 152, 219, 0.3);
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+}
+
+.expand-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #3498db;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 0.3s ease;
+}
+
+.expand-indicator:hover .expand-text {
+  color: #2980b9;
+}
+
 .expand-icon {
-  color: #6c757d;
+  color: #3498db;
   font-size: 1.2rem;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .expand-icon.expanded {
   transform: rotate(180deg);
+  color: #2ecc71;
+}
+
+.expand-indicator:hover .expand-icon:not(.expanded) {
+  color: #2980b9;
+  transform: scale(1.1);
+}
+
+/* Expand hint styles */
+.expand-hint {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #7f8c8d;
+  font-size: 0.8rem;
+  font-style: italic;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.expand-hint i {
+  color: #3498db;
+  font-size: 0.9rem;
+}
+
+.order-card-header:hover .expand-hint {
+  color: #5d6d7e;
+  opacity: 1;
+}
+
+.expand-hint span {
+  line-height: 1.2;
+}
+
+/* Add subtle animation to hint */
+@keyframes pulseHint {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+.expand-hint {
+  animation: pulseHint 3s ease-in-out infinite;
+}
+
+.order-card-header:hover .expand-hint {
+  animation: none;
 }
 
 .order-card-details {
@@ -218,6 +320,8 @@
   align-items: center;
   gap: 15px;
   flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .order-header-compact {
@@ -2020,4 +2124,58 @@
   100% {
     background-position: 200% 0;
   }
+}
+
+/* Orders section wrapper */
+.orders-section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Instructions banner */
+.instructions-banner {
+  background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: slideInDown 0.6s ease-out;
+}
+
+.instructions-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.instructions-content i {
+  font-size: 1.2rem;
+  color: #f39c12;
+  animation: pulse 2s infinite;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.orders-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }

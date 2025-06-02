@@ -11,6 +11,8 @@
   border: none;
   box-shadow: none;
   padding: 0;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .otp-header {
@@ -22,18 +24,18 @@
 .otp-header h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .otp-header .subtitle {
-  color: #6c757d;
+  color: var(--text-secondary);
   margin-bottom: 1rem;
   font-size: 0.95rem;
 }
 
 .otp-header .email-display {
-  color: #007bff;
+  color: var(--primary-color);
   font-weight: 600;
   margin-bottom: 0;
   font-size: 0.9rem;
@@ -42,6 +44,8 @@
 /* OTP Form Styling */
 .otp-form {
   width: 100%;
+  max-width: 450px;
+  margin: 0 auto;
 }
 
 .otp-input-container {
@@ -53,52 +57,54 @@
   display: block;
   margin-bottom: 1rem;
   font-weight: 600;
-  color: #495057;
+  color: var(--text-primary);
   text-align: center;
   font-size: 0.95rem;
 }
 
 .otp-single-input {
   width: 100%;
-  max-width: 300px;
-  height: 60px;
+  max-width: 400px;
+  height: 65px;
   text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-  letter-spacing: 8px;
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  background-color: #f8f9fa;
-  transition: all 0.3s ease;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 10px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: var(--surface-color);
+  transition: var(--transition);
   margin: 0 auto;
   display: block;
+  padding: 0 20px;
+  box-shadow: var(--box-shadow-subtle);
 }
 
 .otp-single-input:focus {
   outline: none;
-  border-color: #007bff;
-  background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-  transform: scale(1.02);
+  border-color: var(--primary-color);
+  background-color: var(--surface-color);
+  box-shadow: 0 0 0 3px rgba(123, 104, 162, 0.1);
+  transform: scale(1.01);
 }
 
 .otp-single-input:hover {
-  border-color: #6610f2;
+  border-color: var(--primary-light);
 }
 
 .otp-single-input.is-invalid {
-  border-color: #dc3545;
-  background-color: #fff5f5;
+  border-color: var(--danger-color);
+  background-color: rgba(181, 135, 138, 0.05);
 }
 
 .otp-single-input.is-valid {
-  border-color: #28a745;
-  background-color: #f0fff4;
+  border-color: var(--secondary-color);
+  background-color: rgba(129, 166, 132, 0.05);
 }
 
 .form-text {
   font-size: 0.85rem;
-  color: #6c757d;
+  color: var(--text-muted);
   margin-top: 0.5rem;
   text-align: center;
   font-style: italic;
@@ -106,7 +112,7 @@
 
 /* Alert Messages */
 .alert {
-  border-radius: 10px;
+  border-radius: var(--border-radius-small);
   border: none;
   font-weight: 500;
   margin: 1rem 0;
@@ -117,15 +123,15 @@
 }
 
 .alert-error {
-  background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(248, 215, 218, 0.1));
-  color: #721c24;
-  border-left: 4px solid #dc3545;
+  background: linear-gradient(135deg, rgba(181, 135, 138, 0.08), rgba(212, 165, 168, 0.08));
+  color: var(--danger-color);
+  border-left: 4px solid var(--danger-color);
 }
 
 .alert-success {
-  background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(212, 237, 218, 0.1));
-  color: #155724;
-  border-left: 4px solid #28a745;
+  background: linear-gradient(135deg, rgba(129, 166, 132, 0.08), rgba(168, 196, 171, 0.08));
+  color: var(--secondary-dark);
+  border-left: 4px solid var(--secondary-color);
 }
 
 /* Action Buttons */
@@ -135,32 +141,34 @@
 }
 
 .btn-verify {
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: var(--gradient-primary);
   border: none;
   color: white;
   padding: 0.8rem 2.5rem;
   font-weight: 600;
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   font-size: 1rem;
-  transition: all 0.3s ease;
-  min-width: 160px;
+  transition: var(--transition);
+  min-width: 180px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  box-shadow: var(--box-shadow-subtle);
 }
 
 .btn-verify:hover:not(:disabled) {
-  background: linear-gradient(135deg, #218838, #1dd4b0);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+  background: var(--gradient-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow);
+  filter: brightness(1.02);
 }
 
 .btn-verify:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
-  background: #6c757d;
+  background: var(--text-muted);
 }
 
 .btn-verify.loading {
@@ -177,23 +185,23 @@
 .timer {
   font-size: 1rem;
   font-weight: 600;
-  color: #28a745;
-  background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(32, 201, 151, 0.1));
+  color: var(--secondary-color);
+  background: linear-gradient(135deg, rgba(129, 166, 132, 0.08), rgba(168, 196, 171, 0.08));
   padding: 0.6rem 1.25rem;
-  border-radius: 20px;
+  border-radius: 18px;
   display: inline-block;
-  border: 2px solid rgba(40, 167, 69, 0.2);
+  border: 2px solid rgba(129, 166, 132, 0.15);
   margin-bottom: 0.5rem;
 }
 
 .resend-btn {
-  color: #007bff;
+  color: var(--primary-color);
   background: transparent;
-  border: 2px solid #007bff;
+  border: 2px solid var(--primary-color);
   padding: 0.6rem 1.5rem;
-  border-radius: 10px;
+  border-radius: var(--border-radius-small);
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -203,10 +211,10 @@
 }
 
 .resend-btn:hover:not(:disabled) {
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  box-shadow: var(--box-shadow-subtle);
 }
 
 .resend-btn:disabled {
@@ -217,16 +225,16 @@
 
 /* Help Text */
 .help-text {
-  background: rgba(23, 162, 184, 0.1);
-  border-left: 4px solid #17a2b8;
+  background: rgba(126, 163, 204, 0.08);
+  border-left: 4px solid var(--info-color);
   padding: 1rem 1.25rem;
-  border-radius: 8px;
+  border-radius: var(--border-radius-small);
   margin-top: 2rem;
 }
 
 .help-text p {
   margin: 0;
-  color: #0c5460;
+  color: var(--info-color);
   font-size: 0.9rem;
   display: flex;
   align-items: center;
@@ -234,7 +242,7 @@
 }
 
 .help-text i {
-  color: #17a2b8;
+  color: var(--info-color);
   font-size: 1rem;
 }
 
@@ -244,14 +252,14 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes shake {
+@keyframes gentle-shake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
 }
 
 .otp-single-input.error-animation {
-  animation: shake 0.5s ease-in-out;
+  animation: gentle-shake 0.4s ease-in-out;
 }
 
 .otp-single-input.success-animation {
@@ -260,22 +268,31 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .otp-card {
+    max-width: 450px;
+  }
+  
+  .otp-form {
+    max-width: 400px;
+  }
+  
   .otp-single-input {
-    max-width: 280px;
-    height: 55px;
-    font-size: 20px;
-    letter-spacing: 6px;
+    max-width: 350px;
+    height: 60px;
+    font-size: 24px;
+    letter-spacing: 8px;
+    padding: 0 15px;
   }
   
   .btn-verify {
     padding: 0.7rem 2rem;
-    min-width: 140px;
+    min-width: 160px;
     font-size: 0.95rem;
   }
   
   .resend-btn {
     padding: 0.55rem 1.25rem;
-    min-width: 120px;
+    min-width: 140px;
     font-size: 0.9rem;
   }
   
@@ -298,22 +315,31 @@
     font-size: 1.3rem;
   }
   
+  .otp-card {
+    max-width: 380px;
+  }
+  
+  .otp-form {
+    max-width: 340px;
+  }
+  
   .otp-single-input {
-    max-width: 250px;
-    height: 50px;
-    font-size: 18px;
-    letter-spacing: 4px;
+    max-width: 300px;
+    height: 55px;
+    font-size: 20px;
+    letter-spacing: 6px;
+    padding: 0 12px;
   }
   
   .btn-verify {
     padding: 0.6rem 1.5rem;
-    min-width: 120px;
+    min-width: 140px;
     font-size: 0.9rem;
   }
   
   .resend-btn {
     padding: 0.5rem 1rem;
-    min-width: 100px;
+    min-width: 120px;
     font-size: 0.85rem;
   }
   
@@ -343,13 +369,13 @@
 
 /* Focus and Active States */
 .btn:focus {
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  box-shadow: 0 0 0 3px rgba(123, 104, 162, 0.15);
 }
 
 .btn-verify:focus {
-  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.25);
+  box-shadow: 0 0 0 3px rgba(129, 166, 132, 0.15);
 }
 
 .resend-btn:focus {
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  box-shadow: 0 0 0 3px rgba(123, 104, 162, 0.15);
 }

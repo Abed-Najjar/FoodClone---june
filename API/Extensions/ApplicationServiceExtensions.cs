@@ -2,6 +2,7 @@ using API.Data;
 using API.Repositories.Implementations;
 using API.Repositories.Interfaces;
 using API.Services.Argon;
+using API.Services.CartServiceFolder;
 using API.Services.CmsServiceFolder;
 using API.Services.EmailService;
 using API.Services.OrderServiceFolder; 
@@ -48,7 +49,9 @@ namespace API.Extensions
             services.AddTransient<IUserManagementService, UserManagementService>();
             services.AddTransient<IUserProfileService, UserProfileService>();
             services.AddTransient<IRestaurantManagement, RestaurantManagement>();
-            services.AddTransient<ICategoryManagementService, CategoryManagementService>();            services.AddTransient<ICloudinaryService, CloudinaryService>();
+            services.AddTransient<ICategoryManagementService, CategoryManagementService>();
+            services.AddTransient<ICartService, CartService>();
+            services.AddTransient<ICloudinaryService, CloudinaryService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<IOtpService, OtpService>();
 
@@ -59,6 +62,7 @@ namespace API.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IAddressRepository, AddressRepository>();
+            services.AddScoped<ICartRepository, CartRepository>();
             services.AddScoped<IOtpRepository, OtpRepository>();
             
             // Register Unit of Work

@@ -18,6 +18,7 @@ namespace API.Data
         public DbSet<Address> Addresses { get; set; }
         public DbSet<RestaurantsCategories> RestaurantsCategories { get; set; }
         public DbSet<Otp> Otps { get; set; }
+        public DbSet<PromoCode> PromoCodes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -134,6 +135,23 @@ namespace API.Data
             modelBuilder.Entity<Otp>()
                 .HasIndex(o => o.ExpiryDate)
                 .HasDatabaseName("IX_Otp_ExpiryDate");
+
+            // Configure PromoCode entity
+            modelBuilder.Entity<PromoCode>()
+                .HasIndex(p => p.Code)
+                .IsUnique();
+
+            modelBuilder.Entity<PromoCode>()
+                .HasIndex(p => new { p.IsActive, p.ExpiryDate })
+                .HasDatabaseName("IX_PromoCode_Active_Expiry");
+
+            // Configure PromoCode-Restaurant relationship (optional)
+            modelBuilder.Entity<PromoCode>()
+                .HasOne(p => p.Restaurant)
+                .WithMany()
+                .HasForeignKey(p => p.RestaurantId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
         }
         
         /*

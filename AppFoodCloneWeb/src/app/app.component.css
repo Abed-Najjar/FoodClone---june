@@ -9,6 +9,15 @@
   padding-top: 20px;
 }
 
+/* Auth page styles - full height layout */
+.app-container.auth-page {
+  padding-top: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .back-to-top {
   position: fixed;
   bottom: 30px;

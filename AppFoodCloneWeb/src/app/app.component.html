@@ -1,13 +1,17 @@
-
 <div class="app-wrapper">
-  <app-header></app-header>
-  <div class="app-container">
+  <app-header *ngIf="!hideHeaderFooter"></app-header>
+  <div class="app-container" [class.auth-page]="hideHeaderFooter">
     <router-outlet></router-outlet>
   </div>
-  <app-footer></app-footer>
+  <app-footer *ngIf="!hideHeaderFooter"></app-footer>
 
   <!-- Back to top button -->
-  <button class="back-to-top" [class.show]="showBackToTop" (click)="scrollToTop()">
+  <button 
+    *ngIf="!hideHeaderFooter"
+    class="back-to-top" 
+    [class.show]="showBackToTop" 
+    (click)="scrollToTop()"
+  >
     <i class="bi bi-arrow-up"></i>
   </button>
 </div>

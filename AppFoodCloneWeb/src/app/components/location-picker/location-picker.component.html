@@ -13,7 +13,7 @@
       <i class="bi bi-exclamation-triangle fs-1"></i>
       <h6>Map Error</h6>
       <p>{{ errorMessage }}</p>
-      <button class="btn btn-sm btn-outline-primary" (click)="retryMapLoad()">
+      <button type="button" class="btn btn-sm btn-outline-primary" (click)="retryMapLoad()">
         <i class="bi bi-arrow-clockwise"></i> Retry
       </button>
     </div>
@@ -26,8 +26,10 @@
       class="form-control" 
       placeholder="Search for an address"
       [disabled]="isLoading"
+      (keydown.enter)="searchAddress(addressInput.value); $event.preventDefault()"
     />
     <button 
+      type="button"
       class="btn btn-primary" 
       (click)="searchAddress(addressInput.value)"
       [disabled]="isLoading || !map"

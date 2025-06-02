@@ -59,6 +59,7 @@ declare namespace google {
       geometry: {
         location: LatLng
       };
+      types: string[];
       address_components: {
         long_name: string;
         short_name: string;
