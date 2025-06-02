@@ -11,11 +11,11 @@ namespace API.Services.CartServiceFolder
         private readonly ILogger<CartService> _logger;
 
         // Secure configuration constants - should be moved to appsettings in production
-        private const decimal TAX_RATE = 0.085m; // 8.5% tax rate (as shown in screenshot: 0.40 / 4.75 ≈ 8.4%)
+        private const decimal TAX_RATE = 0.085m; // 8.5% tax rate
         private const decimal FREE_DELIVERY_THRESHOLD = 50.00m; // Free delivery for orders over 50 JOD
         private const decimal REDUCED_DELIVERY_THRESHOLD = 30.00m; // Reduced delivery for orders over 30 JOD
         private const decimal REDUCED_DELIVERY_FEE = 1.99m;
-        private const decimal STANDARD_DELIVERY_FEE = 3.99m; // As shown in screenshot
+        private const decimal STANDARD_DELIVERY_FEE = 2.99m;
 
         public CartService(IUnitOfWork unitOfWork, ILogger<CartService> logger)
         {
@@ -277,7 +277,7 @@ namespace API.Services.CartServiceFolder
                 return reducedFee;
             }
             
-            // Use standard delivery fee (as shown in screenshot: 3.99 JOD)
+            // Use standard delivery fee (2.99 JOD)
             var standardFee = Math.Max(STANDARD_DELIVERY_FEE, restaurantDeliveryFee);
             _logger.LogInformation($"Standard delivery fee applied: {standardFee:F2} JOD");
             return standardFee;
