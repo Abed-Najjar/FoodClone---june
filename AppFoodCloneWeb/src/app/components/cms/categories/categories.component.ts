@@ -6,11 +6,13 @@ import { Category } from '../../../models/category.model';
 import { ImageUtilService } from '../../../services/image-util.service';
 import { ImageUploadService } from '../../../services/image-upload.service';
 import { ActivatedRoute } from '@angular/router';
+import { PagedResult, PaginationParams } from '../../../types/pagination.interface';
+import { PaginationComponent } from '../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PaginationComponent],
   templateUrl: './categories.component.html',
   styleUrls: ['./categories.component.css']
 })
@@ -22,6 +24,10 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
   searchTerm: string = '';
   selectedRestaurantId: number | null = null;
   selectedRestaurantName: string = '';
+
+  // Pagination properties
+  categoriesPagedResult: PagedResult<Category> | null = null;
+  categoriesPagination: PaginationParams = { pageNumber: 1, pageSize: 4 };
 
   // Form properties
   categoryForm: FormGroup;
@@ -99,11 +105,12 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
       });
     } else {
       // Otherwise load all categories
-      this.cmsService.getAllCategories().subscribe({
+      this.cmsService.getAllCategories(this.categoriesPagination).subscribe({
         next: (response) => {
           if (response.success) {
+            this.categoriesPagedResult = response.data as PagedResult<Category>;
             // Ensure we have restaurant names
-            this.categories = response.data.map(category => {
+            this.categories = this.categoriesPagedResult.data.map(category => {
               // Find the restaurant name if available
               const restaurant = this.restaurants.find(r => r.id === category.restaurantId);
 
@@ -153,7 +160,8 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
     this.cmsService.getAllRestaurants().subscribe({
       next: (response) => {
         if (response.success) {
-          this.restaurants = response.data;
+          const pagedResult = response.data as PagedResult<any>;
+          this.restaurants = pagedResult.data;
           console.log('Restaurants loaded successfully:', this.restaurants);
 
           // If we have a selected restaurant ID, find and set the restaurant name
@@ -479,5 +487,10 @@ export class CategoriesComponent implements OnInit {  categories: Category[] = [
     localStorage.removeItem('selectedRestaurantName');
     // Reload all categories when clearing the filter
     this.loadRestaurants();
+  }
+
+  onCategoriesPageChanged(page: number): void {
+    this.categoriesPagination.pageNumber = page;
+    this.loadCategories();
   }
 }

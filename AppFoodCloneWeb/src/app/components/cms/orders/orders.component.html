@@ -1,5 +1,7 @@
 <div class="orders-manager">
-  <h2>Orders Management</h2>
+  <div class="header-container">
+    <h2>Orders Management</h2>
+  </div>
 
   <div class="action-bar">
     <div class="search-container">
@@ -65,6 +67,13 @@
     <div *ngIf="!loading && !error && filteredOrders.length === 0" class="no-data">
       No orders found matching your criteria.
     </div>
+
+    <!-- Orders Pagination -->
+    <app-pagination 
+      *ngIf="ordersPagedResult && !loading"
+      [pagedResult]="ordersPagedResult"
+      (pageChanged)="onOrdersPageChanged($event)">
+    </app-pagination>
   </div>
 
   <!-- Order Details Modal -->

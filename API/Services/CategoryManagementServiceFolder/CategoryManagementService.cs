@@ -15,31 +15,38 @@ public class CategoryManagementService : ICategoryManagementService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<AppResponse<List<CategoriesDto>>> GetAllCategoriesAsync()
+    public async Task<AppResponse<PagedResultDto<CategoryDto>>> GetAllCategoriesAsync(PaginationDto? paginationDto = null)
     {
         try
         {
             var categories = await _unitOfWork.CategoryRepository.GetAllCategoriesAsync();
 
-            if (!categories.Any())
-            {
-                return new AppResponse<List<CategoriesDto>>(null, "No categories found", 404, false);
-            }
-
-            var categoriesDto = categories.Select(c => new CategoriesDto
+            var categoriesDto = categories.Select(c => new CategoryDto
             {
                 Id = c.Id,
                 Name = c.Name,
                 ImageUrl = c.ImageUrl
             }).ToList();
 
-            return new AppResponse<List<CategoriesDto>>(categoriesDto, "Categories retrieved successfully", 200, true);
+            // Always return paginated result
+            var totalItems = categoriesDto.Count;
+            var pageNumber = paginationDto?.PageNumber ?? 1;
+            var pageSize = paginationDto?.PageSize ?? totalItems; // If no pagination, return all items
+            
+            var paginatedData = categoriesDto
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var pagedResult = new PagedResultDto<CategoryDto>(paginatedData, totalItems, pageNumber, pageSize);
+            return new AppResponse<PagedResultDto<CategoryDto>>(pagedResult, "Categories retrieved successfully", 200, true);
         }
         catch (Exception ex)
         {
-            return new AppResponse<List<CategoriesDto>>(null, ex.Message, 500, false);
+            return new AppResponse<PagedResultDto<CategoryDto>>(null, ex.Message, 500, false);
         }
-    }    public async Task<AppResponse<CategoryDto>> CreateCategory(CreateCategoryDto categoryDto)
+    }    
+    public async Task<AppResponse<CategoryDto>> CreateCategory(CreateCategoryDto categoryDto)
     {
         try
         {
@@ -115,16 +122,11 @@ public class CategoryManagementService : ICategoryManagementService
         }
     }
 
-    public async Task<AppResponse<List<CategoryDto>>> GetCategories(int restaurantId)
+    public async Task<AppResponse<PagedResultDto<CategoryDto>>> GetCategories(int restaurantId, PaginationDto? paginationDto = null)
     {
         try
         {
             var categories = await _unitOfWork.CategoryRepository.GetCategoriesByRestaurantAsync(restaurantId);
-
-            if (!categories.Any())
-            {
-                return new AppResponse<List<CategoryDto>>(null, "No categories found for this restaurant", 404, false);
-            }
 
             var categoryDtos = categories.Select(c => new CategoryDto
             {
@@ -148,11 +150,22 @@ public class CategoryManagementService : ICategoryManagementService
                 }).ToList() ?? new List<AdminRestaurantDishDto>()
             }).ToList();
 
-            return new AppResponse<List<CategoryDto>>(categoryDtos, "Categories retrieved successfully", 200, true);
+            // Always return paginated result
+            var totalItems = categoryDtos.Count;
+            var pageNumber = paginationDto?.PageNumber ?? 1;
+            var pageSize = paginationDto?.PageSize ?? totalItems; // If no pagination, return all items
+            
+            var paginatedData = categoryDtos
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var pagedResult = new PagedResultDto<CategoryDto>(paginatedData, totalItems, pageNumber, pageSize);
+            return new AppResponse<PagedResultDto<CategoryDto>>(pagedResult, "Categories retrieved successfully", 200, true);
         }
         catch (Exception ex)
         {
-            return new AppResponse<List<CategoryDto>>(null, ex.Message, 500, false);
+            return new AppResponse<PagedResultDto<CategoryDto>>(null, ex.Message, 500, false);
         }
     }
     

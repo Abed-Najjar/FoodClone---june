@@ -122,16 +122,13 @@ public class DishManagementService : IDishManagementService
         }
     }
 
-    public async Task<AppResponse<List<AdminRestaurantDishDto>>> GetDishesInRestaurant(int restaurantId)
+    public async Task<AppResponse<PagedResultDto<AdminRestaurantDishDto>>> GetDishesInRestaurant(int restaurantId, PaginationDto? paginationDto = null)
     {
         try
         {
+            Console.WriteLine($"[DEBUG] Querying dishes for restaurant ID: {restaurantId}");
             var dishes = await _unitOfWork.DishRepository.GetDishesByRestaurantIdAsync(restaurantId);
-
-            if (!dishes.Any())
-            {
-                return new AppResponse<List<AdminRestaurantDishDto>>(null, "No dishes found for this restaurant", 404, false);
-            }
+            Console.WriteLine($"[DEBUG] Raw dishes found: {dishes.Count}");
 
             var dishDtos = dishes.Select(d => new AdminRestaurantDishDto
             {
@@ -146,26 +143,34 @@ public class DishManagementService : IDishManagementService
                 CategoryName = d.Category?.Name,
                 IsAvailable = d.IsAvailable
             }).ToList();
+            
+            Console.WriteLine($"[DEBUG] Processed dish DTOs: {dishDtos.Count}");
 
-            return new AppResponse<List<AdminRestaurantDishDto>>(dishDtos, "Dishes retrieved successfully", 200, true);
+            // Always return paginated result
+            var totalItems = dishDtos.Count;
+            var pageNumber = paginationDto?.PageNumber ?? 1;
+            var pageSize = paginationDto?.PageSize ?? totalItems; // If no pagination, return all items
+            
+            var paginatedData = dishDtos
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var pagedResult = new PagedResultDto<AdminRestaurantDishDto>(paginatedData, totalItems, pageNumber, pageSize);
+            return new AppResponse<PagedResultDto<AdminRestaurantDishDto>>(pagedResult, "Dishes retrieved successfully", 200, true);
         }
         catch (Exception ex)
         {
-            return new AppResponse<List<AdminRestaurantDishDto>>(null, ex.Message, 500, false);
+            return new AppResponse<PagedResultDto<AdminRestaurantDishDto>>(null, ex.Message, 500, false);
         }
     }
 
-    public async Task<AppResponse<List<AdminRestaurantDishDto>>> GetDishesByCategory(int categoryId)
+    public async Task<AppResponse<PagedResultDto<AdminRestaurantDishDto>>> GetDishesByCategory(int categoryId, PaginationDto? paginationDto = null)
     {
         try
         {
             var dishes = await _unitOfWork.DishRepository.GetDishesByCategoryIdAsync(categoryId);
 
-            if (!dishes.Any())
-            {
-                return new AppResponse<List<AdminRestaurantDishDto>>(null, "No dishes found for this category", 404, false);
-            }
-
             var dishDtos = dishes.Select(d => new AdminRestaurantDishDto
             {
                 Id = d.Id,
@@ -180,11 +185,22 @@ public class DishManagementService : IDishManagementService
                 IsAvailable = d.IsAvailable
             }).ToList();
 
-            return new AppResponse<List<AdminRestaurantDishDto>>(dishDtos, "Dishes retrieved successfully", 200, true);
+            // Always return paginated result
+            var totalItems = dishDtos.Count;
+            var pageNumber = paginationDto?.PageNumber ?? 1;
+            var pageSize = paginationDto?.PageSize ?? totalItems; // If no pagination, return all items
+            
+            var paginatedData = dishDtos
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var pagedResult = new PagedResultDto<AdminRestaurantDishDto>(paginatedData, totalItems, pageNumber, pageSize);
+            return new AppResponse<PagedResultDto<AdminRestaurantDishDto>>(pagedResult, "Dishes retrieved successfully", 200, true);
         }
         catch (Exception ex)
         {
-            return new AppResponse<List<AdminRestaurantDishDto>>(null, ex.Message, 500, false);
+            return new AppResponse<PagedResultDto<AdminRestaurantDishDto>>(null, ex.Message, 500, false);
         }
     }
 
@@ -250,18 +266,13 @@ public class DishManagementService : IDishManagementService
         }
     }
     
-    public async Task<AppResponse<List<DishDto>>> GetAllDishesAsync()
+    public async Task<AppResponse<PagedResultDto<AdminRestaurantDishDto>>> GetAllDishesAsync(PaginationDto? paginationDto = null)
     {
         try
         {
             var dishes = await _unitOfWork.DishRepository.GetAllDishesWithIncludesAsync();
-
-            if (!dishes.Any())
-            {
-                return new AppResponse<List<DishDto>>(null, "No dishes found", 404, false);
-            }
             
-            var dishDtos = dishes.Select(d => new DishDto
+            var dishDtos = dishes.Select(d => new AdminRestaurantDishDto
             {
                 Id = d.Id,
                 Name = d.Name,
@@ -275,11 +286,22 @@ public class DishManagementService : IDishManagementService
                 IsAvailable = d.IsAvailable
             }).ToList();
 
-            return new AppResponse<List<DishDto>>(dishDtos, "Dishes retrieved successfully", 200, true);
+            // Always return paginated result
+            var totalItems = dishDtos.Count;
+            var pageNumber = paginationDto?.PageNumber ?? 1;
+            var pageSize = paginationDto?.PageSize ?? totalItems; // If no pagination, return all items
+            
+            var paginatedData = dishDtos
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var pagedResult = new PagedResultDto<AdminRestaurantDishDto>(paginatedData, totalItems, pageNumber, pageSize);
+            return new AppResponse<PagedResultDto<AdminRestaurantDishDto>>(pagedResult, "Dishes retrieved successfully", 200, true);
         }
         catch (Exception ex)
         {
-            return new AppResponse<List<DishDto>>(null, ex.Message, 500, false);
+            return new AppResponse<PagedResultDto<AdminRestaurantDishDto>>(null, ex.Message, 500, false);
         }
     }
 }

@@ -3,8 +3,8 @@ using API.DTOs;
 
 public interface ICategoryManagementService
 {
-    Task<AppResponse<List<CategoriesDto>>> GetAllCategoriesAsync(); // Added for CmsController
-    Task<AppResponse<List<CategoryDto>>> GetCategories(int restaurantId);
+    Task<AppResponse<PagedResultDto<CategoryDto>>> GetAllCategoriesAsync(PaginationDto? paginationDto = null); // Added for CmsController
+    Task<AppResponse<PagedResultDto<CategoryDto>>> GetCategories(int restaurantId, PaginationDto? paginationDto = null);
     Task<AppResponse<CategoryDto>> GetCategoryById(int id);
     Task<AppResponse<CategoryDto>> GetCategoriesByRestaurantId(int restaurantId);
     Task<AppResponse<CategoryDto>> CreateCategory(CreateCategoryDto categoryDto);

@@ -106,7 +106,7 @@ public class RestaurantManagement : IRestaurantManagement
         }
     }
 
-    public async Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurants()
+    public async Task<AppResponse<PagedResultDto<AdminRestaurantDto>>> GetAllRestaurants(PaginationDto? paginationDto = null)
     {
         try
         {
@@ -114,7 +114,8 @@ public class RestaurantManagement : IRestaurantManagement
 
             if (restaurants == null || !restaurants.Any())
             {
-                return new AppResponse<List<AdminRestaurantDto>>(null, "No restaurants found", 404, false);
+                var emptyPagedResult = new PagedResultDto<AdminRestaurantDto>(new List<AdminRestaurantDto>(), 0, paginationDto?.PageNumber ?? 1, paginationDto?.PageSize ?? 10);
+                return new AppResponse<PagedResultDto<AdminRestaurantDto>>(emptyPagedResult, "No restaurants found", 200, true);
             }
 
             var AdminRestaurantDtos = restaurants.Select(restaurant => new AdminRestaurantDto
@@ -136,11 +137,22 @@ public class RestaurantManagement : IRestaurantManagement
                 Suspended = restaurant.IsSupended
             }).ToList();
 
-            return new AppResponse<List<AdminRestaurantDto>>(AdminRestaurantDtos, "Restaurants retrieved successfully", 200, true);
+            // Always return paginated result
+            var totalItems = AdminRestaurantDtos.Count;
+            var pageNumber = paginationDto?.PageNumber ?? 1;
+            var pageSize = paginationDto?.PageSize ?? totalItems; // If no pagination, return all items
+            
+            var paginatedData = AdminRestaurantDtos
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var pagedResult = new PagedResultDto<AdminRestaurantDto>(paginatedData, totalItems, pageNumber, pageSize);
+            return new AppResponse<PagedResultDto<AdminRestaurantDto>>(pagedResult, "Restaurants retrieved successfully", 200, true);
         }
         catch (Exception ex)
         {
-            return new AppResponse<List<AdminRestaurantDto>>(null, ex.Message, 500, false);
+            return new AppResponse<PagedResultDto<AdminRestaurantDto>>(null, ex.Message, 500, false);
         }
     }
 

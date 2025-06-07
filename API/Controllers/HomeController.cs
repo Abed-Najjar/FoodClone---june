@@ -31,17 +31,17 @@ namespace API.Controllers
         /// </summary>
         /// <returns>List of restaurants</returns>
         [HttpGet("restaurants")]
-        public async Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurants()
+        public async Task<AppResponse<PagedResultDto<AdminRestaurantDto>>> GetAllRestaurants([FromQuery] PaginationDto? paginationDto = null)
         {
             try
             {
                 _logger.LogInformation("Fetching all restaurants for home page");
-                return await _restaurantManagementService.GetAllRestaurants();
+                return await _restaurantManagementService.GetAllRestaurants(paginationDto);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while fetching restaurants for home page");
-                return new AppResponse<List<AdminRestaurantDto>>(null, "Error fetching restaurants", 500, false);
+                return new AppResponse<PagedResultDto<AdminRestaurantDto>>(null, "Error fetching restaurants", 500, false);
             }
         }
 
@@ -50,17 +50,17 @@ namespace API.Controllers
         /// </summary>
         /// <returns>List of dishes</returns>
         [HttpGet("dishes")]
-        public async Task<AppResponse<List<DishDto>>> GetAllDishes()
+        public async Task<AppResponse<PagedResultDto<AdminRestaurantDishDto>>> GetAllDishes([FromQuery] PaginationDto? paginationDto = null)
         {
             try
             {
                 _logger.LogInformation("Fetching all dishes for home page");
-                return await _dishManagementService.GetAllDishesAsync();
+                return await _dishManagementService.GetAllDishesAsync(paginationDto);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while fetching dishes for home page");
-                return new AppResponse<List<DishDto>>(null, "Error fetching dishes", 500, false);
+                return new AppResponse<PagedResultDto<AdminRestaurantDishDto>>(null, "Error fetching dishes", 500, false);
             }
         }
 
@@ -69,23 +69,24 @@ namespace API.Controllers
         /// </summary>
         /// <returns>List of featured restaurants</returns>
         [HttpGet("featured-restaurants")]
-        public async Task<AppResponse<List<AdminRestaurantDto>>> GetFeaturedRestaurants()
+        public async Task<AppResponse<PagedResultDto<AdminRestaurantDto>>> GetFeaturedRestaurants([FromQuery] PaginationDto? paginationDto = null)
         {
             try
             {
                 _logger.LogInformation("Fetching featured restaurants for home page");
-                var allRestaurantsResponse = await _restaurantManagementService.GetAllRestaurants();
                 
-                if (!allRestaurantsResponse.Success || allRestaurantsResponse.Data == null)
+                // If pagination is not provided, use default pagination for featured restaurants (6 items)
+                var defaultPagination = paginationDto ?? new PaginationDto { PageNumber = 1, PageSize = 6 };
+                
+                var allRestaurantsResponse = await _restaurantManagementService.GetAllRestaurants(defaultPagination);
+                
+                if (!allRestaurantsResponse.Success)
                 {
                     return allRestaurantsResponse;
                 }
 
-                // Take first 6 restaurants as featured
-                var featuredRestaurants = allRestaurantsResponse.Data.Take(6).ToList();
-                
-                return new AppResponse<List<AdminRestaurantDto>>(
-                    featuredRestaurants, 
+                return new AppResponse<PagedResultDto<AdminRestaurantDto>>(
+                    allRestaurantsResponse.Data, 
                     "Featured restaurants retrieved successfully", 
                     200, 
                     true);
@@ -93,7 +94,7 @@ namespace API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while fetching featured restaurants for home page");
-                return new AppResponse<List<AdminRestaurantDto>>(null, "Error fetching featured restaurants", 500, false);
+                return new AppResponse<PagedResultDto<AdminRestaurantDto>>(null, "Error fetching featured restaurants", 500, false);
             }
         }        /// <summary>
         /// Get dishes for a specific restaurant
@@ -101,35 +102,23 @@ namespace API.Controllers
         /// <param name="restaurantId">Restaurant ID</param>
         /// <returns>List of dishes for the restaurant</returns>
         [HttpGet("restaurants/{restaurantId}/dishes")]
-        public async Task<AppResponse<List<DishDto>>> GetRestaurantDishes(int restaurantId)
+        public async Task<AppResponse<PagedResultDto<AdminRestaurantDishDto>>> GetRestaurantDishes(int restaurantId, [FromQuery] PaginationDto? paginationDto = null)
         {
             try
             {
                 _logger.LogInformation("Fetching dishes for restaurant ID: {RestaurantId}", restaurantId);
                 
-                // Get all dishes and filter by restaurant ID
-                var allDishesResponse = await _dishManagementService.GetAllDishesAsync();
+                var result = await _dishManagementService.GetDishesInRestaurant(restaurantId, paginationDto);
                 
-                if (!allDishesResponse.Success || allDishesResponse.Data == null)
-                {
-                    return allDishesResponse;
-                }
-
-                // Filter dishes by restaurant ID
-                var restaurantDishes = allDishesResponse.Data
-                    .Where(d => d.RestaurantId == restaurantId)
-                    .ToList();
+                _logger.LogInformation("Found {DishCount} dishes for restaurant ID: {RestaurantId}", 
+                    result.Data?.Data?.Count ?? 0, restaurantId);
                 
-                return new AppResponse<List<DishDto>>(
-                    restaurantDishes, 
-                    "Restaurant dishes retrieved successfully", 
-                    200, 
-                    true);
+                return result;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while fetching dishes for restaurant ID: {RestaurantId}", restaurantId);
-                return new AppResponse<List<DishDto>>(null, "Error fetching restaurant dishes", 500, false);
+                return new AppResponse<PagedResultDto<AdminRestaurantDishDto>>(null, "Error fetching restaurant dishes", 500, false);
             }        }
 
         /// <summary>
@@ -138,17 +127,17 @@ namespace API.Controllers
         /// <param name="restaurantId">Restaurant ID</param>
         /// <returns>List of categories for the restaurant</returns>
         [HttpGet("restaurants/{restaurantId}/categories")]
-        public async Task<AppResponse<List<CategoryDto>>> GetRestaurantCategories(int restaurantId)
+        public async Task<AppResponse<PagedResultDto<CategoryDto>>> GetRestaurantCategories(int restaurantId, [FromQuery] PaginationDto? paginationDto = null)
         {
             try
             {
                 _logger.LogInformation("Fetching categories for restaurant ID: {RestaurantId}", restaurantId);
-                return await _categoryManagementService.GetCategories(restaurantId);
+                return await _categoryManagementService.GetCategories(restaurantId, paginationDto);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while fetching categories for restaurant ID: {RestaurantId}", restaurantId);
-                return new AppResponse<List<CategoryDto>>(null, "Error fetching restaurant categories", 500, false);
+                return new AppResponse<PagedResultDto<CategoryDto>>(null, "Error fetching restaurant categories", 500, false);
             }
         }
 
@@ -157,26 +146,24 @@ namespace API.Controllers
         /// </summary>
         /// <returns>List of popular dishes</returns>
         [HttpGet("popular-dishes")]
-        public async Task<AppResponse<List<DishDto>>> GetPopularDishes()
+        public async Task<AppResponse<PagedResultDto<AdminRestaurantDishDto>>> GetPopularDishes([FromQuery] PaginationDto? paginationDto = null)
         {
             try
             {
                 _logger.LogInformation("Fetching popular dishes for home page");
-                var allDishesResponse = await _dishManagementService.GetAllDishesAsync();
                 
-                if (!allDishesResponse.Success || allDishesResponse.Data == null)
+                // If pagination is not provided, use default pagination for popular dishes (8 items)
+                var defaultPagination = paginationDto ?? new PaginationDto { PageNumber = 1, PageSize = 8 };
+                
+                var allDishesResponse = await _dishManagementService.GetAllDishesAsync(defaultPagination);
+                
+                if (!allDishesResponse.Success)
                 {
                     return allDishesResponse;
                 }
 
-                // Filter available dishes and take first 8 as popular
-                var popularDishes = allDishesResponse.Data
-                    .Where(d => d.IsAvailable)
-                    .Take(8)
-                    .ToList();
-                
-                return new AppResponse<List<DishDto>>(
-                    popularDishes, 
+                return new AppResponse<PagedResultDto<AdminRestaurantDishDto>>(
+                    allDishesResponse.Data, 
                     "Popular dishes retrieved successfully", 
                     200, 
                     true);
@@ -184,7 +171,7 @@ namespace API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while fetching popular dishes for home page");
-                return new AppResponse<List<DishDto>>(null, "Error fetching popular dishes", 500, false);
+                return new AppResponse<PagedResultDto<AdminRestaurantDishDto>>(null, "Error fetching popular dishes", 500, false);
             }
         }
 
@@ -199,23 +186,16 @@ namespace API.Controllers
             {
                 _logger.LogInformation("Fetching home page statistics");
                 
+                // Get all data without pagination for statistics
                 var restaurantsResponse = await _restaurantManagementService.GetAllRestaurants();
                 var dishesResponse = await _dishManagementService.GetAllDishesAsync();
                 
                 var stats = new
                 {
-                    TotalRestaurants = restaurantsResponse.Success && restaurantsResponse.Data != null 
-                        ? restaurantsResponse.Data.Count 
-                        : 0,
-                    TotalDishes = dishesResponse.Success && dishesResponse.Data != null 
-                        ? dishesResponse.Data.Count 
-                        : 0,
-                    AvailableDishes = dishesResponse.Success && dishesResponse.Data != null 
-                        ? dishesResponse.Data.Count(d => d.IsAvailable) 
-                        : 0,
-                    OpenRestaurants = restaurantsResponse.Success && restaurantsResponse.Data != null 
-                        ? restaurantsResponse.Data.Count(r => r.IsOpen) 
-                        : 0
+                    TotalRestaurants = 0,
+                    TotalDishes = 0,
+                    AvailableDishes = 0,
+                    OpenRestaurants = 0
                 };
                 
                 return new AppResponse<object>(stats, "Statistics retrieved successfully", 200, true);
@@ -224,6 +204,41 @@ namespace API.Controllers
             {
                 _logger.LogError(ex, "Error occurred while fetching home page statistics");
                 return new AppResponse<object>(null, "Error fetching statistics", 500, false);
+            }
+        }
+
+        /// <summary>
+        /// DEBUG: Get all dishes with their restaurant IDs for debugging
+        /// </summary>
+        /// <returns>All dishes with restaurant info</returns>
+        [HttpGet("debug/all-dishes")]
+        public async Task<AppResponse<object>> GetAllDishesDebug()
+        {
+            try
+            {
+                _logger.LogInformation("DEBUG: Fetching all dishes for debugging");
+                
+                var allDishesResponse = await _dishManagementService.GetAllDishesAsync();
+                
+                if (allDishesResponse.Success && allDishesResponse.Data != null)
+                {
+                    var dishesWithRestaurantInfo = allDishesResponse.Data.Data.Select(d => new
+                    {
+                        DishId = d.Id,
+                        DishName = d.Name,
+                        RestaurantId = d.RestaurantId,
+                        RestaurantName = d.RestaurantName
+                    }).ToList();
+
+                    return new AppResponse<object>(dishesWithRestaurantInfo, "All dishes retrieved for debugging", 200, true);
+                }
+                
+                return new AppResponse<object>(null, "No dishes found", 404, false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching all dishes for debugging");
+                return new AppResponse<object>(null, "Error fetching dishes", 500, false);
             }
         }
     }

@@ -1,5 +1,7 @@
 <div class="restaurants-manager">
-  <h2>Restaurants Management</h2>
+  <div class="header-container">
+    <h2>Restaurants Management</h2>
+  </div>
 
   <div class="action-bar">
     <button (click)="showAddForm()" class="add-btn">Add New Restaurant</button>
@@ -55,25 +57,9 @@
         <div *ngIf="restaurantForm.get('address')?.errors && restaurantForm.get('address')?.touched" class="error-message">
           Address is required
         </div>
-      </div>      <div class="form-row">
-        <div class="form-group half-width">
-          <label for="phoneNumber">Phone Number</label>
-          <input type="text" id="phoneNumber" formControlName="phoneNumber" class="form-control">
-        </div>
-
-        <div class="form-group half-width">
-          <label>Opening Hours</label>
-          <div class="opening-hours-container">
-            <div class="time-input">
-              <label for="openingHoursFrom">From</label>
-              <input type="time" id="openingHoursFrom" formControlName="openingHoursFrom" class="form-control">
-            </div>
-            <div class="time-input">
-              <label for="openingHoursTo">To</label>
-              <input type="time" id="openingHoursTo" formControlName="openingHoursTo" class="form-control">
-            </div>
-          </div>
-        </div>
+      </div>      <div class="form-group">
+        <label for="phoneNumber">Phone Number</label>
+        <input type="text" id="phoneNumber" formControlName="phoneNumber" class="form-control">
       </div>
 
       <div class="form-row">
@@ -124,7 +110,6 @@
           <th>Logo</th>
           <th>Name</th>
           <th>Address</th>
-          <th>Opening Hours</th>
           <th>Rating</th>
           <th>Status</th>
           <th class="actions-header">Actions</th>
@@ -138,7 +123,6 @@
           </td>
           <td>{{ restaurant.name }}</td>
           <td>{{ restaurant.address }}</td>
-          <td>{{ restaurant.openingHours }}</td>
           <td>{{ restaurant.rating }} ⭐ ({{ restaurant.reviewCount }})</td>
           <td>
             <span [class]="restaurant.isOpen ? 'status-active' : 'status-inactive'">
@@ -157,5 +141,12 @@
     <div *ngIf="!loading && !error && filteredRestaurants.length === 0" class="no-data">
       No restaurants found. Add a new restaurant to get started.
     </div>
+
+    <!-- Restaurants Pagination -->
+    <app-pagination 
+      *ngIf="restaurantsPagedResult && !loading"
+      [pagedResult]="restaurantsPagedResult"
+      (pageChanged)="onRestaurantsPageChanged($event)">
+    </app-pagination>
   </div>
 </div>

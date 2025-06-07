@@ -1,10 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AppResponse } from '../models/app-response.model';
 import { Order, OrderCreate } from '../models/order.model';
 import { CartItem } from './cart.service';
 import { environment } from '../../environments/environment';
+import { PaginationParams, PagedResult } from '../types/pagination.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -18,8 +19,14 @@ export class OrderService {
     return this.http.post<AppResponse<Order>>(`${this.baseUrl}`, orderData);
   }
 
-  getMyOrders(): Observable<AppResponse<Order[]>> {
-    return this.http.get<AppResponse<Order[]>>(`${this.baseUrl}/my-orders`);
+  getMyOrders(pagination?: PaginationParams): Observable<AppResponse<PagedResult<Order>>> {
+    let params = new HttpParams();
+    if (pagination) {
+      params = params.set('pageNumber', pagination.pageNumber.toString());
+      params = params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    return this.http.get<AppResponse<PagedResult<Order>>>(`${this.baseUrl}/my-orders`, { params });
   }
 
   getOrderById(orderId: number): Observable<AppResponse<Order>> {

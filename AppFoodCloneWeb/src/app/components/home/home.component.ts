@@ -10,11 +10,13 @@ import { ImageUtilService } from '../../services/image-util.service';
 import { OrderService } from '../../services/order.service';
 import { AuthService } from '../../services/auth.service';
 import { Order } from '../../models/order.model';
+import { PaginationParams, PagedResult } from '../../types/pagination.interface';
+import { PaginationComponent } from '../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, PaginationComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
@@ -34,6 +36,12 @@ export class HomeComponent implements OnInit {
   currentOrders: Order[] = [];
   ordersLoading = false;
   ordersError = '';  showOrderTracking = false;
+  
+  // Pagination properties
+  featuredRestaurantsPagedResult: PagedResult<Restaurant> | null = null;
+  popularDishesPagedResult: PagedResult<Dish> | null = null;
+  featuredRestaurantsPagination: PaginationParams = { pageNumber: 1, pageSize: 4 };
+  popularDishesPagination: PaginationParams = { pageNumber: 1, pageSize: 4 };
   
   // Expose Math to template
   Math = Math;
@@ -59,10 +67,11 @@ export class HomeComponent implements OnInit {
 
   loadFeaturedRestaurants(): void {
     this.loading = true;
-    this.homeService.getFeaturedRestaurants().subscribe({
+    this.homeService.getFeaturedRestaurants(this.featuredRestaurantsPagination).subscribe({
       next: (response: any) => {
         if (response.success) {
-          this.featuredRestaurants = response.data;
+          this.featuredRestaurantsPagedResult = response.data as PagedResult<Restaurant>;
+          this.featuredRestaurants = this.featuredRestaurantsPagedResult.data;
         } else {
           this.error = response.errorMessage;
         }
@@ -80,7 +89,8 @@ export class HomeComponent implements OnInit {
     this.homeService.getAllRestaurants().subscribe({
       next: (response: any) => {
         if (response.success) {
-          this.allRestaurants = response.data;
+          const pagedResult = response.data as PagedResult<Restaurant>;
+          this.allRestaurants = pagedResult.data;
           this.filteredRestaurants = [...this.allRestaurants];
         } else {
           this.error = response.errorMessage;
@@ -142,10 +152,13 @@ export class HomeComponent implements OnInit {
   loadPopularDishes(): void {
     this.dishesLoading = true;
 
-    this.homeService.getPopularDishes().subscribe({
+    this.homeService.getPopularDishes(this.popularDishesPagination).subscribe({
       next: (response: any) => {
         if (response.success) {
-          this.popularDishes = response.data.map((dish: any) => ({
+          this.popularDishesPagedResult = response.data as PagedResult<Dish>;
+          const dishes = this.popularDishesPagedResult.data;
+          
+          this.popularDishes = dishes.map((dish: any) => ({
             ...dish,
             imageUrl: dish.imageUrl || this.imageUtilService.getRandomDishImage(),
             restaurantLogoUrl: dish.restaurantLogoUrl || this.getRestaurantLogoImage({ id: dish.restaurantId } as Restaurant)
@@ -174,9 +187,12 @@ export class HomeComponent implements OnInit {
       this.orderService.getMyOrders().subscribe({
       next: (response: any) => {
         if (response.success) {
+          const pagedResult = response.data as PagedResult<Order>;
+          const orders = pagedResult.data;
+          
           // Filter for current orders (not delivered or cancelled)
           const activeStatuses = ['pending', 'confirmed', 'preparing', 'out_for_delivery', 'out for delivery'];
-          this.currentOrders = response.data
+          this.currentOrders = orders
             .filter((order: Order) => activeStatuses.includes(order.status.toLowerCase()))
             .sort((a: Order, b: Order) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
           
@@ -311,5 +327,16 @@ export class HomeComponent implements OnInit {
     }
     const imageIndex = (restaurant.id % 8) + 1;
     return `https://images.unsplash.com/photo-${1594041680534 + restaurant.id * 10000}-e8c8cdebd659?w=200&q=80`;
+  }
+
+  // Pagination event handlers
+  onFeaturedRestaurantsPageChanged(page: number): void {
+    this.featuredRestaurantsPagination.pageNumber = page;
+    this.loadFeaturedRestaurants();
+  }
+
+  onPopularDishesPageChanged(page: number): void {
+    this.popularDishesPagination.pageNumber = page;
+    this.loadPopularDishes();
   }
 }

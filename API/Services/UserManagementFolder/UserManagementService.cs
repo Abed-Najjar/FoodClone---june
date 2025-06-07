@@ -79,16 +79,11 @@ public class UserManagementService : IUserManagementService
             {
                 return new AppResponse<bool>(false, ex.Message, 500, false);
             }
-    }    public async Task<AppResponse<List<UserDto>>> GetAllUsers()
+    }    public async Task<AppResponse<PagedResultDto<UserDto>>> GetAllUsers(PaginationDto? paginationDto = null)
     {
         try
             {
                 var users = await _unitOfWork.UserRepository.GetAllUsersExceptRoleAsync(API.Enums.Roles.Admin);
-
-                if (users == null || !users.Any())
-                {
-                    return new AppResponse<List<UserDto>>(null, "No users found", 404, false);
-                }
 
                 var userDtos = users.Select(user => new UserDto
                 {
@@ -100,11 +95,22 @@ public class UserManagementService : IUserManagementService
                     Token = _tokenService.CreateToken(user)
                 }).ToList();
 
-                return new AppResponse<List<UserDto>>(userDtos, "Users retrieved successfully", 200, true);
+                // Always return paginated result
+                var totalItems = userDtos.Count;
+                var pageNumber = paginationDto?.PageNumber ?? 1;
+                var pageSize = paginationDto?.PageSize ?? totalItems; // If no pagination, return all items
+                
+                var paginatedData = userDtos
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                var pagedResult = new PagedResultDto<UserDto>(paginatedData, totalItems, pageNumber, pageSize);
+                return new AppResponse<PagedResultDto<UserDto>>(pagedResult, "Users retrieved successfully", 200, true);
             }
             catch (Exception ex)
             {
-                return new AppResponse<List<UserDto>>(null, ex.Message, 500, false);
+                return new AppResponse<PagedResultDto<UserDto>>(null, ex.Message, 500, false);
             }
     }
     public async Task<AppResponse<UserDto>> GetUser(int id)

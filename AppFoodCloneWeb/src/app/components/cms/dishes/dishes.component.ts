@@ -9,11 +9,13 @@ import { ImageUtilService } from '../../../services/image-util.service';
 import { ImageUploadService } from '../../../services/image-upload.service';
 import { AuthService } from '../../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
+import { PagedResult, PaginationParams } from '../../../types/pagination.interface';
+import { PaginationComponent } from '../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-dishes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PaginationComponent],
   templateUrl: './dishes.component.html',
   styleUrls: ['./dishes.component.css']
 })
@@ -27,6 +29,10 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
   searchTerm: string = '';
   selectedRestaurantId: number | null = null;
   selectedRestaurantName: string = '';
+
+  // Pagination properties
+  dishesPagedResult: PagedResult<any> | null = null;
+  dishesPagination: PaginationParams = { pageNumber: 1, pageSize: 4 };
 
   // Form properties
   dishForm: FormGroup;
@@ -91,10 +97,11 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
       });
     } else {
       // Otherwise load all dishes
-      this.cmsService.getAllDishes().subscribe({
+      this.cmsService.getAllDishes(this.dishesPagination).subscribe({
         next: (response) => {
           if (response.success) {
-            this.dishes = response.data;
+            this.dishesPagedResult = response.data as PagedResult<Dish>;
+            this.dishes = this.dishesPagedResult.data;
             this.filteredDishes = [...this.dishes];
           } else {
             this.error = response.errorMessage || 'Failed to load dishes';
@@ -114,7 +121,8 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
     this.cmsService.getAllRestaurants().subscribe({
       next: (response) => {
         if (response.success) {
-          this.restaurants = response.data;
+          const pagedResult = response.data as PagedResult<Restaurant>;
+          this.restaurants = pagedResult.data;
         } else {
           console.error('Failed to load restaurants:', response.errorMessage);
         }
@@ -129,7 +137,8 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
     this.cmsService.getAllCategories().subscribe({
       next: (response) => {
         if (response.success) {
-          this.categories = response.data;
+          const pagedResult = response.data as PagedResult<Category>;
+          this.categories = pagedResult.data;
         } else {
           console.error('Failed to load categories:', response.errorMessage);
         }
@@ -528,6 +537,11 @@ export class DishesComponent implements OnInit {  dishes: any[] = [];
     localStorage.removeItem('selectedRestaurantId');
     localStorage.removeItem('selectedRestaurantName');
     // Reload all dishes when clearing the filter
+    this.loadDishes();
+  }
+
+  onDishesPageChanged(page: number): void {
+    this.dishesPagination.pageNumber = page;
     this.loadDishes();
   }
 }

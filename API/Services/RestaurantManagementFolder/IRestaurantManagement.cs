@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 public interface IRestaurantManagement
 {
     Task<AppResponse<AdminRestaurantDto>> CreateRestaurant([FromBody] RestaurantCreateDto dto);
-    Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurants();
+    Task<AppResponse<PagedResultDto<AdminRestaurantDto>>> GetAllRestaurants(PaginationDto? paginationDto = null);
     Task<AppResponse<AdminRestaurantDto>> GetRestaurant(int id);
     Task<AppResponse<AdminRestaurantDto>> UpdateRestaurant(int id, [FromBody] RestaurantUpdateDto dto);
     Task<AppResponse<AdminRestaurantDto>> DeleteRestaurant(int id);

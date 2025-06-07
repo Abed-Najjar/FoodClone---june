@@ -20,18 +20,13 @@ namespace API.Services.OrderServiceFolder
             _pricingService = pricingService;
         }
 
-        public async Task<AppResponse<List<OrderDto>>> GetAllOrdersAsync()
+        public async Task<AppResponse<PagedResultDto<OrderDto>>> GetAllOrdersAsync(PaginationDto? paginationDto = null)
         {
             try
             {
                 _logger.LogInformation("GetAllOrdersAsync called");
 
                 var orders = await _unitOfWork.OrderRepository.GetAllOrdersAsync();
-
-                if (orders == null || !orders.Any())
-                {
-                    return new AppResponse<List<OrderDto>>(null, "No orders found.", 200, false);
-                }
 
                 var orderDtos = orders.Select(o => new OrderDto
                 {
@@ -60,12 +55,23 @@ namespace API.Services.OrderServiceFolder
                     }).ToList() ?? new List<OrderItemDto>()
                 }).ToList();
 
-                return new AppResponse<List<OrderDto>>(orderDtos, "Orders retrieved successfully.", 200, true);
+                // Always return paginated result
+                var totalItems = orderDtos.Count;
+                var pageNumber = paginationDto?.PageNumber ?? 1;
+                var pageSize = paginationDto?.PageSize ?? totalItems; // If no pagination, return all items
+                
+                var paginatedData = orderDtos
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                var pagedResult = new PagedResultDto<OrderDto>(paginatedData, totalItems, pageNumber, pageSize);
+                return new AppResponse<PagedResultDto<OrderDto>>(pagedResult, "Orders retrieved successfully.", 200, true);
             }
             catch (System.Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while getting all orders");
-                return new AppResponse<List<OrderDto>>(null, ex.Message, 500, false);
+                return new AppResponse<PagedResultDto<OrderDto>>(null, ex.Message, 500, false);
             }
         }
 
@@ -115,7 +121,7 @@ namespace API.Services.OrderServiceFolder
             }
         }
 
-        public async Task<AppResponse<List<OrderDto>>> GetOrdersByUserAsync(int userId)
+        public async Task<AppResponse<PagedResultDto<OrderDto>>> GetOrdersByUserAsync(int userId, PaginationDto? paginationDto = null)
         {
             try
             {
@@ -123,11 +129,6 @@ namespace API.Services.OrderServiceFolder
 
                 var orders = await _unitOfWork.OrderRepository.GetOrdersByUserAsync(userId);
 
-                if (orders == null || !orders.Any())
-                {
-                    return new AppResponse<List<OrderDto>>(null, "No orders found for this user.", 200, false);
-                }
-
                 var orderDtos = orders.Select(o => new OrderDto
                 {
                     Id = o.Id,
@@ -152,16 +153,27 @@ namespace API.Services.OrderServiceFolder
                     }).ToList() ?? new List<OrderItemDto>()
                 }).ToList();
 
-                return new AppResponse<List<OrderDto>>(orderDtos, "Orders retrieved successfully.", 200, true);
+                // Always return paginated result
+                var totalItems = orderDtos.Count;
+                var pageNumber = paginationDto?.PageNumber ?? 1;
+                var pageSize = paginationDto?.PageSize ?? totalItems; // If no pagination, return all items
+                
+                var paginatedData = orderDtos
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                var pagedResult = new PagedResultDto<OrderDto>(paginatedData, totalItems, pageNumber, pageSize);
+                return new AppResponse<PagedResultDto<OrderDto>>(pagedResult, "Orders retrieved successfully.", 200, true);
             }
             catch (System.Exception ex)
             {
                 _logger.LogError(ex, $"Error occurred while getting orders for user ID: {userId}");
-                return new AppResponse<List<OrderDto>>(null, ex.Message, 500, false);
+                return new AppResponse<PagedResultDto<OrderDto>>(null, ex.Message, 500, false);
             }
         }
 
-        public async Task<AppResponse<List<OrderDto>>> GetOrdersByRestaurantAsync(int restaurantId)
+        public async Task<AppResponse<PagedResultDto<OrderDto>>> GetOrdersByRestaurantAsync(int restaurantId, PaginationDto? paginationDto = null)
         {
             try
             {
@@ -169,11 +181,6 @@ namespace API.Services.OrderServiceFolder
 
                 var orders = await _unitOfWork.OrderRepository.GetOrdersByRestaurantAsync(restaurantId);
 
-                if (orders == null || !orders.Any())
-                {
-                    return new AppResponse<List<OrderDto>>(null, "No orders found for this restaurant.", 200, false);
-                }
-
                 var orderDtos = orders.Select(o => new OrderDto
                 {
                     Id = o.Id,
@@ -198,16 +205,27 @@ namespace API.Services.OrderServiceFolder
                     }).ToList() ?? new List<OrderItemDto>()
                 }).ToList();
 
-                return new AppResponse<List<OrderDto>>(orderDtos, "Orders retrieved successfully.", 200, true);
+                // Always return paginated result
+                var totalItems = orderDtos.Count;
+                var pageNumber = paginationDto?.PageNumber ?? 1;
+                var pageSize = paginationDto?.PageSize ?? totalItems; // If no pagination, return all items
+                
+                var paginatedData = orderDtos
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                var pagedResult = new PagedResultDto<OrderDto>(paginatedData, totalItems, pageNumber, pageSize);
+                return new AppResponse<PagedResultDto<OrderDto>>(pagedResult, "Orders retrieved successfully.", 200, true);
             }
             catch (System.Exception ex)
             {
                 _logger.LogError(ex, $"Error occurred while getting orders for restaurant ID: {restaurantId}");
-                return new AppResponse<List<OrderDto>>(null, ex.Message, 500, false);
+                return new AppResponse<PagedResultDto<OrderDto>>(null, ex.Message, 500, false);
             }
         }
 
-        public async Task<AppResponse<List<OrderDto>>> GetOrdersByEmployeeAsync(int employeeId)
+        public async Task<AppResponse<PagedResultDto<OrderDto>>> GetOrdersByEmployeeAsync(int employeeId, PaginationDto? paginationDto = null)
         {
             try
             {
@@ -215,11 +233,6 @@ namespace API.Services.OrderServiceFolder
 
                 var orders = await _unitOfWork.OrderRepository.GetOrdersByEmployeeAsync(employeeId);
 
-                if (orders == null || !orders.Any())
-                {
-                    return new AppResponse<List<OrderDto>>(null, "No orders found for this employee.", 200, false);
-                }
-
                 var orderDtos = orders.Select(o => new OrderDto
                 {
                     Id = o.Id,
@@ -244,12 +257,23 @@ namespace API.Services.OrderServiceFolder
                     }).ToList() ?? new List<OrderItemDto>()
                 }).ToList();
 
-                return new AppResponse<List<OrderDto>>(orderDtos, "Orders retrieved successfully.", 200, true);
+                // Always return paginated result
+                var totalItems = orderDtos.Count;
+                var pageNumber = paginationDto?.PageNumber ?? 1;
+                var pageSize = paginationDto?.PageSize ?? totalItems; // If no pagination, return all items
+                
+                var paginatedData = orderDtos
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                var pagedResult = new PagedResultDto<OrderDto>(paginatedData, totalItems, pageNumber, pageSize);
+                return new AppResponse<PagedResultDto<OrderDto>>(pagedResult, "Orders retrieved successfully.", 200, true);
             }
             catch (System.Exception ex)
             {
                 _logger.LogError(ex, $"Error occurred while getting orders for employee ID: {employeeId}");
-                return new AppResponse<List<OrderDto>>(null, ex.Message, 500, false);
+                return new AppResponse<PagedResultDto<OrderDto>>(null, ex.Message, 500, false);
             }
         }
 

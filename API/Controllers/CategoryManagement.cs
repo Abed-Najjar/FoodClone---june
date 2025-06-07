@@ -19,9 +19,9 @@ namespace API.Controllers
 
         // Category Endpoints
         [HttpGet("categories/{restaurantId}")]
-        public async Task<AppResponse<List<CategoryDto>>> GetCategories(int restaurantId)
+        public async Task<AppResponse<PagedResultDto<CategoryDto>>> GetCategories(int restaurantId, [FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _categoryManagementService.GetCategories(restaurantId);
+            return await _categoryManagementService.GetCategories(restaurantId, paginationDto);
         }
 
         [HttpPost("categories")]

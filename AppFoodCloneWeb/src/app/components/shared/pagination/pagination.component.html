@@ -1,0 +1,60 @@
+ <div class="pagination-container" *ngIf="pagedResult && pagedResult.totalPages > 1">
+  <nav aria-label="Page navigation">
+    <ul class="pagination">
+      <!-- Previous button -->
+      <li class="page-item" [class.disabled]="!pagedResult.hasPreviousPage">
+        <button 
+          class="page-link" 
+          (click)="onPreviousClick()"
+          [disabled]="!pagedResult.hasPreviousPage"
+          aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </button>
+      </li>
+
+      <!-- First page if not in range -->
+      <li class="page-item" *ngIf="pages[0] > 1">
+        <button class="page-link" (click)="onPageClick(1)">1</button>
+      </li>
+      <li class="page-item disabled" *ngIf="pages[0] > 2">
+        <span class="page-link">...</span>
+      </li>
+
+      <!-- Page numbers -->
+      <li 
+        class="page-item" 
+        *ngFor="let page of pages"
+        [class.active]="page === pagedResult.pageNumber">
+        <button class="page-link" (click)="onPageClick(page)">{{ page }}</button>
+      </li>
+
+      <!-- Last page if not in range -->
+      <li class="page-item disabled" *ngIf="pages[pages.length - 1] < pagedResult.totalPages - 1">
+        <span class="page-link">...</span>
+      </li>
+      <li class="page-item" *ngIf="pages[pages.length - 1] < pagedResult.totalPages">
+        <button class="page-link" (click)="onPageClick(pagedResult.totalPages)">{{ pagedResult.totalPages }}</button>
+      </li>
+
+      <!-- Next button -->
+      <li class="page-item" [class.disabled]="!pagedResult.hasNextPage">
+        <button 
+          class="page-link" 
+          (click)="onNextClick()"
+          [disabled]="!pagedResult.hasNextPage"
+          aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Page info -->
+  <div class="pagination-info">
+    <small class="text-muted">
+      Showing {{ (pagedResult.pageNumber - 1) * pagedResult.pageSize + 1 }} to 
+      {{ Math.min(pagedResult.pageNumber * pagedResult.pageSize, pagedResult.totalItems) }} 
+      of {{ pagedResult.totalItems }} results
+    </small>
+  </div>
+</div> 

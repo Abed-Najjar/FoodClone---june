@@ -160,7 +160,14 @@
       <p class="text-muted">We couldn't find any restaurants matching your criteria.</p>
       <button class="btn btn-outline-primary" (click)="resetFilters()">Clear filters</button>
     </div>
-  </div>  <!-- Popular Dishes Section -->
+  </div>
+
+  <!-- Featured Restaurants Pagination -->
+  <app-pagination 
+    *ngIf="featuredRestaurantsPagedResult && !loading"
+    [pagedResult]="featuredRestaurantsPagedResult"
+    (pageChanged)="onFeaturedRestaurantsPageChanged($event)">
+  </app-pagination>  <!-- Popular Dishes Section -->
   <h2 class="section-title mt-5">Popular Dishes Near You</h2>
   <div class="row">
     <div *ngIf="dishesLoading" class="col-12 text-center py-5">
@@ -224,4 +231,11 @@
       <p class="text-muted">We couldn't find any dishes at the moment. Please try again later.</p>
     </div>
   </div>
+
+  <!-- Popular Dishes Pagination -->
+  <app-pagination 
+    *ngIf="popularDishesPagedResult && !dishesLoading"
+    [pagedResult]="popularDishesPagedResult"
+    (pageChanged)="onPopularDishesPageChanged($event)">
+  </app-pagination>
 </div>

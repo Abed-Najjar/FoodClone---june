@@ -146,5 +146,12 @@
     <div *ngIf="!loading && !error && filteredDishes.length === 0" class="no-data">
       No dishes found. Add a new dish to get started.
     </div>
+
+    <!-- Dishes Pagination -->
+    <app-pagination 
+      *ngIf="dishesPagedResult && !loading && !selectedRestaurantId"
+      [pagedResult]="dishesPagedResult"
+      (pageChanged)="onDishesPageChanged($event)">
+    </app-pagination>
   </div>
 </div>

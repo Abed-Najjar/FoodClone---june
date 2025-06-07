@@ -191,14 +191,20 @@
                 <img [src]="getRestaurantLogo(order.restaurantId)" 
                      class="restaurant-image" 
                      alt="{{ order.restaurantName }} Logo"
-                     onerror="this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200&q=80'">
+                     (error)="handleImageError($event)"
+                     loading="lazy">
                 <div class="restaurant-rating-badge">
                   <i class="fas fa-star"></i>
                   {{ getRestaurantRating(order.restaurantId) }}
                 </div>
               </div>
               <div class="restaurant-details">
-                <h5 class="restaurant-name">{{ order.restaurantName || 'Restaurant Name' }}</h5>
+                <h5 class="restaurant-name">
+                  {{ order.restaurantName || 'Restaurant Name' }}
+                  <span *ngIf="loadingRestaurantIds.has(order.restaurantId)" class="loading-indicator">
+                    <i class="fas fa-spinner fa-spin"></i>
+                  </span>
+                </h5>
                 <div class="restaurant-status">
                   <span class="status-indicator" [ngClass]="getOrderStatusClass(order.status)"></span>
                   <span class="status-text">{{ getFormattedOrderStatus(order.status) }}</span>
@@ -229,10 +235,16 @@
             <div *ngFor="let item of order.orderItems" class="order-item-detailed">              <div class="item-image">
                 <img [src]="getDishImage(item)" 
                      alt="{{ getDishName(item) }}"
-                     onerror="this.src='https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=80&q=80'">
+                     (error)="handleImageError($event)"
+                     loading="lazy">
               </div><div class="item-details">
                 <div class="item-header">
-                  <h6 class="item-name">{{ getDishName(item) }}</h6>
+                  <h6 class="item-name">
+                  {{ getDishName(item) }}
+                  <span *ngIf="loadingDishIds.has(item.dishId)" class="loading-indicator">
+                    <i class="fas fa-spinner fa-spin"></i>
+                  </span>
+                </h6>
                   <span class="item-price">{{ (item.unitPrice * item.quantity).toFixed(2) }} JOD</span>
                 </div>
                 <p class="item-description">{{ getDishDescription(item) }}</p>

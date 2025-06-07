@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subscription, interval, forkJoin, startWith, switchMap } from 'rxjs';
+import { Subscription, interval, forkJoin, startWith, switchMap, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { OrderService } from '../../services/order.service';
 import { AuthService } from '../../services/auth.service';
 import { HomeService } from '../../services/home.service';
@@ -30,6 +31,11 @@ export class OrderTrackingComponent implements OnInit, OnDestroy {
   private deliveryTrackingSubscriptions: Map<number, Subscription> = new Map(); // Track delivery subscriptions
   private dishesMap: Map<number, Dish> = new Map(); // Map to store dish details by ID
   private restaurantsMap: Map<number, Restaurant> = new Map(); // Map to store restaurant details by ID
+  loadingDishIds: Set<number> = new Set(); // Track dishes being loaded (public for template access)
+  loadingRestaurantIds: Set<number> = new Set(); // Track restaurants being loaded (public for template access)
+  private dishLoadErrors: Set<number> = new Set(); // Track failed dish loads
+  private restaurantLoadErrors: Set<number> = new Set(); // Track failed restaurant loads
+
   constructor(
     private orderService: OrderService,
     private authService: AuthService,
@@ -39,19 +45,22 @@ export class OrderTrackingComponent implements OnInit, OnDestroy {
     private router: Router,
     private activatedRoute: ActivatedRoute
   ) {}
+
   ngOnInit(): void {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/auth/login']);
       return;
     }
     
-    this.loadDishesAndOrders();
+    // Load orders first, then load required data lazily
+    this.loadOrders();
     
     // Auto-refresh every 30 seconds for real-time updates
     this.refreshSubscription = interval(30000).subscribe(() => {
       this.loadOrders(false); // Silent refresh
     });
   }
+
   ngOnDestroy(): void {
     if (this.refreshSubscription) {
       this.refreshSubscription.unsubscribe();
@@ -63,53 +72,23 @@ export class OrderTrackingComponent implements OnInit, OnDestroy {
     });
     this.deliveryTrackingSubscriptions.clear();
   }
-    // Load dishes and restaurants first, then orders to populate dish names and restaurant data
-  loadDishesAndOrders(): void {
-    this.isLoading = true;
-    this.error = '';
 
-    // Load both dishes and restaurants in parallel
-    forkJoin({
-      dishes: this.homeService.getAllDishes(),
-      restaurants: this.restaurantService.getAllRestaurants()
-    }).subscribe({
-      next: (responses: any) => {
-        // Process dishes
-        if (responses.dishes.success && responses.dishes.data) {
-          this.dishesMap.clear();
-          responses.dishes.data.forEach((dish: Dish) => {
-            this.dishesMap.set(dish.id, dish);
-          });
-        }
-        
-        // Process restaurants
-        if (responses.restaurants.success && responses.restaurants.data) {
-          this.restaurantsMap.clear();
-          responses.restaurants.data.forEach((restaurant: Restaurant) => {
-            this.restaurantsMap.set(restaurant.id, restaurant);
-          });
-        }
-        
-        // Then load orders
-        this.loadOrders();
-      },
-      error: (err: any) => {
-        console.warn('Could not load dishes or restaurants for mapping:', err);
-        // Still load orders even if data loading fails
-        this.loadOrders();
-      }
-    });
-  }
   loadOrders(showLoading: boolean = true): void {
     if (showLoading && this.orders.length === 0) {
       this.isLoading = true;
     }
     this.error = '';
     
-    this.orderService.getMyOrders().subscribe({
+    // Add pagination to limit data load - only get recent orders
+    const pagination = {
+      pageNumber: 1,
+      pageSize: 20 // Limit to 20 most recent orders for better performance
+    };
+    
+    this.orderService.getMyOrders(pagination).subscribe({
       next: (response: any) => {
         if (response.success) {
-          this.orders = response.data.sort((a: Order, b: Order) => 
+          this.orders = response.data.data.sort((a: Order, b: Order) => 
             new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
           );
           
@@ -136,6 +115,9 @@ export class OrderTrackingComponent implements OnInit, OnDestroy {
             }
           });
           
+          // Load required data only for visible/expanded orders
+          this.loadRequiredDataLazily();
+          
           // Start delivery tracking for orders that are out for delivery
           this.initializeDeliveryTracking();
         } else {
@@ -150,6 +132,116 @@ export class OrderTrackingComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  // Load only the dishes and restaurants needed for current orders
+  private loadRequiredDataLazily(): void {
+    if (this.orders.length === 0) return;
+
+    // Get unique restaurant IDs and dish IDs from orders
+    const restaurantIds = new Set<number>();
+    const dishIds = new Set<number>();
+
+    this.orders.forEach(order => {
+      if (order.restaurantId) {
+        restaurantIds.add(order.restaurantId);
+      }
+      order.orderItems?.forEach(item => {
+        if (item.dishId) {
+          dishIds.add(item.dishId);
+        }
+      });
+    });
+
+    // Load restaurants that we don't have yet
+    const restaurantsToLoad = Array.from(restaurantIds).filter(id => 
+      !this.restaurantsMap.has(id) && 
+      !this.loadingRestaurantIds.has(id) && 
+      !this.restaurantLoadErrors.has(id)
+    );
+
+    // Load dishes that we don't have yet
+    const dishesToLoad = Array.from(dishIds).filter(id => 
+      !this.dishesMap.has(id) && 
+      !this.loadingDishIds.has(id) && 
+      !this.dishLoadErrors.has(id)
+    );
+
+    // Load restaurants and dishes with better error handling
+    if (restaurantsToLoad.length > 0) {
+      this.loadRestaurantsData(restaurantsToLoad);
+    }
+
+    if (dishesToLoad.length > 0) {
+      this.loadDishesData(dishesToLoad);
+    }
+  }
+
+  private loadRestaurantsData(restaurantIds: number[]): void {
+    // Mark as loading
+    restaurantIds.forEach(id => this.loadingRestaurantIds.add(id));
+
+    this.restaurantService.getAllRestaurants().pipe(
+      catchError(err => {
+        console.warn('Failed to load restaurants:', err);
+        restaurantIds.forEach(id => {
+          this.loadingRestaurantIds.delete(id);
+          this.restaurantLoadErrors.add(id);
+        });
+        return of({ success: false, data: [] });
+      })
+    ).subscribe(response => {
+      if (response.success && response.data) {
+        response.data.forEach((restaurant: Restaurant) => {
+          if (restaurantIds.includes(restaurant.id)) {
+            this.restaurantsMap.set(restaurant.id, restaurant);
+            this.loadingRestaurantIds.delete(restaurant.id);
+          }
+        });
+      }
+      
+      // Mark remaining as errors if not found
+      restaurantIds.forEach(id => {
+        if (this.loadingRestaurantIds.has(id)) {
+          this.loadingRestaurantIds.delete(id);
+          this.restaurantLoadErrors.add(id);
+        }
+      });
+    });
+  }
+
+  private loadDishesData(dishIds: number[]): void {
+    // Mark as loading
+    dishIds.forEach(id => this.loadingDishIds.add(id));
+
+    this.homeService.getAllDishes().pipe(
+      catchError(err => {
+        console.warn('Failed to load dishes:', err);
+        dishIds.forEach(id => {
+          this.loadingDishIds.delete(id);
+          this.dishLoadErrors.add(id);
+        });
+        return of({ success: false, data: { data: [] } });
+      })
+    ).subscribe(response => {
+      if (response.success && response.data?.data) {
+        response.data.data.forEach((dish: Dish) => {
+          if (dishIds.includes(dish.id)) {
+            this.dishesMap.set(dish.id, dish);
+            this.loadingDishIds.delete(dish.id);
+          }
+        });
+      }
+      
+      // Mark remaining as errors if not found
+      dishIds.forEach(id => {
+        if (this.loadingDishIds.has(id)) {
+          this.loadingDishIds.delete(id);
+          this.dishLoadErrors.add(id);
+        }
+      });
+    });
+  }
+
   // Initialize delivery tracking for orders that need it
   private initializeDeliveryTracking(): void {
     this.orders.forEach(order => {
@@ -270,6 +362,40 @@ export class OrderTrackingComponent implements OnInit, OnDestroy {
       this.expandedOrders.delete(orderId);
     } else {
       this.expandedOrders.add(orderId);
+      
+      // Load data for this specific order when expanded
+      const order = this.orders.find(o => o.id === orderId);
+      if (order) {
+        this.loadDataForOrder(order);
+      }
+    }
+  }
+
+  // Load data specifically for one order
+  private loadDataForOrder(order: Order): void {
+    const dishIds: number[] = [];
+    const restaurantIds: number[] = [];
+
+    if (order.restaurantId && !this.restaurantsMap.has(order.restaurantId) && 
+        !this.loadingRestaurantIds.has(order.restaurantId) && 
+        !this.restaurantLoadErrors.has(order.restaurantId)) {
+      restaurantIds.push(order.restaurantId);
+    }
+
+    order.orderItems?.forEach(item => {
+      if (item.dishId && !this.dishesMap.has(item.dishId) && 
+          !this.loadingDishIds.has(item.dishId) && 
+          !this.dishLoadErrors.has(item.dishId)) {
+        dishIds.push(item.dishId);
+      }
+    });
+
+    if (restaurantIds.length > 0) {
+      this.loadRestaurantsData(restaurantIds);
+    }
+
+    if (dishIds.length > 0) {
+      this.loadDishesData(dishIds);
     }
   }
 
@@ -368,50 +494,115 @@ export class OrderTrackingComponent implements OnInit, OnDestroy {
     // Navigate to detailed order view
     this.router.navigate(['/orders', order.id]);
   }
-  // Get restaurant logo URL from actual restaurant data
+  // Get restaurant logo URL from actual restaurant data with improved error handling
   getRestaurantLogo(restaurantId: number): string {
+    // If currently loading, return a loading placeholder
+    if (this.loadingRestaurantIds.has(restaurantId)) {
+      return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200&q=80';
+    }
+
     const restaurant = this.restaurantsMap.get(restaurantId);
     if (restaurant && restaurant.logoUrl) {
       return restaurant.logoUrl;
     }
-    // Fallback to placeholder
-    return `/assets/images/restaurant-${((restaurantId % 8) + 1)}.jpg`;
+    
+    // If we haven't loaded this restaurant yet and it's not in error state, trigger load
+    if (!this.restaurantLoadErrors.has(restaurantId) && !this.restaurantsMap.has(restaurantId)) {
+      this.loadRestaurantsData([restaurantId]);
+    }
+    
+    // Fallback to a more reliable placeholder
+    return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200&q=80';
   }
 
-  // Get restaurant phone number
+  // Get restaurant phone number with loading state handling
   getRestaurantPhone(restaurantId: number): string {
+    if (this.loadingRestaurantIds.has(restaurantId)) {
+      return 'Loading...';
+    }
+    
     const restaurant = this.restaurantsMap.get(restaurantId);
-    return restaurant ? restaurant.phoneNumber : 'N/A';
+    if (restaurant && restaurant.phoneNumber) {
+      return restaurant.phoneNumber;
+    }
+    
+    // If we haven't loaded this restaurant yet and it's not in error state, trigger load
+    if (!this.restaurantLoadErrors.has(restaurantId) && !this.restaurantsMap.has(restaurantId)) {
+      this.loadRestaurantsData([restaurantId]);
+    }
+    
+    return 'Contact Support';
   }
 
-  // Get restaurant rating (placeholder implementation)
+  // Get restaurant rating with improved fallback
   getRestaurantRating(restaurantId: number): string {
+    const restaurant = this.restaurantsMap.get(restaurantId);
+    if (restaurant && restaurant.rating) {
+      return restaurant.rating.toString();
+    }
+    
+    // Consistent rating based on restaurant ID
     const ratings = ['4.2', '4.5', '4.1', '4.7', '4.3', '4.6', '4.4', '4.8'];
     return ratings[restaurantId % ratings.length];
   }
-  // Get dish image URL from actual dish data
+
+  // Get dish image URL from actual dish data with improved error handling
   getDishImage(item: any): string {
+    // If currently loading, return a loading placeholder
+    if (this.loadingDishIds.has(item.dishId)) {
+      return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=80&q=80';
+    }
+
     const dish = this.dishesMap.get(item.dishId);
     if (dish && dish.imageUrl) {
       return dish.imageUrl;
     }
-    // Fallback to placeholder
-    return `/assets/images/dish-${((item.dishId % 8) + 1)}.jpg`;
-  }
-  // Get dish name from dish mapping or fallback to dish ID
-  getDishName(item: any): string {
-    const dish = this.dishesMap.get(item.dishId);
-    return dish ? dish.name : `Dish ${item.dishId}`;
+    
+    // If we haven't loaded this dish yet and it's not in error state, trigger load
+    if (!this.dishLoadErrors.has(item.dishId) && !this.dishesMap.has(item.dishId)) {
+      this.loadDishesData([item.dishId]);
+    }
+    
+    // More reliable fallback image
+    return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=80&q=80';
   }
 
-  // Get dish description from dish mapping or fallback
+  // Get dish name from dish mapping with loading state
+  getDishName(item: any): string {
+    if (this.loadingDishIds.has(item.dishId)) {
+      return 'Loading...';
+    }
+    
+    const dish = this.dishesMap.get(item.dishId);
+    if (dish && dish.name) {
+      return dish.name;
+    }
+    
+    // If we haven't loaded this dish yet and it's not in error state, trigger load
+    if (!this.dishLoadErrors.has(item.dishId) && !this.dishesMap.has(item.dishId)) {
+      this.loadDishesData([item.dishId]);
+    }
+    
+    return `Dish ${item.dishId}`;
+  }
+
+  // Get dish description with loading state handling
   getDishDescription(item: any): string {
+    if (this.loadingDishIds.has(item.dishId)) {
+      return 'Loading dish details...';
+    }
+    
     const dish = this.dishesMap.get(item.dishId);
     if (dish && dish.description) {
       return dish.description;
     }
     
-    // Fallback descriptions
+    // If we haven't loaded this dish yet and it's not in error state, trigger load
+    if (!this.dishLoadErrors.has(item.dishId) && !this.dishesMap.has(item.dishId)) {
+      this.loadDishesData([item.dishId]);
+    }
+    
+    // Consistent fallback descriptions based on dish ID
     const descriptions = [
       'A delicious dish prepared with fresh ingredients and aromatic spices',
       'Perfectly cooked with traditional recipes and modern techniques',
@@ -486,6 +677,17 @@ export class OrderTrackingComponent implements OnInit, OnDestroy {
       }
     }
     return '';
+  }
+
+  // Handle image loading errors
+  handleImageError(event: any): void {
+    const target = event.target;
+    if (target.src.includes('restaurant')) {
+      target.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200&q=80';
+    } else {
+      target.src = 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=80&q=80';
+    }
+    target.style.opacity = '0.8'; // Indicate it's a fallback image
   }
 
   // TEMPORARY: Method to change order status for testing Google Maps

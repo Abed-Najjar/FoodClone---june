@@ -19,9 +19,9 @@ namespace API.Controllers
 
         [AllowAnonymous]
         [HttpGet("")]
-        public async Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurantsRoot()
+        public async Task<AppResponse<PagedResultDto<AdminRestaurantDto>>> GetAllRestaurantsRoot([FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _restaurantManagementService.GetAllRestaurants();
+            return await _restaurantManagementService.GetAllRestaurants(paginationDto);
         }
 
         [HttpPost("create")]
@@ -32,9 +32,9 @@ namespace API.Controllers
 
         [Authorize(Roles = "User,Admin")]
         [HttpGet("getAll")]
-        public async Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurants()
+        public async Task<AppResponse<PagedResultDto<AdminRestaurantDto>>> GetAllRestaurants([FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _restaurantManagementService.GetAllRestaurants();
+            return await _restaurantManagementService.GetAllRestaurants(paginationDto);
         }
 
         [Authorize(Roles = "Admin,User")]

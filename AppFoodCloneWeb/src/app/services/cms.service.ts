@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map, switchMap, forkJoin, of, catchError } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -8,6 +8,7 @@ import { Restaurant } from '../models/restaurant.model';
 import { Dish } from '../models/dish.model';
 import { User } from '../models/user.model';
 import { Order } from '../models/order.model';
+import { PaginationParams, PagedResult } from '../types/pagination.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -17,65 +18,16 @@ export class CmsService {
 
   constructor(private http: HttpClient) { }
   // Categories
-  getAllCategories(): Observable<AppResponse<Category[]>> {
-    console.log('Getting all categories using CategoryManagement endpoint');
-    // First get all restaurants, then get categories for each restaurant
-    return this.getAllRestaurants().pipe(
-      switchMap((restaurantsResponse: AppResponse<Restaurant[]>) => {
-        if (!restaurantsResponse.success || !restaurantsResponse.data) {
-          return of({
-            data: [],
-            errorMessage: restaurantsResponse.errorMessage || 'Failed to load restaurants',
-            statusCode: restaurantsResponse.statusCode || 500,
-            success: false
-          } as AppResponse<Category[]>);
-        }
-
-        // Get categories for each restaurant using CategoryManagement endpoint
-        const categoryRequests = restaurantsResponse.data.map(restaurant =>
-          this.http.get<AppResponse<Category[]>>(`${environment.apiUrl}/CategoryManagement/categories/${restaurant.id}`)
-        );
-
-        if (categoryRequests.length === 0) {
-          return of({
-            data: [],
-            errorMessage: '',
-            statusCode: 200,
-            success: true
-          } as AppResponse<Category[]>);
-        }
-
-        // Execute all requests in parallel and combine results
-        return forkJoin(categoryRequests).pipe(
-          map((responses: AppResponse<Category[]>[]) => {
-            const allCategories: Category[] = [];
-
-            responses.forEach(response => {
-              if (response.success && response.data) {
-                allCategories.push(...response.data);
-              }
-            });
-
-            console.log('All categories with restaurant info loaded:', allCategories);
-            return {
-              data: allCategories,
-              errorMessage: '',
-              statusCode: 200,
-              success: true
-            } as AppResponse<Category[]>;
-          }),
-          catchError((error: any) => {
-            console.error('Error loading categories:', error);
-            return of({
-              data: [],
-              errorMessage: 'Failed to load categories',
-              statusCode: 500,
-              success: false
-            } as AppResponse<Category[]>);
-          })
-        );
-      })
-    );
+  getAllCategories(pagination?: PaginationParams): Observable<AppResponse<PagedResult<Category>>> {
+    console.log('Getting all categories using CMS endpoint');
+    
+    let params = new HttpParams();
+    if (pagination) {
+      params = params.set('pageNumber', pagination.pageNumber.toString());
+      params = params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    return this.http.get<AppResponse<PagedResult<Category>>>(`${this.baseUrl}/categories`, { params });
   }
   createCategory(category: Category): Observable<AppResponse<Category>> {
     // Use the CategoryManagement controller endpoint
@@ -106,16 +58,51 @@ export class CmsService {
   // Method to get categories for a specific restaurant
   getCategoriesByRestaurant(restaurantId: number): Observable<AppResponse<Category[]>> {
     console.log(`Getting categories for restaurant ID: ${restaurantId}`);
-    return this.http.get<AppResponse<Category[]>>(`${this.baseUrl}/categories/${restaurantId}`);
+    // The backend returns PagedResultDto but we want the data array directly
+    return this.http.get<AppResponse<PagedResult<Category>>>(`${this.baseUrl}/categories/${restaurantId}`)
+      .pipe(
+        map(response => {
+          if (response.success && response.data) {
+            // Extract the data array from PagedResultDto
+            return {
+              ...response,
+              data: response.data.data as any
+            } as AppResponse<Category[]>;
+          }
+          return response as any;
+        })
+      );
   }
 
   getDishesByRestaurant(restaurantId: number): Observable<AppResponse<Dish[]>> {
     console.log(`Getting dishes for restaurant ID: ${restaurantId}`);
-    // Using DishManagement controller endpoint which already exists
-    return this.http.get<AppResponse<Dish[]>>(`${environment.apiUrl}/DishManagement/restaurant/dishes/${restaurantId}`);
+    // Using DishManagement controller endpoint which already exists - returns PagedResultDto
+    return this.http.get<AppResponse<PagedResult<Dish>>>(`${environment.apiUrl}/DishManagement/restaurant/dishes/${restaurantId}`)
+      .pipe(
+        map(response => {
+          if (response.success && response.data) {
+            // Extract the data array from PagedResultDto
+            return {
+              ...response,
+              data: response.data.data as any
+            } as AppResponse<Dish[]>;
+          }
+          return response as any;
+        })
+      );
   }  // Restaurants
-  getAllRestaurants(id?: number): Observable<AppResponse<Restaurant[]>> {
-    return this.http.get<AppResponse<Restaurant[]>>(`${environment.apiUrl}/RestaurantManagement${id ? `/get/${id}` : '/getAll'}`);
+  getAllRestaurants(pagination?: PaginationParams): Observable<AppResponse<PagedResult<Restaurant>>> {
+    let params = new HttpParams();
+    if (pagination) {
+      params = params.set('pageNumber', pagination.pageNumber.toString());
+      params = params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    return this.http.get<AppResponse<PagedResult<Restaurant>>>(`${this.baseUrl}/restaurants`, { params });
+  }
+
+  getRestaurantById(id: number): Observable<AppResponse<Restaurant>> {
+    return this.http.get<AppResponse<Restaurant>>(`${environment.apiUrl}/RestaurantManagement/get/${id}`);
   }
 
   createRestaurant(restaurant: any): Observable<AppResponse<Restaurant>> {
@@ -131,64 +118,16 @@ export class CmsService {
   }
 
   // Dishes
-  getAllDishes(): Observable<AppResponse<Dish[]>> {
-    console.log('Getting all dishes using DishManagement endpoint');
-    // First get all restaurants, then get dishes for each restaurant
-    return this.getAllRestaurants().pipe(
-      switchMap((restaurantsResponse: AppResponse<Restaurant[]>) => {
-        if (!restaurantsResponse.success || !restaurantsResponse.data) {
-          return of({
-            data: [],
-            errorMessage: restaurantsResponse.errorMessage || 'Failed to load restaurants',
-            statusCode: restaurantsResponse.statusCode || 500,
-            success: false
-          } as AppResponse<Dish[]>);
-        }
-
-        // Get dishes for each restaurant using DishManagement endpoint
-        const dishRequests = restaurantsResponse.data.map(restaurant =>
-          this.http.get<AppResponse<Dish[]>>(`${environment.apiUrl}/DishManagement/restaurant/dishes/${restaurant.id}`)
-        );
-
-        if (dishRequests.length === 0) {
-          return of({
-            data: [],
-            errorMessage: '',
-            statusCode: 200,
-            success: true
-          } as AppResponse<Dish[]>);
-        }
-
-        // Execute all requests in parallel and combine results
-        return forkJoin(dishRequests).pipe(
-          map((responses: AppResponse<Dish[]>[]) => {
-            const allDishes: Dish[] = [];
-
-            responses.forEach(response => {
-              if (response.success && response.data) {
-                allDishes.push(...response.data);
-              }
-            });
-
-            console.log('All dishes with restaurant info loaded:', allDishes);
-            return {
-              data: allDishes,
-              errorMessage: '',
-              statusCode: 200,
-              success: true
-            } as AppResponse<Dish[]>;
-          }),
-          catchError((error: any) => {
-            console.error('Error loading dishes:', error);
-            return of({
-              data: [],
-              errorMessage: 'Failed to load dishes',
-              statusCode: 500,
-              success: false
-            } as AppResponse<Dish[]>);
-          })        );
-      })
-    );
+  getAllDishes(pagination?: PaginationParams): Observable<AppResponse<PagedResult<Dish>>> {
+    console.log('Getting all dishes using CMS endpoint');
+    
+    let params = new HttpParams();
+    if (pagination) {
+      params = params.set('pageNumber', pagination.pageNumber.toString());
+      params = params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    return this.http.get<AppResponse<PagedResult<Dish>>>(`${this.baseUrl}/dishes`, { params });
   }
 
   createDish(dish: Dish): Observable<AppResponse<Dish>> {
@@ -249,13 +188,25 @@ export class CmsService {
   }
 
   // Users
-  getAllUsers(): Observable<AppResponse<User[]>> {
-    return this.http.get<AppResponse<User[]>>(`${this.baseUrl}/users`);
+  getAllUsers(pagination?: PaginationParams): Observable<AppResponse<PagedResult<User>>> {
+    let params = new HttpParams();
+    if (pagination) {
+      params = params.set('pageNumber', pagination.pageNumber.toString());
+      params = params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    return this.http.get<AppResponse<PagedResult<User>>>(`${this.baseUrl}/users`, { params });
   }
 
   // Orders
-  getAllOrders(): Observable<AppResponse<Order[]>> {
-    return this.http.get<AppResponse<Order[]>>(`${this.baseUrl}/orders`);
+  getAllOrders(pagination?: PaginationParams): Observable<AppResponse<PagedResult<Order>>> {
+    let params = new HttpParams();
+    if (pagination) {
+      params = params.set('pageNumber', pagination.pageNumber.toString());
+      params = params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    return this.http.get<AppResponse<PagedResult<Order>>>(`${this.baseUrl}/orders`, { params });
   }
 
   updateOrderStatus(orderId: number, status: string): Observable<AppResponse<boolean>> {

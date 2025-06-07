@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { Restaurant } from '../../models/restaurant.model';
 import { RestaurantService } from '../../services/restaurant.service';
 import { HomeService } from '../../services/home.service';
+import { PagedResult } from '../../types/pagination.interface';
 
 @Component({
   selector: 'app-restaurant-list',
@@ -43,7 +44,8 @@ export class RestaurantListComponent implements OnInit {
     this.homeService.getAllRestaurants().subscribe({
       next: (response: any) => {
         if (response.success) {
-          this.restaurants = response.data;
+          const pagedResult = response.data as PagedResult<Restaurant>;
+          this.restaurants = pagedResult.data;
           this.filteredRestaurants = this.restaurants;
           this.loading = false;
         } else {

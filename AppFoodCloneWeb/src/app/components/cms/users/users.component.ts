@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CmsService } from '../../../services/cms.service';
 import { User } from '../../../models/user.model';
+import { PagedResult, PaginationParams } from '../../../types/pagination.interface';
+import { PaginationComponent } from '../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.css']
 })
@@ -19,6 +21,10 @@ export class UsersComponent implements OnInit {
   searchTerm: string = '';
   roleFilter: string = '';
 
+  // Pagination properties
+  usersPagedResult: PagedResult<User> | null = null;
+  usersPagination: PaginationParams = { pageNumber: 1, pageSize: 4 };
+
   constructor(private cmsService: CmsService) {}
 
   ngOnInit() {
@@ -29,10 +35,11 @@ export class UsersComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.cmsService.getAllUsers().subscribe({
+    this.cmsService.getAllUsers(this.usersPagination).subscribe({
       next: (response) => {
         if (response.success) {
-          this.users = response.data;
+          this.usersPagedResult = response.data as PagedResult<User>;
+          this.users = this.usersPagedResult.data;
           this.filteredUsers = [...this.users];
         } else {
           this.error = response.errorMessage || 'Failed to load users';
@@ -70,5 +77,10 @@ export class UsersComponent implements OnInit {
     }
 
     this.filteredUsers = filtered;
+  }
+
+  onUsersPageChanged(page: number): void {
+    this.usersPagination.pageNumber = page;
+    this.loadUsers();
   }
 }

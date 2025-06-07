@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -6,6 +6,7 @@ import { Restaurant } from '../models/restaurant.model';
 import { AppResponse } from '../models/app-response.model';
 import { Dish } from '../models/dish.model';
 import { environment } from '../../environments/environment';
+import { PaginationParams, PagedResult } from '../types/pagination.interface';
 
 export interface HomeStats {
   totalRestaurants: number;
@@ -27,9 +28,16 @@ export class HomeService {
   /**
    * Get all restaurants for home page
    */
-  getAllRestaurants(): Observable<AppResponse<Restaurant[]>> {
+  getAllRestaurants(pagination?: PaginationParams): Observable<AppResponse<PagedResult<Restaurant>>> {
     console.log(`Fetching restaurants from: ${this.baseUrl}/restaurants`);
-    return this.http.get<AppResponse<Restaurant[]>>(`${this.baseUrl}/restaurants`)
+    
+    let params = new HttpParams();
+    if (pagination) {
+      params = params.set('pageNumber', pagination.pageNumber.toString());
+      params = params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    return this.http.get<AppResponse<PagedResult<Restaurant>>>(`${this.baseUrl}/restaurants`, { params })
       .pipe(
         catchError((error: any) => {
           console.error('Error fetching restaurants:', error);
@@ -41,9 +49,16 @@ export class HomeService {
   /**
    * Get all dishes for home page
    */
-  getAllDishes(): Observable<AppResponse<Dish[]>> {
+  getAllDishes(pagination?: PaginationParams): Observable<AppResponse<PagedResult<Dish>>> {
     console.log(`Fetching dishes from: ${this.baseUrl}/dishes`);
-    return this.http.get<AppResponse<Dish[]>>(`${this.baseUrl}/dishes`)
+    
+    let params = new HttpParams();
+    if (pagination) {
+      params = params.set('pageNumber', pagination.pageNumber.toString());
+      params = params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    return this.http.get<AppResponse<PagedResult<Dish>>>(`${this.baseUrl}/dishes`, { params })
       .pipe(
         catchError((error: any) => {
           console.error('Error fetching dishes:', error);
@@ -55,9 +70,16 @@ export class HomeService {
   /**
    * Get featured restaurants (first 6)
    */
-  getFeaturedRestaurants(): Observable<AppResponse<Restaurant[]>> {
+  getFeaturedRestaurants(pagination?: PaginationParams): Observable<AppResponse<PagedResult<Restaurant>>> {
     console.log(`Fetching featured restaurants from: ${this.baseUrl}/featured-restaurants`);
-    return this.http.get<AppResponse<Restaurant[]>>(`${this.baseUrl}/featured-restaurants`)
+    
+    let params = new HttpParams();
+    if (pagination) {
+      params = params.set('pageNumber', pagination.pageNumber.toString());
+      params = params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    return this.http.get<AppResponse<PagedResult<Restaurant>>>(`${this.baseUrl}/featured-restaurants`, { params })
       .pipe(
         catchError((error: any) => {
           console.error('Error fetching featured restaurants:', error);
@@ -69,9 +91,16 @@ export class HomeService {
   /**
    * Get popular dishes (first 8 available)
    */
-  getPopularDishes(): Observable<AppResponse<Dish[]>> {
+  getPopularDishes(pagination?: PaginationParams): Observable<AppResponse<PagedResult<Dish>>> {
     console.log(`Fetching popular dishes from: ${this.baseUrl}/popular-dishes`);
-    return this.http.get<AppResponse<Dish[]>>(`${this.baseUrl}/popular-dishes`)
+    
+    let params = new HttpParams();
+    if (pagination) {
+      params = params.set('pageNumber', pagination.pageNumber.toString());
+      params = params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    return this.http.get<AppResponse<PagedResult<Dish>>>(`${this.baseUrl}/popular-dishes`, { params })
       .pipe(
         catchError((error: any) => {
           console.error('Error fetching popular dishes:', error);

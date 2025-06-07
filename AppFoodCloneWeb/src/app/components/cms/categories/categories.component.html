@@ -99,6 +99,13 @@
     <div *ngIf="!loading && !error && filteredCategories.length === 0" class="no-data">
       No categories found. Add a new category to get started.
     </div>
+
+    <!-- Categories Pagination -->
+    <app-pagination 
+      *ngIf="categoriesPagedResult && !loading && !selectedRestaurantId"
+      [pagedResult]="categoriesPagedResult"
+      (pageChanged)="onCategoriesPageChanged($event)">
+    </app-pagination>
   </div>  <!-- Add this for debugging - it will show if we're in edit mode -->  <div *ngIf="isEditing" style="position: fixed; top: 0; right: 0; background: yellow; padding: 5px; z-index: 9999;">
     Editing Mode: {{ currentCategoryId }} |
     Name: {{ categoryForm.value.name }}

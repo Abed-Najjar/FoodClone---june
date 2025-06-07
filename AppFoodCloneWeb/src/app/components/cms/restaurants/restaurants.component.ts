@@ -8,11 +8,13 @@ import { Restaurant } from '../../../models/restaurant.model';
 import { ImageUtilService } from '../../../services/image-util.service';
 import { ImageUploadService } from '../../../services/image-upload.service';
 import { CmsNavigationService } from '../../../services/cms-navigation.service';
+import { PagedResult, PaginationParams } from '../../../types/pagination.interface';
+import { PaginationComponent } from '../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-restaurants',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PaginationComponent],
   templateUrl: './restaurants.component.html',
   styleUrls: ['./restaurants.component.css']
 })
@@ -22,6 +24,10 @@ export class RestaurantsComponent implements OnInit {
   loading: boolean = false;
   error: string | null = null;
   searchTerm: string = '';
+
+  // Pagination properties
+  restaurantsPagedResult: PagedResult<Restaurant> | null = null;
+  restaurantsPagination: PaginationParams = { pageNumber: 1, pageSize: 4 };
 
   // Form properties
   restaurantForm: FormGroup;
@@ -62,11 +68,12 @@ export class RestaurantsComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.cmsService.getAllRestaurants().subscribe({
+    this.cmsService.getAllRestaurants(this.restaurantsPagination).subscribe({
       next: (response) => {
         if (response.success) {
           console.log('Restaurants data from API:', response.data);
-          this.restaurants = response.data;
+          this.restaurantsPagedResult = response.data as PagedResult<Restaurant>;
+          this.restaurants = this.restaurantsPagedResult.data;
           this.filteredRestaurants = [...this.restaurants];
         } else {
           this.error = response.errorMessage || 'Failed to load restaurants';
@@ -409,5 +416,10 @@ export class RestaurantsComponent implements OnInit {
         }
       });
     }
+  }
+
+  onRestaurantsPageChanged(page: number): void {
+    this.restaurantsPagination.pageNumber = page;
+    this.loadRestaurants();
   }
 }

@@ -25,9 +25,9 @@ namespace API.Controllers
         }
 
         [HttpGet("getAll")]
-        public async Task<AppResponse<List<UserDto>>> GetAllUsers()
+        public async Task<AppResponse<PagedResultDto<UserDto>>> GetAllUsers([FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _userManagementService.GetAllUsers();
+            return await _userManagementService.GetAllUsers(paginationDto);
         }
 
         [HttpGet("get/{id}")]

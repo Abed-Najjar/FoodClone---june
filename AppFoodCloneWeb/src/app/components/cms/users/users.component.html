@@ -1,5 +1,7 @@
 <div class="users-manager">
-  <h2>Users Management</h2>
+  <div class="header-container">
+    <h2>Users Management</h2>
+  </div>
 
   <div class="action-bar">
     <div class="search-container">
@@ -57,5 +59,12 @@
     <div *ngIf="!loading && !error && filteredUsers.length === 0" class="no-data">
       No users found matching your criteria.
     </div>
+
+    <!-- Users Pagination -->
+    <app-pagination 
+      *ngIf="usersPagedResult && !loading"
+      [pagedResult]="usersPagedResult"
+      (pageChanged)="onUsersPageChanged($event)">
+    </app-pagination>
   </div>
 </div> 

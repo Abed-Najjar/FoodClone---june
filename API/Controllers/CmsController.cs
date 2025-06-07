@@ -38,39 +38,39 @@ namespace API.Controllers
         }
 
         [HttpGet("categories")]
-        public async Task<AppResponse<List<CategoriesDto>>> GetAllCategories()
+        public async Task<AppResponse<PagedResultDto<CategoryDto>>> GetAllCategories([FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _categoryManagementService.GetAllCategoriesAsync();
+            return await _categoryManagementService.GetAllCategoriesAsync(paginationDto);
         }
 
         [HttpGet("categories/{restaurantId}")]
-        public async Task<AppResponse<List<CategoryDto>>> GetCategories(int restaurantId)
+        public async Task<AppResponse<PagedResultDto<CategoryDto>>> GetCategories(int restaurantId, [FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _categoryManagementService.GetCategories(restaurantId);
+            return await _categoryManagementService.GetCategories(restaurantId, paginationDto);
         }
 
         [HttpGet("restaurants")]
-        public async Task<AppResponse<List<AdminRestaurantDto>>> GetAllRestaurants()
+        public async Task<AppResponse<PagedResultDto<AdminRestaurantDto>>> GetAllRestaurants([FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _restaurantManagementService.GetAllRestaurants();
+            return await _restaurantManagementService.GetAllRestaurants(paginationDto);
         }
 
         [HttpGet("dishes")]
-        public async Task<AppResponse<List<DishDto>>> GetAllDishes()
+        public async Task<AppResponse<PagedResultDto<AdminRestaurantDishDto>>> GetAllDishes([FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _dishManagementService.GetAllDishesAsync();
+            return await _dishManagementService.GetAllDishesAsync(paginationDto);
         }
 
         [HttpGet("users")]
-        public async Task<AppResponse<List<UserDto>>> GetAllUsers()
+        public async Task<AppResponse<PagedResultDto<UserDto>>> GetAllUsers([FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _userManagementService.GetAllUsers();
+            return await _userManagementService.GetAllUsers(paginationDto);
         }
 
         [HttpGet("orders")]
-        public async Task<AppResponse<List<OrderDto>>> GetAllOrders()
+        public async Task<AppResponse<PagedResultDto<OrderDto>>> GetAllOrders([FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _orderService.GetAllOrdersAsync();
+            return await _orderService.GetAllOrdersAsync(paginationDto);
         }
 
         [HttpGet("orders/{id}")]
@@ -80,21 +80,21 @@ namespace API.Controllers
         }
 
         [HttpGet("orders/user/{userId}")]
-        public async Task<AppResponse<List<OrderDto>>> GetOrdersByUser(int userId)
+        public async Task<AppResponse<PagedResultDto<OrderDto>>> GetOrdersByUser(int userId, [FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _orderService.GetOrdersByUserAsync(userId);
+            return await _orderService.GetOrdersByUserAsync(userId, paginationDto);
         }
 
         [HttpGet("orders/restaurant/{restaurantId}")]
-        public async Task<AppResponse<List<OrderDto>>> GetOrdersByRestaurant(int restaurantId)
+        public async Task<AppResponse<PagedResultDto<OrderDto>>> GetOrdersByRestaurant(int restaurantId, [FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _orderService.GetOrdersByRestaurantAsync(restaurantId);
+            return await _orderService.GetOrdersByRestaurantAsync(restaurantId, paginationDto);
         }
 
         [HttpGet("orders/employee/{employeeId}")]
-        public async Task<AppResponse<List<OrderDto>>> GetOrdersByEmployee(int employeeId)
+        public async Task<AppResponse<PagedResultDto<OrderDto>>> GetOrdersByEmployee(int employeeId, [FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _orderService.GetOrdersByEmployeeAsync(employeeId);
+            return await _orderService.GetOrdersByEmployeeAsync(employeeId, paginationDto);
         }
 
         [HttpPut("categories/{id}")]

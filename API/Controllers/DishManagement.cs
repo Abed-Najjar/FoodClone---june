@@ -19,9 +19,9 @@ namespace API.Controllers
         
         
         [HttpGet("restaurant/dishes/{restaurantId}")]
-        public async Task<AppResponse<List<AdminRestaurantDishDto>>> GetDishes(int restaurantId)
+        public async Task<AppResponse<PagedResultDto<AdminRestaurantDishDto>>> GetDishes(int restaurantId, [FromQuery] PaginationDto? paginationDto = null)
         {
-            return await _dishManagementService.GetDishesInRestaurant(restaurantId);
+            return await _dishManagementService.GetDishesInRestaurant(restaurantId, paginationDto);
         }
 
         [HttpGet("dishes/{id}")]

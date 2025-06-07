@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CmsService } from '../../../services/cms.service';
 import { Order } from '../../../models/order.model';
+import { PagedResult, PaginationParams } from '../../../types/pagination.interface';
+import { PaginationComponent } from '../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './orders.component.html',
   styleUrls: ['./orders.component.css']
 })
@@ -20,6 +22,10 @@ export class OrdersComponent implements OnInit {
   statusFilter: string = '';
   selectedOrder: Order | null = null;
 
+  // Pagination properties
+  ordersPagedResult: PagedResult<Order> | null = null;
+  ordersPagination: PaginationParams = { pageNumber: 1, pageSize: 4 };
+
   constructor(private cmsService: CmsService) {}
 
   ngOnInit() {
@@ -30,10 +36,11 @@ export class OrdersComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.cmsService.getAllOrders().subscribe({
+    this.cmsService.getAllOrders(this.ordersPagination).subscribe({
       next: (response) => {
         if (response.success) {
-          this.orders = response.data;
+          this.ordersPagedResult = response.data as PagedResult<Order>;
+          this.orders = this.ordersPagedResult.data;
           this.filteredOrders = [...this.orders];
         } else {
           this.error = response.errorMessage || 'Failed to load orders';
@@ -162,5 +169,10 @@ export class OrdersComponent implements OnInit {
         }
       });
     }
+  }
+
+  onOrdersPageChanged(page: number): void {
+    this.ordersPagination.pageNumber = page;
+    this.loadOrders();
   }
 }
