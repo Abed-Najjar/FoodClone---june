@@ -59,7 +59,8 @@ namespace API.Services.TokenServiceFolder.AuthService
                 var userDto = new UserDto
                 {
                     Id = user.Id,
-                    Username = user.UserName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
                     Email = user.Email,
                     Rolename = user.Role.ToString(),
                     Token = _tokenService.CreateToken(user),
@@ -84,9 +85,14 @@ namespace API.Services.TokenServiceFolder.AuthService
                     return new AppResponse<UserDto>(null, "Registration data is missing", 400, false);
                 }
 
-                if (string.IsNullOrEmpty(dto.Username))
+                if (string.IsNullOrEmpty(dto.FirstName))
                 {
-                    return new AppResponse<UserDto>(null, "Username is required", 400, false);
+                    return new AppResponse<UserDto>(null, "First name is required", 400, false);
+                }
+
+                if (string.IsNullOrEmpty(dto.LastName))
+                {
+                    return new AppResponse<UserDto>(null, "Last name is required", 400, false);
                 }
 
                 if (string.IsNullOrEmpty(dto.Email))
@@ -99,10 +105,7 @@ namespace API.Services.TokenServiceFolder.AuthService
                     return new AppResponse<UserDto>(null, "Password is required", 400, false);
                 }
 
-                if (dto.Address == null || !dto.Address.Any())
-                {
-                    return new AppResponse<UserDto>(null, "Address is required", 400, false);
-                }
+                // Address is now optional - no validation needed
 
                 var existingUser = await _userRepository.GetUserByEmailAsync(dto.Email);
                 if (existingUser != null)
@@ -112,9 +115,10 @@ namespace API.Services.TokenServiceFolder.AuthService
 
                 var user = new User
                 {
-                    UserName = dto.Username,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
                     Email = dto.Email,
-                    Address = dto.Address,
+                    Address = dto.Address ?? new List<string>(),
                     PasswordHash = await _argonHashing.HashPasswordAsync(dto.Password),
                     CreatedAt = DateTime.UtcNow
                 };
@@ -133,7 +137,8 @@ namespace API.Services.TokenServiceFolder.AuthService
                 var userDto = new UserDto
                 {
                     Id = user.Id,
-                    Username = user.UserName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
                     Email = user.Email,
                     Rolename = user.Role.ToString(),
                     Token = _tokenService.CreateToken(user),

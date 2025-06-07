@@ -7,7 +7,11 @@ namespace API.DTOs
     {
         [Required]
         [StringLength(50, MinimumLength = 3)]
-        public required string Username { get; set; } = string.Empty;
+        public required string FirstName { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(50, MinimumLength = 3)]
+        public required string LastName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
@@ -19,8 +23,7 @@ namespace API.DTOs
         [Required]
         [StringLength(100, MinimumLength = 6)]
         public required string Password { get; set; } = string.Empty;
-        [Required]
-        public required List<string> Address { get; set; }
+        public List<string>? Address { get; set; }
     }
 
     // DTO for user profile update
@@ -28,7 +31,11 @@ namespace API.DTOs
     {
         [Required]
         [StringLength(50, MinimumLength = 3)]
-        public required string Username { get; set; } = string.Empty;
+        public required string FirstName { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(50, MinimumLength = 3)]
+        public required string LastName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
@@ -105,7 +112,8 @@ namespace API.DTOs
     public class UserDto
     {
         public int Id { get; set; }
-        public string Username { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
         public string Rolename { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string Token { get; set; } = string.Empty;

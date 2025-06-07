@@ -1,6 +1,7 @@
 export interface User {
   id: number;
-  username: string;
+  firstName: string;
+  lastName: string;
   email: string;
   token: string;
   rolename: string;
@@ -21,14 +22,16 @@ export interface UserLogin {
 }
 
 export interface UserRegister {
-  username: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   address: string[];
 }
 
 export interface UserProfileUpdate {
-  username: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone?: string;
   dateOfBirth?: string;

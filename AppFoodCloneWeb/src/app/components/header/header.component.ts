@@ -36,7 +36,7 @@ declare var bootstrap: any;
 export class HeaderComponent implements OnInit, AfterViewInit {
   cartItemCount = 0;
   isLoggedIn = false;
-  username: string | null = null;
+  fullName: string | null = null;
   isScrolled = false;
   userAvatar: string = '';
   logoImage: string = '';
@@ -98,7 +98,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
         // We need to initialize dropdown after Angular updates the DOM
         setTimeout(() => this.initDropdown(), 0);
       } else {
-        this.username = null;
+        this.fullName = null;
         this.currentUser = null;
         this.userAvatar = this.getDefaultAvatar();
       }
@@ -111,13 +111,13 @@ export class HeaderComponent implements OnInit, AfterViewInit {
         const updatedUser = this.authService.getCurrentUser();
         if (updatedUser && updatedUser !== this.currentUser) {
           this.currentUser = updatedUser;
-          this.username = updatedUser.username;
+          this.fullName = `${updatedUser.firstName} ${updatedUser.lastName}`;
           
           // Update avatar
           if (updatedUser.profileImageUrl) {
             this.userAvatar = updatedUser.profileImageUrl;
           } else {
-            this.userAvatar = this.generateUserAvatar(updatedUser.username);
+            this.userAvatar = this.generateUserAvatar(this.fullName);
           }
         }
       }
@@ -190,14 +190,14 @@ export class HeaderComponent implements OnInit, AfterViewInit {
         this.isLoadingProfile = false;
         if (response.success && response.data) {
           this.currentUser = response.data;
-          this.username = response.data.username;
+          this.fullName = `${response.data.firstName} ${response.data.lastName}`;
           
           // Use profile image from database if available
           if (response.data.profileImageUrl) {
             this.userAvatar = response.data.profileImageUrl;
           } else {
-            // Generate a consistent avatar based on username
-            this.userAvatar = this.generateUserAvatar(response.data.username);
+            // Generate a consistent avatar based on full name
+            this.userAvatar = this.generateUserAvatar(this.fullName);
           }
         } else {
           console.error('Failed to load user profile:', response.errorMessage);
@@ -215,33 +215,33 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   // Set fallback user data when profile loading fails
   private setFallbackUserData(): void {
     const user = this.authService.getCurrentUser();
-    this.username = user?.username || localStorage.getItem('username') || 'User';
-    this.userAvatar = this.generateUserAvatar(this.username);
+    this.fullName = user ? `${user.firstName} ${user.lastName}` : 'User';
+    this.userAvatar = this.generateUserAvatar(this.fullName);
   }
 
-  // Generate a consistent avatar based on username
-  private generateUserAvatar(username: string): string {
-    if (!username) return this.getDefaultAvatar();
+  // Generate a consistent avatar based on full name
+  private generateUserAvatar(fullName: string): string {
+    if (!fullName) return this.getDefaultAvatar();
     
-    // Generate consistent colors based on username
+    // Generate consistent colors based on full name
     const avatarColors = [
       '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
       '#1abc9c', '#34495e', '#e67e22', '#95a5a6', '#27ae60'
     ];
     
-    const colorIndex = username.charCodeAt(0) % avatarColors.length;
-    const initials = this.getInitials(username);
+    const colorIndex = fullName.charCodeAt(0) % avatarColors.length;
+    const initials = this.getInitials(fullName);
     
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${avatarColors[colorIndex].substring(1)}&color=fff&size=200&font-size=0.6`;
   }
 
-  // Get initials from username
-  private getInitials(username: string): string {
-    if (!username) return 'U';
+  // Get initials from full name
+  private getInitials(fullName: string): string {
+    if (!fullName) return 'U';
     
-    const parts = username.split(' ');
+    const parts = fullName.split(' ');
     if (parts.length === 1) {
-      return username.substring(0, 2).toUpperCase();
+      return fullName.substring(0, 2).toUpperCase();
     } else {
       return parts.map(part => part.charAt(0)).join('').substring(0, 2).toUpperCase();
     }
@@ -259,7 +259,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
 
     // Reset user data
     this.currentUser = null;
-    this.username = null;
+    this.fullName = null;
     this.userAvatar = this.getDefaultAvatar();
 
     // Show logout toast notification

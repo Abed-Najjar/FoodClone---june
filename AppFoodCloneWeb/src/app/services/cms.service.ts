@@ -257,4 +257,18 @@ export class CmsService {
   getAllOrders(): Observable<AppResponse<Order[]>> {
     return this.http.get<AppResponse<Order[]>>(`${this.baseUrl}/orders`);
   }
+
+  updateOrderStatus(orderId: number, status: string): Observable<AppResponse<boolean>> {
+    return this.http.put<AppResponse<boolean>>(`${this.baseUrl}/orders/${orderId}/status`, status, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  deleteOrder(orderId: number): Observable<AppResponse<boolean>> {
+    return this.http.delete<AppResponse<boolean>>(`${this.baseUrl}/orders/${orderId}`);
+  }
+
+  getOrderById(orderId: number): Observable<AppResponse<Order>> {
+    return this.http.get<AppResponse<Order>>(`${this.baseUrl}/orders/${orderId}`);
+  }
 }

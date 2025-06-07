@@ -62,7 +62,11 @@ namespace API.DTOs
     {
         [Required]
         [StringLength(50, MinimumLength = 3)]
-        public string Username { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(50, MinimumLength = 3)]
+        public string LastName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
@@ -72,8 +76,7 @@ namespace API.DTOs
         [StringLength(100, MinimumLength = 6)]
         public string Password { get; set; } = string.Empty;
 
-        [Required]
-        public List<string> Address { get; set; } = new List<string>();
+        public List<string>? Address { get; set; }
 
         [Required]
         [StringLength(6, MinimumLength = 6)]

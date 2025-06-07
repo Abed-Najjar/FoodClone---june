@@ -176,6 +176,12 @@ namespace API.Controllers
             return await _orderService.UpdateOrderStatusAsync(id, status);
         }
 
+        [HttpDelete("orders/{id}")]
+        public async Task<AppResponse<bool>> DeleteOrder(int id)
+        {
+            return await _orderService.DeleteOrderAsync(id);
+        }
+
         [HttpDelete("users/{id}")]
         public async Task<AppResponse<bool>> DeleteUser(int id)
         {

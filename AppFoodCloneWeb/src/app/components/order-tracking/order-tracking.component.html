@@ -60,7 +60,7 @@
                 <span>•</span>
                 <span>{{ order.orderItems.length }} item{{ order.orderItems.length !== 1 ? 's' : '' }}</span>
                 <span>•</span>
-                <span>{{ (order.totalAmount || order.totalPrice).toFixed(2) }} JOD</span>
+                <span>{{ (order.totalAmount || order.totalPrice || 0).toFixed(2) }} JOD</span>
               </div>
               <!-- Expand Hint -->
               <div class="expand-hint" *ngIf="!isOrderExpanded(order.id)">
@@ -314,7 +314,7 @@
           </div>
           <div class="total-row final-total">
             <span>Total Amount:</span>
-            <span>{{ (order.totalAmount || order.totalPrice).toFixed(2) }} JOD</span>
+            <span>{{ (order.totalAmount || order.totalPrice || 0).toFixed(2) }} JOD</span>
           </div>
           <div class="total-row payment-method">
             <span>Payment Method:</span>

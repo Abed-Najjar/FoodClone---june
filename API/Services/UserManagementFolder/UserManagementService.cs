@@ -30,7 +30,8 @@ public class UserManagementService : IUserManagementService
 
                 var user = new User
                 {
-                    UserName = dto.Username,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
                     Email = dto.Email,
                     Address = dto.Address,
                     PasswordHash = await _argonHashing.HashPasswordAsync(dto.Password),
@@ -44,7 +45,8 @@ public class UserManagementService : IUserManagementService
                 var userDto = new UserDto
                 {
                     Id = user.Id,
-                    Username = user.UserName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
                     Email = user.Email,
                     Rolename = user.Role.ToString(),
                     Token = _tokenService.CreateToken(user)
@@ -91,7 +93,8 @@ public class UserManagementService : IUserManagementService
                 var userDtos = users.Select(user => new UserDto
                 {
                     Id = user.Id,
-                    Username = user.UserName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
                     Email = user.Email,
                     Rolename = user.Role.ToString(),
                     Token = _tokenService.CreateToken(user)
@@ -118,7 +121,8 @@ public class UserManagementService : IUserManagementService
                 var userDto = new UserDto
                 {
                     Id = user.Id,
-                    Username = user.UserName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
                     Email = user.Email,
                     Rolename = user.Role.ToString(),
                     Token = _tokenService.CreateToken(user)
@@ -142,7 +146,8 @@ public class UserManagementService : IUserManagementService
                     return new AppResponse<UserDto>(null, "User not found", 404, false);
                 }
 
-                user.UserName = dto.Username;
+                user.FirstName = dto.FirstName;
+                user.LastName = dto.LastName;
                 user.Email = dto.Email;
                 user.Address = dto.Address;
                 user.Role = dto.Role != null ? (API.Enums.Roles)Enum.Parse(typeof(API.Enums.Roles), dto.Role) : user.Role;
@@ -154,7 +159,8 @@ public class UserManagementService : IUserManagementService
                 var userDto = new UserDto
                 {
                     Id = user.Id,
-                    Username = user.UserName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
                     Email = user.Email,
                     Address = user.Address,
                     Rolename = user.Role.ToString(),

@@ -126,7 +126,8 @@ export class AuthService {
    */
   registerWithOtp(user: UserRegister, otpCode: string): Observable<AppResponse<User>> {
     return this.otpService.registerWithOtp({
-      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       password: user.password,
       address: user.address,

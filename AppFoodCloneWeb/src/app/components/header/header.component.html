@@ -65,7 +65,7 @@
                    alt="User" 
                    class="user-avatar"
                    [class.loading]="isLoadingProfile">
-              <span *ngIf="!isLoadingProfile">{{ username || 'User' }}</span>
+              <span *ngIf="!isLoadingProfile">{{ fullName || 'User' }}</span>
               <span *ngIf="isLoadingProfile" class="loading-text">Loading...</span>
               <span *ngIf="isAdmin() && !isLoadingProfile" class="admin-badge ms-2">Admin</span>
             </a>            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">

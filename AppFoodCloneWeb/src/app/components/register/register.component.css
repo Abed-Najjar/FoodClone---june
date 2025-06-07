@@ -278,6 +278,32 @@
   margin-right: 5px;
 }
 
+/* Optional field styling */
+.optional-label {
+  font-size: 0.85rem;
+  color: #888;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.help-text {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(108, 123, 127, 0.05);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #666;
+  display: flex;
+  align-items: center;
+  border-left: 3px solid rgba(108, 123, 127, 0.2);
+}
+
+.help-text i {
+  margin-right: 6px;
+  color: #888;
+  font-size: 0.9rem;
+}
+
 /* Register Button */
 .btn-register {
   width: 100%;

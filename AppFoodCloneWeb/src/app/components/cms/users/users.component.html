@@ -1,0 +1,61 @@
+<div class="users-manager">
+  <h2>Users Management</h2>
+
+  <div class="action-bar">
+    <div class="search-container">
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Search users..." class="search-input" (input)="filterUsers()">
+    </div>
+    <div class="filter-container">
+      <select [(ngModel)]="roleFilter" (change)="filterUsers()" class="role-filter">
+        <option value="">All Roles</option>
+        <option value="Admin">Admin</option>
+        <option value="User">User</option>
+        <option value="Employee">Employee</option>
+        <option value="Provider">Provider</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Users List -->
+  <div class="users-list">
+    <div *ngIf="loading" class="loading">Loading users...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+
+    <table *ngIf="!loading && !error && filteredUsers.length > 0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Created</th>
+          <th>Last Login</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers">
+          <td>{{ user.id }}</td>
+          <td>{{ user.firstName && user.lastName ? user.firstName + ' ' + user.lastName : 'Unknown User' }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="role-badge" [ngClass]="'role-' + user.rolename.toLowerCase()">
+              {{ user.rolename }}
+            </span>
+          </td>
+          <td>{{ user.created | date:'medium' }}</td>
+          <td>{{ user.lastLogin ? (user.lastLogin | date:'medium') : 'Never' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="user.isActive ? 'status-active' : 'status-inactive'">
+              {{ user.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && !error && filteredUsers.length === 0" class="no-data">
+      No users found matching your criteria.
+    </div>
+  </div>
+</div> 

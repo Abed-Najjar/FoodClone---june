@@ -102,7 +102,8 @@ namespace API.Data
                 // Create admin user
                 var adminUser = new User
                 {
-                    UserName = "admin",
+                    FirstName = "Admin",
+                    LastName = "User",
                     Email = "admin@careemclone.com",
                     Role = Roles.Admin,
                     CreatedAt = DateTime.UtcNow

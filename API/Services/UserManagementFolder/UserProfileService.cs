@@ -36,7 +36,8 @@ public class UserProfileService : IUserProfileService
             var userDto = new UserDto
             {
                 Id = user.Id,
-                Username = user.UserName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 Rolename = user.Role.ToString(),
@@ -69,12 +70,8 @@ public class UserProfileService : IUserProfileService
                 return new AppResponse<UserDto>(null, "User not found", 404, false);
             }
 
-            // Check if username or email already exists for other users
-            var existingUserByUsername = await _unitOfWork.UserRepository.GetUserByUsernameAsync(dto.Username);
-            if (existingUserByUsername != null && existingUserByUsername.Id != userId)
-            {
-                return new AppResponse<UserDto>(null, "Username already exists", 409, false);
-            }
+            // Check if email already exists for other users
+            // Note: We no longer check for username uniqueness since we're using FirstName + LastName
 
             var existingUserByEmail = await _unitOfWork.UserRepository.GetUserByEmailAsync(dto.Email);
             if (existingUserByEmail != null && existingUserByEmail.Id != userId)
@@ -83,7 +80,8 @@ public class UserProfileService : IUserProfileService
             }
 
             // Update user fields
-            user.UserName = dto.Username;
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
             user.Email = dto.Email;
             user.PhoneNumber = dto.Phone ?? string.Empty;
             
@@ -115,7 +113,8 @@ public class UserProfileService : IUserProfileService
             var userDto = new UserDto
             {
                 Id = user.Id,
-                Username = user.UserName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 Address = user.Address,

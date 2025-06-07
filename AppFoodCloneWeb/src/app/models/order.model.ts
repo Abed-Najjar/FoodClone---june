@@ -35,23 +35,27 @@ export interface DeliveryEmployee {
 export interface Order {
   id: number;
   totalAmount: number;
-  totalPrice: number;
+  totalPrice?: number; // Keep for backward compatibility
   paymentMethod: string;
   status: string;
   orderDate: Date;
   userId: number;
-  userName: string;
+  userName: string; // Backend uses userName instead of separate first/last names
+  userFirstName?: string; // Keep for backward compatibility
+  userLastName?: string; // Keep for backward compatibility
   userEmail?: string;
   phoneNumber?: string;
   deliveryAddress?: string;
   restaurantId: number;
   restaurantName: string;
+  employeeId: number;
+  employeeName: string;
   deliveryFee?: number;
   deliveryAddressId?: number;
   deliveryInstructions?: string;
   deliveryEmployee?: DeliveryEmployee; // Added delivery employee tracking
   orderItems: OrderItem[];
-  dishes: {
+  dishes?: { // Keep for backward compatibility
     name: string;
     price: number;
     quantity: number;

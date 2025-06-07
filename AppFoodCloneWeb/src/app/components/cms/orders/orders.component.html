@@ -1,0 +1,146 @@
+<div class="orders-manager">
+  <h2>Orders Management</h2>
+
+  <div class="action-bar">
+    <div class="search-container">
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Search by order ID or customer..." class="search-input" (input)="filterOrders()">
+    </div>
+
+    <div class="filter-container">
+      <select [(ngModel)]="statusFilter" (change)="filterOrders()" class="status-filter">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="processing">Processing</option>
+        <option value="delivering">Delivering</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Orders List -->
+  <div class="orders-list">
+    <div *ngIf="loading" class="loading">Loading orders...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+
+    <table *ngIf="!loading && !error && filteredOrders.length > 0">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Restaurant</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of filteredOrders">
+          <td>#{{ order.id }}</td>
+          <td>{{ order.userName || 'Unknown User' }}</td>
+          <td>{{ order.restaurantName }}</td>
+          <td>{{ order.orderItems.length || 0 }}</td>
+          <td>{{ order.totalAmount | currency }}</td>
+          <td>{{ order.orderDate | date:'medium' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="'status-' + order.status.toLowerCase()">
+              {{ order.status }}
+            </span>
+          </td>
+          <td class="actions">
+            <button (click)="viewOrderDetails(order)" class="view-btn">View</button>
+            <button (click)="editOrder(order)" class="edit-btn">Edit</button>
+            <button (click)="deleteOrder(order)" class="delete-btn">Delete</button>
+            <button *ngIf="order.status === 'Pending'" (click)="updateOrderStatus(order, 'Processing')" class="process-btn">Process</button>
+            <button *ngIf="order.status === 'Processing'" (click)="updateOrderStatus(order, 'Delivering')" class="deliver-btn">Deliver</button>
+            <button *ngIf="order.status === 'Delivering'" (click)="updateOrderStatus(order, 'Completed')" class="complete-btn">Complete</button>
+            <button *ngIf="order.status !== 'Completed' && order.status !== 'Cancelled'" (click)="updateOrderStatus(order, 'Cancelled')" class="cancel-btn">Cancel</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && !error && filteredOrders.length === 0" class="no-data">
+      No orders found matching your criteria.
+    </div>
+  </div>
+
+  <!-- Order Details Modal -->
+  <div *ngIf="selectedOrder" class="order-details-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Order #{{ selectedOrder.id }} Details</h3>
+        <button (click)="closeOrderDetails()" class="close-btn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="order-info">
+          <div class="info-group">
+            <h4>Customer Information</h4>
+            <p><strong>Name:</strong> {{ selectedOrder.userName || 'Unknown User' }}</p>
+            <p><strong>Employee:</strong> {{ selectedOrder.employeeName || 'Not Assigned' }}</p>
+            <p><strong>Delivery Address:</strong> {{ selectedOrder.deliveryAddress || 'Not provided' }}</p>
+          </div>
+
+          <div class="info-group">
+            <h4>Order Information</h4>
+            <p><strong>Restaurant:</strong> {{ selectedOrder.restaurantName }}</p>
+            <p><strong>Order Date:</strong> {{ selectedOrder.orderDate | date:'medium' }}</p>
+            <p><strong>Status:</strong> <span class="status-badge" [ngClass]="'status-' + selectedOrder.status.toLowerCase()">{{ selectedOrder.status }}</span></p>
+          </div>
+
+          <div class="info-group">
+            <h4>Payment & Delivery</h4>
+            <p><strong>Payment Method:</strong> {{ selectedOrder.paymentMethod || 'Not specified' }}</p>
+            <p><strong>Delivery Instructions:</strong> {{ selectedOrder.deliveryInstructions || 'None' }}</p>
+          </div>
+        </div>
+
+        <div class="order-items">
+          <h4>Order Items</h4>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of selectedOrder.orderItems">
+                <td>{{ item.dishName }}</td>
+                <td>{{ item.unitPrice | currency }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.totalPrice | currency }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="3" class="total-label">Total Amount</td>
+                <td>{{ selectedOrder.totalAmount | currency }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="status-update">
+          <h4>Update Status</h4>
+          <div class="status-buttons">
+            <button *ngIf="selectedOrder.status !== 'Pending'" (click)="updateOrderStatus(selectedOrder, 'Pending')" class="status-btn status-pending">Pending</button>
+            <button *ngIf="selectedOrder.status !== 'Processing'" (click)="updateOrderStatus(selectedOrder, 'Processing')" class="status-btn status-processing">Processing</button>
+            <button *ngIf="selectedOrder.status !== 'Delivering'" (click)="updateOrderStatus(selectedOrder, 'Delivering')" class="status-btn status-delivering">Delivering</button>
+            <button *ngIf="selectedOrder.status !== 'Completed'" (click)="updateOrderStatus(selectedOrder, 'Completed')" class="status-btn status-completed">Completed</button>
+            <button *ngIf="selectedOrder.status !== 'Cancelled'" (click)="updateOrderStatus(selectedOrder, 'Cancelled')" class="status-btn status-cancelled">Cancelled</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button (click)="closeOrderDetails()" class="close-btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+</div> 

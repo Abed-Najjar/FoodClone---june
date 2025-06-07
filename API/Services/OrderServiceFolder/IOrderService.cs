@@ -15,5 +15,6 @@ namespace API.Services.OrderServiceFolder
         Task<AppResponse<List<OrderDto>>> GetOrdersByEmployeeAsync(int employeeId);
         Task<AppResponse<bool>> UpdateOrderStatusAsync(int id, string status);
         Task<AppResponse<OrderDto>> CreateOrderAsync(OrderCreateDto orderCreateDto, int userId);
+        Task<AppResponse<bool>> DeleteOrderAsync(int id);
     }
 }

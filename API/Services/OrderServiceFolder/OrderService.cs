@@ -1,6 +1,9 @@
 using API.AppResponse;
 using API.DTOs;
+using API.Models;
 using API.UoW;
+using API.Services.PricingServiceFolder;
+using Microsoft.Extensions.Logging;
 
 namespace API.Services.OrderServiceFolder
 {
@@ -8,11 +11,13 @@ namespace API.Services.OrderServiceFolder
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<OrderService> _logger;
+        private readonly IPricingService _pricingService;
 
-        public OrderService(IUnitOfWork unitOfWork, ILogger<OrderService> logger)
+        public OrderService(IUnitOfWork unitOfWork, ILogger<OrderService> logger, IPricingService pricingService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _pricingService = pricingService;
         }
 
         public async Task<AppResponse<List<OrderDto>>> GetAllOrdersAsync()
@@ -21,7 +26,9 @@ namespace API.Services.OrderServiceFolder
             {
                 _logger.LogInformation("GetAllOrdersAsync called");
 
-                var orders = await _unitOfWork.OrderRepository.GetAllOrdersAsync();                if (orders == null || !orders.Any())
+                var orders = await _unitOfWork.OrderRepository.GetAllOrdersAsync();
+
+                if (orders == null || !orders.Any())
                 {
                     return new AppResponse<List<OrderDto>>(null, "No orders found.", 200, false);
                 }
@@ -35,10 +42,10 @@ namespace API.Services.OrderServiceFolder
                     Status = o.Status,
                     PaymentMethod = o.PaymentMethod,
                     OrderDate = o.CreatedAt,
-                    UserName = o.User?.UserName ?? "Unknown",
+                    UserName = o.User != null ? $"{o.User.FirstName} {o.User.LastName}" : "Unknown",
                     RestaurantName = o.Restaurant?.Name ?? "Unknown",
                     EmployeeId = o.EmployeeId ?? 0,
-                    EmployeeName = o.Employee?.UserName ?? "Not Assigned",
+                    EmployeeName = o.Employee != null ? $"{o.Employee.FirstName} {o.Employee.LastName}" : "Not Assigned",
                     DeliveryAddressId = o.DeliveryAddressId,
                     DeliveryAddress = o.DeliveryAddress?.FormattedAddress ?? "",
                     DeliveryInstructions = o.DeliveryInstructions ?? "",
@@ -84,10 +91,10 @@ namespace API.Services.OrderServiceFolder
                     Status = order.Status,
                     PaymentMethod = order.PaymentMethod,
                     OrderDate = order.CreatedAt,
-                    UserName = order.User?.UserName ?? "Unknown",
+                    UserName = order.User != null ? $"{order.User.FirstName} {order.User.LastName}" : "Unknown",
                     RestaurantName = order.Restaurant?.Name ?? "Unknown",
                     EmployeeId = order.EmployeeId ?? 0,
-                    EmployeeName = order.Employee?.UserName ?? "Not Assigned",
+                    EmployeeName = order.Employee != null ? $"{order.Employee.FirstName} {order.Employee.LastName}" : "Not Assigned",
                     OrderItems = order.OrderItems?.Select(oi => new OrderItemDto
                     {
                         Id = oi.Id,
@@ -130,10 +137,10 @@ namespace API.Services.OrderServiceFolder
                     Status = o.Status,
                     PaymentMethod = o.PaymentMethod,
                     OrderDate = o.CreatedAt,
-                    UserName = o.User?.UserName ?? "Unknown",
+                    UserName = o.User != null ? $"{o.User.FirstName} {o.User.LastName}" : "Unknown",
                     RestaurantName = o.Restaurant?.Name ?? "Unknown",
                     EmployeeId = o.EmployeeId ?? 0,
-                    EmployeeName = o.Employee?.UserName ?? "Not Assigned",
+                    EmployeeName = o.Employee != null ? $"{o.Employee.FirstName} {o.Employee.LastName}" : "Not Assigned",
                     OrderItems = o.OrderItems?.Select(oi => new OrderItemDto
                     {
                         Id = oi.Id,
@@ -176,10 +183,10 @@ namespace API.Services.OrderServiceFolder
                     Status = o.Status,
                     PaymentMethod = o.PaymentMethod,
                     OrderDate = o.CreatedAt,
-                    UserName = o.User?.UserName ?? "Unknown",
+                    UserName = o.User != null ? $"{o.User.FirstName} {o.User.LastName}" : "Unknown",
                     RestaurantName = o.Restaurant?.Name ?? "Unknown",
                     EmployeeId = o.EmployeeId ?? 0,
-                    EmployeeName = o.Employee?.UserName ?? "Not Assigned",
+                    EmployeeName = o.Employee != null ? $"{o.Employee.FirstName} {o.Employee.LastName}" : "Not Assigned",
                     OrderItems = o.OrderItems?.Select(oi => new OrderItemDto
                     {
                         Id = oi.Id,
@@ -222,10 +229,10 @@ namespace API.Services.OrderServiceFolder
                     Status = o.Status,
                     PaymentMethod = o.PaymentMethod,
                     OrderDate = o.CreatedAt,
-                    UserName = o.User?.UserName ?? "Unknown",
+                    UserName = o.User != null ? $"{o.User.FirstName} {o.User.LastName}" : "Unknown",
                     RestaurantName = o.Restaurant?.Name ?? "Unknown",
                     EmployeeId = o.EmployeeId ?? 0,
-                    EmployeeName = o.Employee?.UserName ?? "Not Assigned",
+                    EmployeeName = o.Employee != null ? $"{o.Employee.FirstName} {o.Employee.LastName}" : "Not Assigned",
                     OrderItems = o.OrderItems?.Select(oi => new OrderItemDto
                     {
                         Id = oi.Id,
@@ -270,6 +277,30 @@ namespace API.Services.OrderServiceFolder
             }
         }
 
+        public async Task<AppResponse<bool>> DeleteOrderAsync(int id)
+        {
+            try
+            {
+                _logger.LogInformation($"DeleteOrderAsync called for order ID: {id}");
+
+                var result = await _unitOfWork.OrderRepository.DeleteOrderAsync(id);
+
+                if (!result)
+                {
+                    return new AppResponse<bool>(false, "Order not found or failed to delete.", 404, false);
+                }
+
+                await _unitOfWork.CompleteAsync();
+
+                return new AppResponse<bool>(true, "Order deleted successfully.", 200, true);
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred while deleting order with ID: {id}");
+                return new AppResponse<bool>(false, ex.Message, 500, false);
+            }
+        }
+
         public async Task<AppResponse<OrderDto>> CreateOrderAsync(OrderCreateDto orderCreateDto, int userId)
         {
             try
@@ -295,94 +326,74 @@ namespace API.Services.OrderServiceFolder
                     return new AppResponse<OrderDto>(null, "Restaurant is currently closed.", 400, false);
                 }
 
-                var orderItems = new List<Models.OrderDish>();
-                decimal subtotal = 0;
-
-                // Validate each order item and calculate subtotal
-                foreach (var item in orderCreateDto.OrderItems)
+                // Convert order items to pricing items format for validation and calculation
+                var pricingItems = orderCreateDto.OrderItems.Select(item => new PricingItemDto
                 {
-                    var dish = await _unitOfWork.OrderRepository.GetDishByIdAsync(item.DishId);
-                    if (dish == null)
-                    {
-                        return new AppResponse<OrderDto>(null, $"Dish with ID {item.DishId} not found.", 404, false);
-                    }
+                    DishId = item.DishId,
+                    Quantity = item.Quantity
+                }).ToList();
 
-                    if (!dish.IsAvailable)
-                    {
-                        return new AppResponse<OrderDto>(null, $"Dish '{dish.Name}' is currently unavailable.", 400, false);
-                    }
+                // Use the centralized pricing service for consistent calculation
+                var pricingResult = await _pricingService.CalculateOrderTotalsAsync(
+                    pricingItems,
+                    orderCreateDto.RestaurantId,
+                    null, // No promo code for now (can be added later)
+                    orderCreateDto.DeliveryAddressId,
+                    userId
+                );
 
-                    if (dish.RestaurantId != orderCreateDto.RestaurantId)
-                    {
-                        return new AppResponse<OrderDto>(null, $"Dish '{dish.Name}' does not belong to the selected restaurant.", 400, false);
-                    }
-
-                    if (item.Quantity <= 0)
-                    {
-                        return new AppResponse<OrderDto>(null, $"Invalid quantity for dish '{dish.Name}'.", 400, false);
-                    }
-
-                    var orderItem = new Models.OrderDish
-                    {
-                        DishId = item.DishId,
-                        Quantity = item.Quantity,
-                        UnitPrice = dish.Price
-                    };
-
-                    orderItems.Add(orderItem);
-                    subtotal += dish.Price * item.Quantity;
-                }                // Calculate order totals
-                decimal deliveryFee = restaurant.DeliveryFee;
-                decimal taxRate = 0.15m; // 15% tax rate - could be configurable
-                decimal taxAmount = subtotal * taxRate;
-                decimal totalAmount = subtotal + deliveryFee + taxAmount;
-
-                // Validate delivery address if provided
-                string? deliveryAddressText = null;
-                if (orderCreateDto.DeliveryAddressId.HasValue)
+                // Handle pricing service errors
+                if (!pricingResult.IsValid)
                 {
-                    var address = await _unitOfWork.OrderRepository.GetAddressByIdAsync(orderCreateDto.DeliveryAddressId.Value, userId);
-                    if (address == null)
-                    {
-                        return new AppResponse<OrderDto>(null, "Invalid delivery address selected.", 400, false);
-                    }
-                    deliveryAddressText = address.FormattedAddress;
+                    _logger.LogWarning($"Pricing calculation failed: {pricingResult.ErrorMessage}");
+                    return new AppResponse<OrderDto>(null, pricingResult.ErrorMessage, 400, false);
                 }
+
+                // Create order items using validated data from pricing service
+                var orderItems = pricingResult.ItemDetails.Select(item => new Models.OrderDish
+                {
+                    DishId = item.DishId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice
+                }).ToList();
+
+                decimal totalAmount = pricingResult.GrandTotal;
 
                 // Create the order
                 var order = new Models.Order
                 {
                     UserId = userId,
                     RestaurantId = orderCreateDto.RestaurantId,
-                    PaymentMethod = orderCreateDto.PaymentMethod ?? "Cash",
-                    Status = "Pending",
                     TotalAmount = totalAmount,
-                    CreatedAt = DateTime.UtcNow,
+                    Status = "Pending",
+                    PaymentMethod = orderCreateDto.PaymentMethod,
                     DeliveryAddressId = orderCreateDto.DeliveryAddressId,
                     DeliveryInstructions = orderCreateDto.DeliveryInstructions,
+                    CreatedAt = DateTime.UtcNow,
                     OrderItems = orderItems
                 };
 
                 // Save the order
                 var createdOrder = await _unitOfWork.OrderRepository.CreateOrderAsync(order);
-                await _unitOfWork.CompleteAsync();                // Convert to DTO
+                await _unitOfWork.CompleteAsync();
+
+                // Fetch the created order with related data for response
+                var orderWithDetails = await _unitOfWork.OrderRepository.GetOrderByIdAsync(createdOrder.Id);
+
                 var orderDto = new OrderDto
                 {
-                    Id = createdOrder.Id,
-                    UserId = createdOrder.UserId,
-                    RestaurantId = createdOrder.RestaurantId,
-                    TotalAmount = createdOrder.TotalAmount,
-                    Status = createdOrder.Status,
-                    PaymentMethod = createdOrder.PaymentMethod,
-                    OrderDate = createdOrder.CreatedAt,
-                    UserName = createdOrder.User?.UserName ?? "Unknown",
-                    RestaurantName = createdOrder.Restaurant?.Name ?? restaurant.Name,
-                    EmployeeId = createdOrder.EmployeeId ?? 0,
-                    EmployeeName = createdOrder.Employee?.UserName ?? "Not Assigned",
-                    DeliveryAddressId = createdOrder.DeliveryAddressId,
-                    DeliveryAddress = deliveryAddressText ?? "",
-                    DeliveryInstructions = createdOrder.DeliveryInstructions ?? "",
-                    OrderItems = createdOrder.OrderItems?.Select(oi => new OrderItemDto
+                    Id = orderWithDetails.Id,
+                    UserId = orderWithDetails.UserId,
+                    RestaurantId = orderWithDetails.RestaurantId,
+                    TotalAmount = orderWithDetails.TotalAmount,
+                    Status = orderWithDetails.Status,
+                    PaymentMethod = orderWithDetails.PaymentMethod,
+                    OrderDate = orderWithDetails.CreatedAt,
+                    UserName = orderWithDetails.User != null ? $"{orderWithDetails.User.FirstName} {orderWithDetails.User.LastName}" : "Unknown",
+                    RestaurantName = orderWithDetails.Restaurant?.Name ?? "Unknown",
+                    EmployeeId = orderWithDetails.EmployeeId ?? 0,
+                    EmployeeName = orderWithDetails.Employee != null ? $"{orderWithDetails.Employee.FirstName} {orderWithDetails.Employee.LastName}" : "Not Assigned",
+                    OrderItems = orderWithDetails.OrderItems?.Select(oi => new OrderItemDto
                     {
                         Id = oi.Id,
                         DishId = oi.DishId,
@@ -393,10 +404,9 @@ namespace API.Services.OrderServiceFolder
                     }).ToList() ?? new List<OrderItemDto>()
                 };
 
-                _logger.LogInformation($"Order created successfully with ID: {createdOrder.Id}");
                 return new AppResponse<OrderDto>(orderDto, "Order created successfully.", 201, true);
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 _logger.LogError(ex, $"Error occurred while creating order for user ID: {userId}");
                 return new AppResponse<OrderDto>(null, ex.Message, 500, false);

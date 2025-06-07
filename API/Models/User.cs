@@ -6,8 +6,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace API.Models
 {
     public class User
-    {        public int Id { get; set; }
-        public string UserName { get; set; } = string.Empty;
+    {   
+        public int Id { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
         public List<string> Address { get; set; } = new List<string>(); // Legacy field - will be deprecated
         public string PhoneNumber { get; set; } = string.Empty;
         

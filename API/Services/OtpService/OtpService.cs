@@ -220,9 +220,10 @@ namespace API.Services.OtpService
                 // Create new user
                 var user = new User
                 {
-                    UserName = dto.Username,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
                     Email = dto.Email,
-                    Address = dto.Address,
+                    Address = dto.Address ?? new List<string>(),
                     PasswordHash = await _argonHashing.HashPasswordAsync(dto.Password),
                     CreatedAt = DateTime.UtcNow
                 };
@@ -234,7 +235,8 @@ namespace API.Services.OtpService
                 var userDto = new UserDto
                 {
                     Id = user.Id,
-                    Username = user.UserName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
                     Email = user.Email,
                     Rolename = user.Role.ToString(),
                     Token = _tokenService.CreateToken(user),

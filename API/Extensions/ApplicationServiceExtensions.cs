@@ -10,6 +10,7 @@ using API.Services.OtpService;
 using API.Services.TokenServiceFolder;
 using API.Services.TokenServiceFolder.AuthService;
 using API.Services.TokenServiceFolder.AuthServiceFolder;
+using API.Services.PricingServiceFolder;
 using API.UoW;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,7 @@ namespace API.Extensions
             services.AddTransient<IRestaurantManagement, RestaurantManagement>();
             services.AddTransient<ICategoryManagementService, CategoryManagementService>();
             services.AddTransient<ICartService, CartService>();
+            services.AddTransient<IPricingService, PricingService>();
             services.AddTransient<ICloudinaryService, CloudinaryService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<IOtpService, OtpService>();

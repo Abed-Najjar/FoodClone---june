@@ -59,7 +59,8 @@ namespace API.Controllers
             {
                 // Debug logging
                 Console.WriteLine($"Received registration data:");
-                Console.WriteLine($"  Username: {registrationDto?.Username ?? "[NULL]"}");
+                Console.WriteLine($"  FirstName: {registrationDto?.FirstName ?? "[NULL]"}");
+                Console.WriteLine($"  LastName: {registrationDto?.LastName ?? "[NULL]"}");
                 Console.WriteLine($"  Email: {registrationDto?.Email ?? "[NULL]"}");
                 Console.WriteLine($"  Password: {(string.IsNullOrEmpty(registrationDto?.Password) ? "[EMPTY]" : "[SET]")}");
                 Console.WriteLine($"  Address: [{string.Join(", ", registrationDto?.Address ?? new List<string>())}]");

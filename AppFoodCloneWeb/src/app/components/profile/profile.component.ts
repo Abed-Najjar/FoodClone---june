@@ -37,7 +37,8 @@ export class ProfileComponent implements OnInit {
     private router: Router
   ) {
     this.profileForm = this.formBuilder.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.pattern(/^\+?[\d\s\-\(\)]+$/)]],
       dateOfBirth: [''],
@@ -91,7 +92,8 @@ export class ProfileComponent implements OnInit {
 
     // Load profile data into form
     this.profileForm.patchValue({
-      username: this.currentUser.username || '',
+      firstName: this.currentUser.firstName || '',
+      lastName: this.currentUser.lastName || '',
       email: this.currentUser.email || '',
       phone: this.currentUser.phoneNumber || '',
       dateOfBirth: this.currentUser.dateOfBirth || '',
@@ -125,14 +127,15 @@ export class ProfileComponent implements OnInit {
     }
     
     // Fallback to generated avatar if no profile image
-    if (this.currentUser && this.currentUser.username) {
-      // Generate a consistent avatar based on username
+    if (this.currentUser && this.currentUser.firstName) {
+      // Generate a consistent avatar based on first and last name
       const avatarColors = [
         '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
         '#1abc9c', '#34495e', '#e67e22', '#95a5a6', '#27ae60'
       ];
-      const colorIndex = this.currentUser.username.charCodeAt(0) % avatarColors.length;
-      const initials = this.getInitials(this.currentUser.username);
+      const fullName = `${this.currentUser.firstName} ${this.currentUser.lastName}`;
+      const colorIndex = this.currentUser.firstName.charCodeAt(0) % avatarColors.length;
+      const initials = this.getInitials(fullName);
       
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${avatarColors[colorIndex].substring(1)}&color=fff&size=200&font-size=0.6`;
     }
@@ -208,7 +211,8 @@ export class ProfileComponent implements OnInit {
       
       // Prepare profile update data
       const profileUpdateData: UserProfileUpdate = {
-        username: formData.username,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone,
         dateOfBirth: formData.dateOfBirth,
@@ -314,7 +318,8 @@ export class ProfileComponent implements OnInit {
   }
 
   // Getter methods for form validation
-  get username() { return this.profileForm.get('username'); }
+  get firstName() { return this.profileForm.get('firstName'); }
+  get lastName() { return this.profileForm.get('lastName'); }
   get email() { return this.profileForm.get('email'); }
   get phone() { return this.profileForm.get('phone'); }
   get bio() { return this.profileForm.get('bio'); }

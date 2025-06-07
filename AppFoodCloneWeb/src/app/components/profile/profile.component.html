@@ -26,7 +26,7 @@
           </div>
         </div>
         <div class="profile-info" *ngIf="!isEditing">
-          <h1 class="profile-name">{{ currentUser?.username || 'User' }}</h1>
+          <h1 class="profile-name">{{ currentUser && currentUser.firstName && currentUser.lastName ? currentUser.firstName + ' ' + currentUser.lastName : 'User' }}</h1>
           <p class="profile-email">{{ currentUser?.email }}</p>
           <div class="profile-stats">
             <div class="stat-item">
@@ -86,17 +86,31 @@
       <div class="card-body">
         <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" *ngIf="isEditing">
           <div class="form-grid">
-            <!-- Username -->
+            <!-- First Name -->
             <div class="form-group">
-              <label for="username" class="form-label required">Username</label>
+              <label for="firstName" class="form-label required">First Name</label>
               <input type="text" 
-                     id="username" 
+                     id="firstName" 
                      class="form-control" 
-                     formControlName="username"
-                     [class.is-invalid]="hasError('username', 'required') || hasError('username', 'minlength')"
-                     placeholder="Enter your username">
-              <div class="invalid-feedback" *ngIf="username?.errors && username?.touched">
-                {{ getErrorMessage('username') }}
+                     formControlName="firstName"
+                     [class.is-invalid]="hasError('firstName', 'required') || hasError('firstName', 'minlength')"
+                     placeholder="Enter your first name">
+              <div class="invalid-feedback" *ngIf="firstName?.errors && firstName?.touched">
+                {{ getErrorMessage('firstName') }}
+              </div>
+            </div>
+
+            <!-- Last Name -->
+            <div class="form-group">
+              <label for="lastName" class="form-label required">Last Name</label>
+              <input type="text" 
+                     id="lastName" 
+                     class="form-control" 
+                     formControlName="lastName"
+                     [class.is-invalid]="hasError('lastName', 'required') || hasError('lastName', 'minlength')"
+                     placeholder="Enter your last name">
+              <div class="invalid-feedback" *ngIf="lastName?.errors && lastName?.touched">
+                {{ getErrorMessage('lastName') }}
               </div>
             </div>
 
@@ -180,8 +194,13 @@
         <div class="profile-view" *ngIf="!isEditing">
           <div class="info-grid">
             <div class="info-item">
-              <label class="info-label">Username</label>
-              <span class="info-value">{{ currentUser?.username || 'Not provided' }}</span>
+              <label class="info-label">First Name</label>
+              <span class="info-value">{{ currentUser?.firstName || 'Not provided' }}</span>
+            </div>
+
+            <div class="info-item">
+              <label class="info-label">Last Name</label>
+              <span class="info-value">{{ currentUser?.lastName || 'Not provided' }}</span>
             </div>
 
             <div class="info-item">

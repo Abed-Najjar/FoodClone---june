@@ -34,11 +34,12 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.registerForm = this.formBuilder.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
-      address: ['', Validators.required]
+      address: ['']
     }, {
       validators: this.passwordMatchValidator
     });
@@ -129,19 +130,20 @@ export class RegisterComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    // Always send address as an array (even if single value)
+    // Handle optional address - send as array if provided, empty array if not
     let addressValue = this.f['address'].value;
     let addressArray: string[];
     if (Array.isArray(addressValue)) {
-      addressArray = addressValue;
-    } else if (typeof addressValue === 'string') {
-      addressArray = [addressValue];
+      addressArray = addressValue.filter(addr => addr.trim().length > 0);
+    } else if (typeof addressValue === 'string' && addressValue.trim().length > 0) {
+      addressArray = [addressValue.trim()];
     } else {
       addressArray = [];
     }
 
     const user: UserRegister = {
-      username: this.f['username'].value.trim(),
+      firstName: this.f['firstName'].value.trim(),
+      lastName: this.f['lastName'].value.trim(),
       email: this.f['email'].value.trim().toLowerCase(),
       password: this.f['password'].value,
       address: addressArray
@@ -149,7 +151,8 @@ export class RegisterComponent implements OnInit {
 
     // Debug logging
     console.log('Registration data being sent:', {
-      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       password: user.password ? '[PASSWORD SET]' : '[NO PASSWORD]',
       address: user.address,

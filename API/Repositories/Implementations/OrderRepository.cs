@@ -96,6 +96,22 @@ namespace API.Repositories.Implementations
             return true;
         }
 
+        public async Task<bool> DeleteOrderAsync(int id)
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == id);
+            
+            if (order == null)
+            {
+                return false;
+            }
+
+            _context.Orders.Remove(order);
+            
+            return true;
+        }
+
         public async Task<Order> CreateOrderAsync(Order order)
         {
             await _context.Orders.AddAsync(order);

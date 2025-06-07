@@ -27,7 +27,8 @@ export interface OtpResponse {
 }
 
 export interface RegistrationWithOtpRequest {
-  username: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   address: string[];
