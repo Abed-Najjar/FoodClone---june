@@ -386,8 +386,8 @@ export class ProfileComponent implements OnInit {
   }
 
   getFormattedMemberSince(): string {
-    if (this.currentUser?.created) {
-      const date = new Date(this.currentUser.created);
+    if (this.currentUser?.createdat) {
+      const date = new Date(this.currentUser.createdat);
       return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     }
     return 'Recently';

@@ -198,6 +198,37 @@ export class CmsService {
     return this.http.get<AppResponse<PagedResult<User>>>(`${this.baseUrl}/users`, { params });
   }
 
+  // Get all users including admins using UserManagement endpoint
+  getAllUsersWithAllRoles(pagination?: PaginationParams): Observable<AppResponse<PagedResult<User>>> {
+    let params = new HttpParams();
+    if (pagination) {
+      params = params.set('pageNumber', pagination.pageNumber.toString());
+      params = params.set('pageSize', pagination.pageSize.toString());
+    }
+    
+    return this.http.get<AppResponse<PagedResult<User>>>(`${environment.apiUrl}/UserManagement/getAllIncludingAdmins`, { params });
+  }
+
+  updateUser(id: number, user: any): Observable<AppResponse<User>> {
+    return this.http.put<AppResponse<User>>(`${environment.apiUrl}/UserManagement/update/${id}`, user);
+  }
+
+  deleteUser(id: number): Observable<AppResponse<boolean>> {
+    return this.http.delete<AppResponse<boolean>>(`${environment.apiUrl}/UserManagement/delete/${id}`);
+  }
+
+  getUserById(id: number): Observable<AppResponse<User>> {
+    return this.http.get<AppResponse<User>>(`${environment.apiUrl}/UserManagement/get/${id}`);
+  }
+
+  createUser(user: any): Observable<AppResponse<User>> {
+    return this.http.post<AppResponse<User>>(`${environment.apiUrl}/UserManagement/create`, user);
+  }
+
+  toggleUserStatus(userId: number): Observable<AppResponse<boolean>> {
+    return this.http.patch<AppResponse<boolean>>(`${environment.apiUrl}/UserManagement/toggleStatus/${userId}`, {});
+  }
+
   // Orders
   getAllOrders(pagination?: PaginationParams): Observable<AppResponse<PagedResult<Order>>> {
     let params = new HttpParams();
@@ -210,7 +241,7 @@ export class CmsService {
   }
 
   updateOrderStatus(orderId: number, status: string): Observable<AppResponse<boolean>> {
-    return this.http.put<AppResponse<boolean>>(`${this.baseUrl}/orders/${orderId}/status`, status, {
+    return this.http.put<AppResponse<boolean>>(`${this.baseUrl}/orders/${orderId}/status`, JSON.stringify(status), {
       headers: { 'Content-Type': 'application/json' }
     });
   }

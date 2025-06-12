@@ -11,7 +11,8 @@ namespace API.UoW
         IUserRepository userRepository,
         IOrderRepository orderRepository,
         IAddressRepository addressRepository,
-        ICartRepository cartRepository) : IUnitOfWork
+        ICartRepository cartRepository,
+        IOtpRepository otpRepository) : IUnitOfWork
     {
         private readonly AppDbContext _context = context;
 
@@ -22,6 +23,7 @@ namespace API.UoW
         public IOrderRepository OrderRepository => orderRepository;
         public IAddressRepository AddressRepository => addressRepository;
         public ICartRepository CartRepository => cartRepository;
+        public IOtpRepository OtpRepository => otpRepository;
 
         public async Task<int> CompleteAsync()
         {

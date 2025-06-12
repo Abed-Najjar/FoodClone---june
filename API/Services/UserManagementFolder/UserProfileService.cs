@@ -48,7 +48,9 @@ public class UserProfileService : IUserProfileService
                 Gender = user.Gender,
                 Bio = user.Bio,
                 LastLogin = user.LastLogin,
-                ProfileImageUrl = user.ImageUrl
+                ProfileImageUrl = user.ImageUrl,
+                Status = user.Status.ToString(),
+                IsActive = user.Status == API.Enums.UserStatus.Active
             };
 
             return new AppResponse<UserDto>(userDto, "User profile retrieved successfully", 200, true);
@@ -125,7 +127,9 @@ public class UserProfileService : IUserProfileService
                 Gender = user.Gender,
                 Bio = user.Bio,
                 LastLogin = user.LastLogin,
-                ProfileImageUrl = user.ImageUrl
+                ProfileImageUrl = user.ImageUrl,
+                Status = user.Status.ToString(),
+                IsActive = user.Status == API.Enums.UserStatus.Active
             };
 
             return new AppResponse<UserDto>(userDto, "User profile updated successfully", 200, true);

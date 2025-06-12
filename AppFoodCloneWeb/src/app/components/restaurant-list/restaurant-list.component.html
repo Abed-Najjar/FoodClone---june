@@ -38,6 +38,19 @@
 
   <!-- Restaurant list -->
   <div class="row">
+    <!-- Results info -->
+    <div *ngIf="restaurantsPagedResult && !loading" class="col-12 mb-3">
+      <p class="text-muted">
+        Showing 
+        <strong>{{ (restaurantsPagedResult.pageNumber - 1) * restaurantsPagedResult.pageSize + 1 }}</strong>
+        -
+        <strong>{{ Math.min(restaurantsPagedResult.pageNumber * restaurantsPagedResult.pageSize, restaurantsPagedResult.totalItems) }}</strong>
+        of 
+        <strong>{{ restaurantsPagedResult.totalItems }}</strong>
+        restaurants
+      </p>
+    </div>
+
     <div *ngIf="loading" class="col-12 text-center py-5">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
@@ -46,7 +59,9 @@
 
     <div *ngIf="error" class="col-12">
       <div class="alert alert-danger">{{ error }}</div>
-    </div>    <div *ngFor="let restaurant of filteredRestaurants" class="col-md-6 col-xl-4 mb-4">
+    </div>
+
+    <div *ngFor="let restaurant of filteredRestaurants" class="col-md-6 col-xl-4 mb-4">
       <div class="card h-100 restaurant-card" [ngClass]="{'closed': !restaurant.isOpen}">
         <div class="restaurant-card-header">
           <!-- Use the larger range of restaurant cover images with fallback to placeholder -->
@@ -98,5 +113,14 @@
       <p class="text-muted">No restaurants found matching your search criteria.</p>
       <button class="btn btn-outline-primary" (click)="resetFilters()">Clear filters</button>
     </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="d-flex justify-content-center mt-4">
+    <app-pagination 
+      *ngIf="restaurantsPagedResult && !loading && filteredRestaurants.length > 0"
+      [pagedResult]="restaurantsPagedResult"
+      (pageChanged)="onPageChanged($event)">
+    </app-pagination>
   </div>
 </div>

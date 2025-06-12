@@ -43,7 +43,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return new AppResponse<UserDto>(null, "Internal server error", 500, false);
+                return new AppResponse<UserDto>(null, ex.Message, 500, false);
             }
         }
 
@@ -76,7 +76,6 @@ namespace API.Controllers
                 // Log the full exception for debugging
                 Console.WriteLine($"Profile Update Error: {ex.Message}");
                 Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                
                 return new AppResponse<UserDto>(null, $"Internal server error: {ex.Message}", 500, false);
             }
         }

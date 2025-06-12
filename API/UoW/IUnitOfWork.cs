@@ -11,6 +11,7 @@ namespace API.UoW
         IDishRepository DishRepository { get; }
         ICategoryRepository CategoryRepository { get; }
         ICartRepository CartRepository { get; }
+        IOtpRepository OtpRepository { get; }
         Task<int> CompleteAsync();
     }
 }

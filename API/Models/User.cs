@@ -23,6 +23,7 @@ namespace API.Models
         public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
         public string ImageUrl { get; set; } = string.Empty;
         public Roles Role { get; set; } = Roles.User;
+        public UserStatus Status { get; set; } = UserStatus.Active;
         public string Email { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -11,8 +11,9 @@ export interface User {
   gender?: string;
   bio?: string;
   profileImageUrl?: string;
-  created?: Date;
+  createdat?: Date;
   lastLogin?: Date;
+  status?: string;
   isActive?: boolean;
 }
 
@@ -44,4 +45,14 @@ export interface PasswordChangeRequest {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
+}
+
+export interface UserInputDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role?: string;
+  password: string;
+  address?: string[];
+  isActive?: boolean;
 }

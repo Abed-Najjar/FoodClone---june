@@ -31,7 +31,9 @@ public class CategoryRepository : ICategoryRepository
     public async Task<List<Category>> GetAllCategoriesAsync()
     {
         return await _context.Categories.ToListAsync();
-    }    public async Task<List<Category>> GetCategoriesByRestaurantAsync(int restaurantId)
+    }    
+    
+    public async Task<List<Category>> GetCategoriesByRestaurantAsync(int restaurantId)
     {
         return await _context.RestaurantsCategories
             .Where(rc => rc.RestaurantId == restaurantId)
@@ -45,7 +47,9 @@ public class CategoryRepository : ICategoryRepository
     {
         await _context.Categories.AddAsync(category);
         return category;
-    }    public Task<Category> UpdateCategoryAsync(Category category)
+    }    
+    
+    public Task<Category> UpdateCategoryAsync(Category category)
     {
         _context.Categories.Update(category);
         return Task.FromResult(category);

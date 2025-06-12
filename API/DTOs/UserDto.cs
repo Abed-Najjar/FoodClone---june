@@ -24,6 +24,7 @@ namespace API.DTOs
         [StringLength(100, MinimumLength = 6)]
         public required string Password { get; set; } = string.Empty;
         public List<string>? Address { get; set; }
+        public bool? IsActive { get; set; } = true;
     }
 
     // DTO for user profile update
@@ -127,6 +128,10 @@ namespace API.DTOs
         public string? Bio { get; set; }
         public DateTime? LastLogin { get; set; }
         public string? ProfileImageUrl { get; set; }
+        
+        // Status fields
+        public string Status { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
     }
 
     

@@ -12,7 +12,9 @@ namespace API.Repositories.Implementations
         public OrderRepository(AppDbContext context)
         {
             _context = context;
-        }        public async Task<List<Order>> GetAllOrdersAsync()
+        }        
+        
+        public async Task<List<Order>> GetAllOrdersAsync()
         {
             var orders = await _context.Orders
                 .Include(o => o.User)
@@ -24,7 +26,9 @@ namespace API.Repositories.Implementations
                 .ToListAsync();
 
             return orders;
-        }        public async Task<Order?> GetOrderByIdAsync(int id)
+        }        
+        
+        public async Task<Order?> GetOrderByIdAsync(int id)
         {
             var order = await _context.Orders
                 .Include(o => o.User)
@@ -36,7 +40,9 @@ namespace API.Repositories.Implementations
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             return order;
-        }        public async Task<List<Order>> GetOrdersByUserAsync(int userId)
+        }        
+        
+        public async Task<List<Order>> GetOrdersByUserAsync(int userId)
         {
             var orders = await _context.Orders
                 .Where(o => o.UserId == userId)
@@ -56,7 +62,9 @@ namespace API.Repositories.Implementations
             return await _context.Orders
                 .Where(o => o.UserId == userId)
                 .CountAsync();
-        }        public async Task<List<Order>> GetOrdersByRestaurantAsync(int restaurantId)
+        }        
+        
+        public async Task<List<Order>> GetOrdersByRestaurantAsync(int restaurantId)
         {
             var orders = await _context.Orders
                 .Where(o => o.RestaurantId == restaurantId)
@@ -69,7 +77,9 @@ namespace API.Repositories.Implementations
                 .ToListAsync();
 
             return orders;
-        }        public async Task<List<Order>> GetOrdersByEmployeeAsync(int employeeId)
+        }        
+        
+        public async Task<List<Order>> GetOrdersByEmployeeAsync(int employeeId)
         {
             var orders = await _context.Orders
                 .Where(o => o.EmployeeId == employeeId)
@@ -82,7 +92,9 @@ namespace API.Repositories.Implementations
                 .ToListAsync();
 
             return orders;
-        }public async Task<bool> UpdateOrderStatusAsync(int id, string status)
+        }
+        
+        public async Task<bool> UpdateOrderStatusAsync(int id, string status)
         {
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
@@ -126,7 +138,9 @@ namespace API.Repositories.Implementations
             return await _context.Dishes
                 .Include(d => d.Restaurant)
                 .FirstOrDefaultAsync(d => d.Id == dishId);
-        }        public async Task<Restaurant?> GetRestaurantByIdAsync(int restaurantId)
+        }        
+        
+        public async Task<Restaurant?> GetRestaurantByIdAsync(int restaurantId)
         {
             return await _context.Restaurants
                 .FirstOrDefaultAsync(r => r.Id == restaurantId);

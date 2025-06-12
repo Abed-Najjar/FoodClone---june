@@ -28,7 +28,9 @@ public class DishRepository : IDishRepository
             throw new Exception($"Dish with id {id} not found");
         }
         return result;
-    }    public async Task<List<Dish>> GetDishesByRestaurantIdAsync(int restaurantId)
+    }    
+    
+    public async Task<List<Dish>> GetDishesByRestaurantIdAsync(int restaurantId)
     {
         var result = await _context.Dishes
             .Include(d => d.Restaurant)
@@ -84,7 +86,9 @@ public class DishRepository : IDishRepository
             .ToListAsync();
 
         return result;
-    }    public async Task<Dish> UpdateDishAsync(Dish dish)
+    }    
+    
+    public async Task<Dish> UpdateDishAsync(Dish dish)
     {
         var existingDish = await _context.Dishes.FindAsync(dish.Id);
         if (existingDish == null)
@@ -101,7 +105,9 @@ public class DishRepository : IDishRepository
         existingDish.IsAvailable = dish.IsAvailable;
 
         return existingDish;
-    }    public async Task<Dish> DeleteDishAsync(int id)
+    }    
+    
+    public async Task<Dish> DeleteDishAsync(int id)
     {
         var dish = await _context.Dishes.FindAsync(id);
         if (dish == null)

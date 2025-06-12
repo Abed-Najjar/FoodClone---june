@@ -1,3 +1,4 @@
+using API.AppResponse;
 using API.Models;
 using API.UoW;
 using Microsoft.Extensions.Logging;
@@ -22,7 +23,7 @@ namespace API.Services.PricingServiceFolder
             _logger = logger;
         }
 
-        public async Task<PricingCalculationResult> CalculateOrderTotalsAsync(
+        public async Task<AppResponse<PricingCalculationResult>> CalculateOrderTotalsAsync(
             List<PricingItemDto> items, 
             int restaurantId, 
             string? promoCode = null, 
@@ -40,17 +41,13 @@ namespace API.Services.PricingServiceFolder
                 if (restaurant == null)
                 {
                     _logger.LogWarning($"Restaurant not found with ID: {restaurantId}");
-                    result.IsValid = false;
-                    result.ErrorMessage = "Restaurant not found.";
-                    return result;
+                    return new AppResponse<PricingCalculationResult>(null, "Restaurant not found.", 404, false);
                 }
 
                 if (!restaurant.IsOpen)
                 {
                     _logger.LogWarning($"Restaurant {restaurantId} is closed");
-                    result.IsValid = false;
-                    result.ErrorMessage = "Restaurant is currently closed.";
-                    return result;
+                    return new AppResponse<PricingCalculationResult>(null, "Restaurant is currently closed.", 400, false);
                 }
 
                 // Calculate subtotal and validate items
@@ -63,33 +60,25 @@ namespace API.Services.PricingServiceFolder
                     if (dish == null)
                     {
                         _logger.LogWarning($"Dish not found with ID: {item.DishId}");
-                        result.IsValid = false;
-                        result.ErrorMessage = $"Dish with ID {item.DishId} not found.";
-                        return result;
+                        return new AppResponse<PricingCalculationResult>(null, $"Dish with ID {item.DishId} not found.", 404, false);
                     }
 
                     if (!dish.IsAvailable)
                     {
                         _logger.LogWarning($"Dish {dish.Name} is not available");
-                        result.IsValid = false;
-                        result.ErrorMessage = $"Dish '{dish.Name}' is currently unavailable.";
-                        return result;
+                        return new AppResponse<PricingCalculationResult>(null, $"Dish '{dish.Name}' is currently unavailable.", 400, false);
                     }
 
                     if (dish.RestaurantId != restaurantId)
                     {
                         _logger.LogWarning($"Dish {dish.Name} does not belong to restaurant {restaurantId}");
-                        result.IsValid = false;
-                        result.ErrorMessage = $"Dish '{dish.Name}' does not belong to the selected restaurant.";
-                        return result;
+                        return new AppResponse<PricingCalculationResult>(null, $"Dish '{dish.Name}' does not belong to the selected restaurant.", 400, false);
                     }
 
                     if (item.Quantity <= 0 || item.Quantity > 10)
                     {
                         _logger.LogWarning($"Invalid quantity {item.Quantity} for dish {dish.Name}");
-                        result.IsValid = false;
-                        result.ErrorMessage = $"Invalid quantity for dish '{dish.Name}'. Must be between 1 and 10.";
-                        return result;
+                        return new AppResponse<PricingCalculationResult>(null, $"Invalid quantity for dish '{dish.Name}'. Must be between 1 and 10.", 400, false);
                     }
 
                     // Use current database price (security measure)
@@ -111,7 +100,12 @@ namespace API.Services.PricingServiceFolder
                 _logger.LogInformation($"Subtotal calculated: {subtotal:F2} JOD");
 
                 // Calculate delivery fee
-                decimal deliveryFee = await CalculateDeliveryFeeAsync(subtotal, restaurantId);
+                var deliveryFeeResult = await CalculateDeliveryFeeAsync(subtotal, restaurantId);
+                if (!deliveryFeeResult.Success)
+                {
+                    return new AppResponse<PricingCalculationResult>(null, deliveryFeeResult.ErrorMessage, deliveryFeeResult.StatusCode, false);
+                }
+                decimal deliveryFee = deliveryFeeResult.Data;
                 _logger.LogInformation($"Delivery fee calculated: {deliveryFee:F2} JOD");
 
                 // Calculate tax based on subtotal (before discounts)
@@ -129,9 +123,9 @@ namespace API.Services.PricingServiceFolder
                     _logger.LogInformation($"Processing promo code: {promoCode}");
                     var promoResult = await _unitOfWork.CartRepository.GetPromoCodeByCodeAsync(promoCode);
                     
-                                         if (promoResult != null && promoResult.IsActive && 
-                         (promoResult.ExpiryDate == null || promoResult.ExpiryDate >= DateTime.UtcNow) &&
-                         subtotal >= promoResult.MinimumOrderAmount)
+                    if (promoResult != null && promoResult.IsActive && 
+                       (promoResult.ExpiryDate == null || promoResult.ExpiryDate >= DateTime.UtcNow) &&
+                       subtotal >= promoResult.MinimumOrderAmount)
                     {
                         promoCodeApplied = promoCode.ToUpper();
                         promoCodeMessage = promoResult.Description;
@@ -189,20 +183,16 @@ namespace API.Services.PricingServiceFolder
                 result.IsValid = true;
 
                 _logger.LogInformation("Pricing calculation completed successfully");
-                return result;
+                return new AppResponse<PricingCalculationResult>(result, "Pricing calculation completed successfully", 200, true);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error occurred while calculating pricing for restaurant {restaurantId}");
-                return new PricingCalculationResult
-                {
-                    IsValid = false,
-                    ErrorMessage = $"Internal server error: {ex.Message}"
-                };
+                return new AppResponse<PricingCalculationResult>(null, $"Internal server error: {ex.Message}", 500, false);
             }
         }
 
-        public async Task<decimal> CalculateDeliveryFeeAsync(decimal subtotal, int restaurantId)
+        public async Task<AppResponse<decimal>> CalculateDeliveryFeeAsync(decimal subtotal, int restaurantId)
         {
             try
             {
@@ -213,7 +203,7 @@ namespace API.Services.PricingServiceFolder
                 if (subtotal >= FREE_DELIVERY_THRESHOLD)
                 {
                     _logger.LogInformation($"Free delivery applied: subtotal {subtotal:F2} >= threshold {FREE_DELIVERY_THRESHOLD:F2}");
-                    return 0;
+                    return new AppResponse<decimal>(0, "Free delivery applied", 200, true);
                 }
                 
                 // Reduced delivery fee for orders over reduced threshold
@@ -221,18 +211,18 @@ namespace API.Services.PricingServiceFolder
                 {
                     var reducedFee = Math.Min(REDUCED_DELIVERY_FEE, restaurantDeliveryFee);
                     _logger.LogInformation($"Reduced delivery fee applied: {reducedFee:F2} JOD");
-                    return reducedFee;
+                    return new AppResponse<decimal>(reducedFee, "Reduced delivery fee applied", 200, true);
                 }
                 
                 // Use standard delivery fee
                 var standardFee = Math.Max(STANDARD_DELIVERY_FEE, restaurantDeliveryFee);
                 _logger.LogInformation($"Standard delivery fee applied: {standardFee:F2} JOD");
-                return standardFee;
+                return new AppResponse<decimal>(standardFee, "Standard delivery fee applied", 200, true);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error calculating delivery fee for restaurant {restaurantId}");
-                return STANDARD_DELIVERY_FEE; // Fallback to standard fee
+                return new AppResponse<decimal>(STANDARD_DELIVERY_FEE, $"Error calculating delivery fee: {ex.Message}", 500, false);
             }
         }
     }

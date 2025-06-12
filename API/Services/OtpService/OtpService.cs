@@ -1,23 +1,20 @@
 using System.Security.Cryptography;
 using API.AppResponse;
-using API.Data;
 using API.DTOs;
 using API.Models;
-using API.Repositories.Interfaces;
 using API.Services.Argon;
 using API.Services.EmailService;
 using API.Services.TokenServiceFolder;
+using API.UoW;
 
 namespace API.Services.OtpService
 {
     public class OtpService : IOtpService
     {
-        private readonly IOtpRepository _otpRepository;
-        private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailService _emailService;
         private readonly ITokenService _tokenService;
         private readonly IArgonHashing _argonHashing;
-        private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ILogger<OtpService> _logger;
 
@@ -25,24 +22,20 @@ namespace API.Services.OtpService
         private const int OTP_LENGTH = 6;
         private const int OTP_EXPIRY_MINUTES = 15;
         private const int MAX_OTP_ATTEMPTS_PER_HOUR = 5;
-        private const int RATE_LIMIT_MINUTES = 60;
+        private const int RATE_LIMIT_MINUTES = 5;
 
         public OtpService(
-            IOtpRepository otpRepository,
-            IUserRepository userRepository,
+            IUnitOfWork unitOfWork,
             IEmailService emailService,
             ITokenService tokenService,
             IArgonHashing argonHashing,
-            AppDbContext context,
             IConfiguration configuration,
             ILogger<OtpService> logger)
         {
-            _otpRepository = otpRepository;
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
             _emailService = emailService;
             _tokenService = tokenService;
             _argonHashing = argonHashing;
-            _context = context;
             _configuration = configuration;
             _logger = logger;
         }
@@ -50,11 +43,12 @@ namespace API.Services.OtpService
         public async Task<AppResponse<OtpResponseDto>> GenerateOtpAsync(GenerateOtpDto dto)
         {
             try
-            {
+            {  
+
                 _logger.LogInformation("Generating OTP for email: {Email}, type: {Type}", dto.Email, dto.Type);
 
                 // Rate limiting check
-                var attemptsCount = await _otpRepository.GetOtpAttemptsCountAsync(
+                var attemptsCount = await _unitOfWork.OtpRepository.GetOtpAttemptsCountAsync(
                     dto.Email, dto.Type, TimeSpan.FromMinutes(RATE_LIMIT_MINUTES));
 
                 if (attemptsCount >= MAX_OTP_ATTEMPTS_PER_HOUR)
@@ -66,7 +60,7 @@ namespace API.Services.OtpService
                 // For registration, check if user already exists
                 if (dto.Type == OtpType.Registration)
                 {
-                    var existingUser = await _userRepository.GetUserByEmailAsync(dto.Email);
+                    var existingUser = await _unitOfWork.UserRepository.GetUserByEmailAsync(dto.Email);
                     if (existingUser != null)
                     {
                         return new AppResponse<OtpResponseDto>(null, 
@@ -77,7 +71,7 @@ namespace API.Services.OtpService
                 // For password reset, ensure user exists
                 if (dto.Type == OtpType.ForgotPassword || dto.Type == OtpType.ResetPassword)
                 {
-                    var user = await _userRepository.GetUserByEmailAsync(dto.Email);
+                    var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(dto.Email);
                     if (user == null)
                     {
                         return new AppResponse<OtpResponseDto>(null, 
@@ -87,7 +81,7 @@ namespace API.Services.OtpService
                 }
 
                 // Invalidate any existing OTPs for this email and type
-                await _otpRepository.InvalidateAllUserOtpsAsync(dto.Email, dto.Type);
+                await _unitOfWork.OtpRepository.InvalidateAllUserOtpsAsync(dto.Email, dto.Type);
 
                 // Generate OTP code
                 var otpCode = GenerateRandomOtpCode();
@@ -103,7 +97,7 @@ namespace API.Services.OtpService
                     CreatedAt = DateTime.UtcNow
                 };
 
-                await _otpRepository.CreateOtpAsync(otp);
+                await _unitOfWork.OtpRepository.CreateOtpAsync(otp);
 
                 // Send email
                 var emailSent = await SendOtpEmailAsync(dto.Email, otpCode, dto.Type);
@@ -139,7 +133,7 @@ namespace API.Services.OtpService
             {
                 _logger.LogInformation("Verifying OTP for email: {Email}, type: {Type}", dto.Email, dto.Type);
 
-                var otp = await _otpRepository.GetValidOtpAsync(dto.Email, dto.Code, dto.Type);
+                var otp = await _unitOfWork.OtpRepository.GetValidOtpAsync(dto.Email, dto.Code, dto.Type);
                 
                 if (otp == null)
                 {
@@ -148,7 +142,7 @@ namespace API.Services.OtpService
                 }
 
                 // Mark OTP as used
-                await _otpRepository.InvalidateOtpAsync(otp.Id);
+                await _unitOfWork.OtpRepository.InvalidateOtpAsync(otp.Id);
 
                 var response = new OtpResponseDto
                 {
@@ -211,7 +205,7 @@ namespace API.Services.OtpService
                 }
 
                 // Check if user already exists (double check)
-                var existingUser = await _userRepository.GetUserByEmailAsync(dto.Email);
+                var existingUser = await _unitOfWork.UserRepository.GetUserByEmailAsync(dto.Email);
                 if (existingUser != null)
                 {
                     return new AppResponse<UserDto>(null, "User with this email already exists", 409, false);
@@ -228,8 +222,8 @@ namespace API.Services.OtpService
                     CreatedAt = DateTime.UtcNow
                 };
 
-                await _userRepository.CreateUserAsync(user);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.UserRepository.CreateUserAsync(user);
+                await _unitOfWork.CompleteAsync();
 
                 // Generate token
                 var userDto = new UserDto
@@ -272,7 +266,7 @@ namespace API.Services.OtpService
                 }
 
                 // Get user
-                var user = await _userRepository.GetUserByEmailAsync(dto.Email);
+                var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(dto.Email);
                 if (user == null)
                 {
                     return new AppResponse<bool>(false, "User not found", 404, false);
@@ -280,8 +274,8 @@ namespace API.Services.OtpService
 
                 // Update password
                 user.PasswordHash = await _argonHashing.HashPasswordAsync(dto.NewPassword);
-                await _userRepository.UpdateUserAsync(user);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.UserRepository.UpdateUserAsync(user);
+                await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation("Password reset successfully with OTP verification for email: {Email}", dto.Email);
 
@@ -298,7 +292,7 @@ namespace API.Services.OtpService
         {
             try
             {
-                await _otpRepository.DeleteExpiredOtpsAsync();
+                await _unitOfWork.OtpRepository.DeleteExpiredOtpsAsync();
                 return new AppResponse<bool>(true, "Expired OTPs cleaned up successfully", 200, true);
             }
             catch (Exception ex)
@@ -356,6 +350,7 @@ namespace API.Services.OtpService
 
             return type switch
             {
+
                 OtpType.Registration => $@"
                     <html>
                     <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>

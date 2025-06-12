@@ -44,12 +44,41 @@ namespace API.Repositories.Implementations
 
         public async Task<bool> DeleteUserAsync(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+                .Include(u => u.Addresses)
+                .Include(u => u.Restaurants)
+                .Include(u => u.OrdersPlaced)
+                .Include(u => u.OrdersDelivered)
+                .FirstOrDefaultAsync(u => u.Id == id);
+                
             if (user == null)
             {
                 return false;
             }
+
+            // Check if user has any orders as customer or employee
+            if (user.OrdersPlaced.Any() || user.OrdersDelivered.Any())
+            {
+                throw new InvalidOperationException($"Cannot delete user {user.FirstName} {user.LastName} because they have associated orders. Consider deactivating the user instead.");
+            }
+
+            // Remove associated OTP records
+            var otpRecords = await _context.Otps.Where(o => o.UserId == id).ToListAsync();
+            if (otpRecords.Any())
+            {
+                _context.Otps.RemoveRange(otpRecords);
+            }
+
+            // Remove associated addresses
+            if (user.Addresses.Any())
+            {
+                _context.Addresses.RemoveRange(user.Addresses);
+            }
+
+            // Clear restaurant relationships (many-to-many)
+            user.Restaurants.Clear();
             
+            // Now remove the user
             _context.Users.Remove(user);
             return true;
         }

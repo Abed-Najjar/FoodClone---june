@@ -35,7 +35,7 @@ namespace API.Services.CartServiceFolder
                 }).ToList();
 
                 // Use the centralized pricing service
-                var pricingResult = await _pricingService.CalculateOrderTotalsAsync(
+                var pricingResponse = await _pricingService.CalculateOrderTotalsAsync(
                     pricingItems,
                     request.RestaurantId,
                     request.PromoCode,
@@ -44,11 +44,13 @@ namespace API.Services.CartServiceFolder
                 );
 
                 // Handle pricing service errors
-                if (!pricingResult.IsValid)
+                if (!pricingResponse.Success)
                 {
-                    _logger.LogWarning($"Pricing calculation failed: {pricingResult.ErrorMessage}");
-                    return new AppResponse<CartCalculationResponseDto>(null, pricingResult.ErrorMessage, 400, false);
+                    _logger.LogWarning($"Pricing calculation failed: {pricingResponse.ErrorMessage}");
+                    return new AppResponse<CartCalculationResponseDto>(null, pricingResponse.ErrorMessage, pricingResponse.StatusCode, false);
                 }
+
+                var pricingResult = pricingResponse.Data;
 
                 // Convert pricing result to cart response format
                 var itemDetails = pricingResult.ItemDetails.Select(item => new CartItemDetailDto

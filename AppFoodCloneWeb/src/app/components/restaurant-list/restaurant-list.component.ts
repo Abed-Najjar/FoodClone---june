@@ -5,12 +5,13 @@ import { RouterModule } from '@angular/router';
 import { Restaurant } from '../../models/restaurant.model';
 import { RestaurantService } from '../../services/restaurant.service';
 import { HomeService } from '../../services/home.service';
-import { PagedResult } from '../../types/pagination.interface';
+import { PagedResult, PaginationParams } from '../../types/pagination.interface';
+import { PaginationComponent } from '../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-restaurant-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent],
   templateUrl: './restaurant-list.component.html',
   styleUrl: './restaurant-list.component.css'
 })
@@ -22,15 +23,24 @@ export class RestaurantListComponent implements OnInit {
   private _showOpenOnly = false;
   @ViewChild('searchInput') searchInput!: ElementRef;
 
+  // Pagination properties
+  restaurantsPagedResult: PagedResult<Restaurant> | null = null;
+  pagination: PaginationParams = { pageNumber: 1, pageSize: 6 };
+  currentSearchTerm = '';
+
+  // Expose Math to template
+  Math = Math;
+
   get showOpenOnly(): boolean {
     return this._showOpenOnly;
   }
 
   set showOpenOnly(value: boolean) {
     this._showOpenOnly = value;
-    const searchValue = this.searchInput?.nativeElement?.value || '';
-    this.applyFilters(searchValue);
+    this.pagination.pageNumber = 1; // Reset to first page when filter changes
+    this.loadRestaurants();
   }
+
   constructor(
     private restaurantService: RestaurantService,
     private homeService: HomeService
@@ -41,12 +51,13 @@ export class RestaurantListComponent implements OnInit {
   }
 
   loadRestaurants(): void {
-    this.homeService.getAllRestaurants().subscribe({
+    this.loading = true;
+    this.homeService.getAllRestaurants(this.pagination).subscribe({
       next: (response: any) => {
         if (response.success) {
-          const pagedResult = response.data as PagedResult<Restaurant>;
-          this.restaurants = pagedResult.data;
-          this.filteredRestaurants = this.restaurants;
+          this.restaurantsPagedResult = response.data as PagedResult<Restaurant>;
+          this.restaurants = this.restaurantsPagedResult.data;
+          this.applyClientSideFilters();
           this.loading = false;
         } else {
           this.error = response.errorMessage;
@@ -59,18 +70,27 @@ export class RestaurantListComponent implements OnInit {
         console.error('Error fetching restaurants:', err);
       }
     });
-  }  // Filter restaurants by name (could be expanded for more filtering options)
-  filterRestaurants(filterValue: string): void {
-    this.applyFilters(filterValue);
   }
 
-  // Apply all filters (search + open status)
-  private applyFilters(filterValue: string = ''): void {
+  // Handle pagination page changes
+  onPageChanged(page: number): void {
+    this.pagination.pageNumber = page;
+    this.loadRestaurants();
+  }
+
+  // Filter restaurants by name
+  filterRestaurants(filterValue: string): void {
+    this.currentSearchTerm = filterValue;
+    this.applyClientSideFilters();
+  }
+
+  // Apply client-side filters (search + open status) to the current page data
+  private applyClientSideFilters(): void {
     let filtered = [...this.restaurants];
 
     // Apply search filter
-    if (filterValue.trim()) {
-      const filterText = filterValue.toLowerCase().trim();
+    if (this.currentSearchTerm.trim()) {
+      const filterText = this.currentSearchTerm.toLowerCase().trim();
       filtered = filtered.filter(restaurant =>
         restaurant.name.toLowerCase().includes(filterText) ||
         restaurant.description.toLowerCase().includes(filterText)
@@ -85,12 +105,20 @@ export class RestaurantListComponent implements OnInit {
     this.filteredRestaurants = filtered;
   }
 
+  // Apply all filters (search + open status) - deprecated, keeping for compatibility
+  private applyFilters(filterValue: string = ''): void {
+    this.currentSearchTerm = filterValue;
+    this.applyClientSideFilters();
+  }
+
   // Reset all filters and search
   resetFilters(): void {
     this._showOpenOnly = false;
-    this.filteredRestaurants = this.restaurants;
+    this.currentSearchTerm = '';
+    this.pagination.pageNumber = 1;
     if (this.searchInput) {
       this.searchInput.nativeElement.value = '';
     }
+    this.loadRestaurants();
   }
 }

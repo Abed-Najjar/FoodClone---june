@@ -44,7 +44,7 @@
           <td>{{ order.userName || 'Unknown User' }}</td>
           <td>{{ order.restaurantName }}</td>
           <td>{{ order.orderItems.length || 0 }}</td>
-          <td>{{ order.totalAmount | currency }}</td>
+          <td>{{ order.totalAmount | currency:'JOD':'symbol':'1.2-2' }}</td>
           <td>{{ order.orderDate | date:'medium' }}</td>
           <td>
             <span class="status-badge" [ngClass]="'status-' + order.status.toLowerCase()">
@@ -55,10 +55,10 @@
             <button (click)="viewOrderDetails(order)" class="view-btn">View</button>
             <button (click)="editOrder(order)" class="edit-btn">Edit</button>
             <button (click)="deleteOrder(order)" class="delete-btn">Delete</button>
-            <button *ngIf="order.status === 'Pending'" (click)="updateOrderStatus(order, 'Processing')" class="process-btn">Process</button>
-            <button *ngIf="order.status === 'Processing'" (click)="updateOrderStatus(order, 'Delivering')" class="deliver-btn">Deliver</button>
-            <button *ngIf="order.status === 'Delivering'" (click)="updateOrderStatus(order, 'Completed')" class="complete-btn">Complete</button>
-            <button *ngIf="order.status !== 'Completed' && order.status !== 'Cancelled'" (click)="updateOrderStatus(order, 'Cancelled')" class="cancel-btn">Cancel</button>
+            <button *ngIf="order.status.toLowerCase() === 'pending'" (click)="updateOrderStatus(order, 'processing')" class="process-btn">Process</button>
+            <button *ngIf="order.status.toLowerCase() === 'processing'" (click)="updateOrderStatus(order, 'delivering')" class="deliver-btn">Deliver</button>
+            <button *ngIf="order.status.toLowerCase() === 'delivering'" (click)="updateOrderStatus(order, 'completed')" class="complete-btn">Complete</button>
+            <button *ngIf="order.status.toLowerCase() !== 'completed' && order.status.toLowerCase() !== 'cancelled'" (click)="updateOrderStatus(order, 'cancelled')" class="cancel-btn">Cancel</button>
           </td>
         </tr>
       </tbody>
@@ -77,78 +77,155 @@
   </div>
 
   <!-- Order Details Modal -->
-  <div *ngIf="selectedOrder" class="order-details-modal">
+  <div *ngIf="selectedOrder && modalMode" class="order-details-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Order #{{ selectedOrder.id }} Details</h3>
+        <h3>{{ modalMode === 'view' ? 'View' : 'Edit' }} Order #{{ selectedOrder.id }}</h3>
         <button (click)="closeOrderDetails()" class="close-btn">&times;</button>
       </div>
 
       <div class="modal-body">
-        <div class="order-info">
-          <div class="info-group">
-            <h4>Customer Information</h4>
-            <p><strong>Name:</strong> {{ selectedOrder.userName || 'Unknown User' }}</p>
-            <p><strong>Employee:</strong> {{ selectedOrder.employeeName || 'Not Assigned' }}</p>
-            <p><strong>Delivery Address:</strong> {{ selectedOrder.deliveryAddress || 'Not provided' }}</p>
+        <!-- VIEW MODE -->
+        <div *ngIf="modalMode === 'view'">
+          <div class="order-info">
+            <div class="info-group">
+              <h4>Customer Information</h4>
+              <p><strong>Name:</strong> {{ selectedOrder.userName || 'Unknown User' }}</p>
+              <p><strong>Employee:</strong> {{ selectedOrder.employeeName || 'Not Assigned' }}</p>
+              <p><strong>Delivery Address:</strong> {{ selectedOrder.deliveryAddress || 'Not provided' }}</p>
+            </div>
+
+            <div class="info-group">
+              <h4>Order Information</h4>
+              <p><strong>Restaurant:</strong> {{ selectedOrder.restaurantName }}</p>
+              <p><strong>Order Date:</strong> {{ selectedOrder.orderDate | date:'medium' }}</p>
+              <p><strong>Status:</strong> <span class="status-badge" [ngClass]="'status-' + selectedOrder.status.toLowerCase()">{{ selectedOrder.status }}</span></p>
+            </div>
+
+            <div class="info-group">
+              <h4>Payment & Delivery</h4>
+              <p><strong>Payment Method:</strong> {{ selectedOrder.paymentMethod || 'Not specified' }}</p>
+              <p><strong>Delivery Instructions:</strong> {{ selectedOrder.deliveryInstructions || 'None' }}</p>
+            </div>
           </div>
 
-          <div class="info-group">
-            <h4>Order Information</h4>
-            <p><strong>Restaurant:</strong> {{ selectedOrder.restaurantName }}</p>
-            <p><strong>Order Date:</strong> {{ selectedOrder.orderDate | date:'medium' }}</p>
-            <p><strong>Status:</strong> <span class="status-badge" [ngClass]="'status-' + selectedOrder.status.toLowerCase()">{{ selectedOrder.status }}</span></p>
+          <div class="order-items">
+            <h4>Order Items</h4>
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of selectedOrder.orderItems">
+                  <td>{{ item.dishName }}</td>
+                  <td>{{ item.unitPrice | currency:'JOD':'symbol':'1.2-2' }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td>{{ item.totalPrice | currency:'JOD':'symbol':'1.2-2' }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="total-row">
+                  <td colspan="3" class="total-label">Total Amount</td>
+                  <td>{{ selectedOrder.totalAmount | currency:'JOD':'symbol':'1.2-2' }}</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
 
-          <div class="info-group">
-            <h4>Payment & Delivery</h4>
-            <p><strong>Payment Method:</strong> {{ selectedOrder.paymentMethod || 'Not specified' }}</p>
-            <p><strong>Delivery Instructions:</strong> {{ selectedOrder.deliveryInstructions || 'None' }}</p>
+          <div class="status-update">
+            <h4>Quick Status Update</h4>
+            <div class="status-buttons">
+              <button *ngIf="selectedOrder.status.toLowerCase() !== 'pending'" (click)="updateOrderStatus(selectedOrder, 'pending')" class="status-btn status-pending">Pending</button>
+              <button *ngIf="selectedOrder.status.toLowerCase() !== 'processing'" (click)="updateOrderStatus(selectedOrder, 'processing')" class="status-btn status-processing">Processing</button>
+              <button *ngIf="selectedOrder.status.toLowerCase() !== 'delivering'" (click)="updateOrderStatus(selectedOrder, 'delivering')" class="status-btn status-delivering">Delivering</button>
+              <button *ngIf="selectedOrder.status.toLowerCase() !== 'completed'" (click)="updateOrderStatus(selectedOrder, 'completed')" class="status-btn status-completed">Completed</button>
+              <button *ngIf="selectedOrder.status.toLowerCase() !== 'cancelled'" (click)="updateOrderStatus(selectedOrder, 'cancelled')" class="status-btn status-cancelled">Cancelled</button>
+            </div>
           </div>
         </div>
 
-        <div class="order-items">
-          <h4>Order Items</h4>
-          <table class="items-table">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of selectedOrder.orderItems">
-                <td>{{ item.dishName }}</td>
-                <td>{{ item.unitPrice | currency }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>{{ item.totalPrice | currency }}</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr class="total-row">
-                <td colspan="3" class="total-label">Total Amount</td>
-                <td>{{ selectedOrder.totalAmount | currency }}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+        <!-- EDIT MODE -->
+        <div *ngIf="modalMode === 'edit'" [formGroup]="orderForm">
+          <div class="edit-form">
+            <div class="form-section">
+              <h4>Order Status Update</h4>
+              <div class="edit-notice">
+                <p><strong>Note:</strong> Currently, only order status can be updated through the CMS. Other order details are read-only.</p>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="status">Order Status:</label>
+                  <select id="status" formControlName="status" class="form-control" [class.is-invalid]="isFieldInvalid('status')">
+                    <option value="">Select Status</option>
+                    <option *ngFor="let status of availableStatuses" [value]="status">{{ status | titlecase }}</option>
+                  </select>
+                  <div *ngIf="isFieldInvalid('status')" class="invalid-feedback">{{ getFieldError('status') }}</div>
+                </div>
+              </div>
+            </div>
 
-        <div class="status-update">
-          <h4>Update Status</h4>
-          <div class="status-buttons">
-            <button *ngIf="selectedOrder.status !== 'Pending'" (click)="updateOrderStatus(selectedOrder, 'Pending')" class="status-btn status-pending">Pending</button>
-            <button *ngIf="selectedOrder.status !== 'Processing'" (click)="updateOrderStatus(selectedOrder, 'Processing')" class="status-btn status-processing">Processing</button>
-            <button *ngIf="selectedOrder.status !== 'Delivering'" (click)="updateOrderStatus(selectedOrder, 'Delivering')" class="status-btn status-delivering">Delivering</button>
-            <button *ngIf="selectedOrder.status !== 'Completed'" (click)="updateOrderStatus(selectedOrder, 'Completed')" class="status-btn status-completed">Completed</button>
-            <button *ngIf="selectedOrder.status !== 'Cancelled'" (click)="updateOrderStatus(selectedOrder, 'Cancelled')" class="status-btn status-cancelled">Cancelled</button>
+            <div class="form-section">
+              <h4>Order Details (Read-Only)</h4>
+              <div class="readonly-info">
+                <div class="info-row">
+                  <strong>Delivery Address:</strong> {{ selectedOrder.deliveryAddress || 'Not provided' }}
+                </div>
+                <div class="info-row">
+                  <strong>Delivery Instructions:</strong> {{ selectedOrder.deliveryInstructions || 'None' }}
+                </div>
+                <div class="info-row">
+                  <strong>Payment Method:</strong> {{ selectedOrder.paymentMethod || 'Not specified' }}
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h4>Order Items (Read-Only)</h4>
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                                 <tbody>
+                   <tr *ngFor="let item of selectedOrder.orderItems">
+                     <td>{{ item.dishName }}</td>
+                     <td>{{ item.unitPrice | currency:'JOD':'symbol':'1.2-2' }}</td>
+                     <td>{{ item.quantity }}</td>
+                     <td>{{ item.totalPrice | currency:'JOD':'symbol':'1.2-2' }}</td>
+                   </tr>
+                 </tbody>
+                 <tfoot>
+                   <tr class="total-row">
+                     <td colspan="3" class="total-label">Total Amount</td>
+                     <td>{{ selectedOrder.totalAmount | currency:'JOD':'symbol':'1.2-2' }}</td>
+                   </tr>
+                 </tfoot>
+              </table>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button (click)="closeOrderDetails()" class="close-btn-secondary">Close</button>
+        <div *ngIf="modalMode === 'view'" class="view-actions">
+          <button (click)="editOrder(selectedOrder)" class="edit-btn">Switch to Edit</button>
+          <button (click)="closeOrderDetails()" class="close-btn-secondary">Close</button>
+        </div>
+        
+        <div *ngIf="modalMode === 'edit'" class="edit-actions">
+          <button (click)="saveOrderChanges()" class="save-btn" [disabled]="orderForm.invalid">Save Changes</button>
+          <button (click)="viewOrderDetails(selectedOrder)" class="cancel-edit-btn">Cancel Edit</button>
+        </div>
       </div>
     </div>
   </div>

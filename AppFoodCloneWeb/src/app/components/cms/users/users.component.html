@@ -16,6 +16,11 @@
         <option value="Provider">Provider</option>
       </select>
     </div>
+    <div class="create-container">
+      <button class="create-btn" (click)="openCreateModal()">
+        <i class="bi bi-plus-circle"></i> Create User
+      </button>
+    </div>
   </div>
 
   <!-- Users List -->
@@ -33,6 +38,7 @@
           <th>Created</th>
           <th>Last Login</th>
           <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -45,12 +51,33 @@
               {{ user.rolename }}
             </span>
           </td>
-          <td>{{ user.created | date:'medium' }}</td>
+          <td>{{ user.createdat | date:'medium' }}</td>
           <td>{{ user.lastLogin ? (user.lastLogin | date:'medium') : 'Never' }}</td>
           <td>
-            <span class="status-badge" [ngClass]="user.isActive ? 'status-active' : 'status-inactive'">
+            <span 
+              class="status-badge clickable-status" 
+              [ngClass]="user.isActive ? 'status-active' : 'status-inactive'"
+              (click)="toggleUserStatus(user)"
+              [class.disabled]="!canModifyUser(user)"
+              [title]="canModifyUser(user) ? (user.isActive ? 'Click to deactivate user' : 'Click to activate user') : 'Cannot modify admin users'">
               {{ user.isActive ? 'Active' : 'Inactive' }}
             </span>
+          </td>
+          <td class="actions">
+            <button 
+              class="edit-btn" 
+              (click)="editUser(user)" 
+              [disabled]="!canModifyUser(user)"
+              [title]="canModifyUser(user) ? 'Edit user' : 'Cannot modify admin users'">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button 
+              class="delete-btn" 
+              (click)="deleteUser(user)" 
+              [disabled]="!canModifyUser(user)"
+              [title]="canModifyUser(user) ? 'Delete user' : 'Cannot delete admin users'">
+              <i class="bi bi-trash"></i>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -67,4 +94,180 @@
       (pageChanged)="onUsersPageChanged($event)">
     </app-pagination>
   </div>
-</div> 
+</div>
+
+<!-- Create User Modal -->
+<div class="modal-overlay" *ngIf="isCreateModalOpen" (click)="closeCreateModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Create New User</h3>
+      <button class="close-btn" (click)="closeCreateModal()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+    
+    <form [formGroup]="userForm" (ngSubmit)="createUser()" class="user-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First Name *</label>
+          <input 
+            type="text" 
+            id="firstName" 
+            formControlName="firstName"
+            [class.error]="isFieldInvalid('firstName')"
+            placeholder="Enter first name">
+          <div class="error-message" *ngIf="isFieldInvalid('firstName')">
+            {{ getFieldError('firstName') }}
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="lastName">Last Name *</label>
+          <input 
+            type="text" 
+            id="lastName" 
+            formControlName="lastName"
+            [class.error]="isFieldInvalid('lastName')"
+            placeholder="Enter last name">
+          <div class="error-message" *ngIf="isFieldInvalid('lastName')">
+            {{ getFieldError('lastName') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email *</label>
+        <input 
+          type="email" 
+          id="email" 
+          formControlName="email"
+          [class.error]="isFieldInvalid('email')"
+          placeholder="Enter email address">
+        <div class="error-message" *ngIf="isFieldInvalid('email')">
+          {{ getFieldError('email') }}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="role">Role *</label>
+          <select 
+            id="role" 
+            formControlName="role"
+            [class.error]="isFieldInvalid('role')">
+            <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
+          </select>
+          <div class="error-message" *ngIf="isFieldInvalid('role')">
+            {{ getFieldError('role') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password *</label>
+          <input 
+            type="password" 
+            id="password" 
+            formControlName="password"
+            [class.error]="isFieldInvalid('password')"
+            placeholder="Enter password">
+          <div class="error-message" *ngIf="isFieldInvalid('password')">
+            {{ getFieldError('password') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="cancel-btn" (click)="closeCreateModal()">Cancel</button>
+        <button type="submit" class="save-btn" [disabled]="userForm.invalid">Create User</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal-overlay" *ngIf="isEditModalOpen" (click)="closeEditModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Edit User</h3>
+      <button class="close-btn" (click)="closeEditModal()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+    
+    <form [formGroup]="userForm" (ngSubmit)="updateUser()" class="user-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="editFirstName">First Name *</label>
+          <input 
+            type="text" 
+            id="editFirstName" 
+            formControlName="firstName"
+            [class.error]="isFieldInvalid('firstName')"
+            placeholder="Enter first name">
+          <div class="error-message" *ngIf="isFieldInvalid('firstName')">
+            {{ getFieldError('firstName') }}
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="editLastName">Last Name *</label>
+          <input 
+            type="text" 
+            id="editLastName" 
+            formControlName="lastName"
+            [class.error]="isFieldInvalid('lastName')"
+            placeholder="Enter last name">
+          <div class="error-message" *ngIf="isFieldInvalid('lastName')">
+            {{ getFieldError('lastName') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="editEmail">Email *</label>
+        <input 
+          type="email" 
+          id="editEmail" 
+          formControlName="email"
+          [class.error]="isFieldInvalid('email')"
+          placeholder="Enter email address">
+        <div class="error-message" *ngIf="isFieldInvalid('email')">
+          {{ getFieldError('email') }}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="editRole">Role *</label>
+          <select 
+            id="editRole" 
+            formControlName="role"
+            [class.error]="isFieldInvalid('role')">
+            <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
+          </select>
+          <div class="error-message" *ngIf="isFieldInvalid('role')">
+            {{ getFieldError('role') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="editPassword">New Password *</label>
+          <input 
+            type="password" 
+            id="editPassword" 
+            formControlName="password"
+            [class.error]="isFieldInvalid('password')"
+            placeholder="Enter new password">
+          <div class="error-message" *ngIf="isFieldInvalid('password')">
+            {{ getFieldError('password') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="cancel-btn" (click)="closeEditModal()">Cancel</button>
+        <button type="submit" class="save-btn" [disabled]="userForm.invalid">Update User</button>
+      </div>
+    </form>
+  </div>
+</div>

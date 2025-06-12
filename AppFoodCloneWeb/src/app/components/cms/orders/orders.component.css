@@ -679,4 +679,251 @@ app-pagination {
   th, td {
     padding: 0.75rem 0.5rem;
   }
-} 
+}
+
+/* Edit Form Styles */
+.edit-form {
+  /* Removed max-height and overflow-y to prevent double scroll bars */
+}
+
+.form-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.form-section h4 {
+  margin-bottom: 1rem;
+  color: #1e293b;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border-bottom: 2px solid #e11d48;
+  padding-bottom: 0.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.form-control {
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #e11d48;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1);
+}
+
+.form-control.is-invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.invalid-feedback {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.order-item-edit {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.item-header h5 {
+  margin: 0;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.remove-item-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.remove-item-btn:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+.item-fields {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+}
+
+.subtotal-display {
+  background: #f1f5f9;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  color: #059669;
+  border: 2px solid #e2e8f0;
+  text-align: center;
+}
+
+.order-total {
+  background: #059669;
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.edit-actions, .view-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.save-btn {
+  background: linear-gradient(45deg, #059669, #047857);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+}
+
+.save-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.cancel-edit-btn {
+  background: linear-gradient(45deg, #64748b, #475569);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+}
+
+.cancel-edit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+}
+
+/* Additional responsive styles for edit form */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .item-fields {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .edit-actions, .view-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .edit-actions button, .view-actions button {
+    width: 100%;
+  }
+  
+  .edit-form {
+    /* Removed max-height to prevent double scroll bars on mobile */
+  }
+}
+
+/* Notice and readonly styles */
+.edit-notice {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.edit-notice p {
+  margin: 0;
+  color: #92400e;
+  font-weight: 500;
+}
+
+.readonly-info {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.info-row {
+  margin-bottom: 0.75rem;
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-row strong {
+  color: #1f2937;
+  font-weight: 600;
+}

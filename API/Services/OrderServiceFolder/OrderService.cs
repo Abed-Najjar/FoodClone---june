@@ -358,7 +358,7 @@ namespace API.Services.OrderServiceFolder
                 }).ToList();
 
                 // Use the centralized pricing service for consistent calculation
-                var pricingResult = await _pricingService.CalculateOrderTotalsAsync(
+                var pricingResponse = await _pricingService.CalculateOrderTotalsAsync(
                     pricingItems,
                     orderCreateDto.RestaurantId,
                     null, // No promo code for now (can be added later)
@@ -367,11 +367,13 @@ namespace API.Services.OrderServiceFolder
                 );
 
                 // Handle pricing service errors
-                if (!pricingResult.IsValid)
+                if (!pricingResponse.Success)
                 {
-                    _logger.LogWarning($"Pricing calculation failed: {pricingResult.ErrorMessage}");
-                    return new AppResponse<OrderDto>(null, pricingResult.ErrorMessage, 400, false);
+                    _logger.LogWarning($"Pricing calculation failed: {pricingResponse.ErrorMessage}");
+                    return new AppResponse<OrderDto>(null, pricingResponse.ErrorMessage, pricingResponse.StatusCode, false);
                 }
+
+                var pricingResult = pricingResponse.Data;
 
                 // Create order items using validated data from pricing service
                 var orderItems = pricingResult.ItemDetails.Select(item => new Models.OrderDish

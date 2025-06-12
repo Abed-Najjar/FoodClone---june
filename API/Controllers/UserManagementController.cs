@@ -30,6 +30,12 @@ namespace API.Controllers
             return await _userManagementService.GetAllUsers(paginationDto);
         }
 
+        [HttpGet("getAllIncludingAdmins")]
+        public async Task<AppResponse<PagedResultDto<UserDto>>> GetAllUsersIncludingAdmins([FromQuery] PaginationDto? paginationDto = null)
+        {
+            return await _userManagementService.GetAllUsersIncludingAdmins(paginationDto);
+        }
+
         [HttpGet("get/{id}")]
         public async Task<AppResponse<UserDto>> GetUser(int id)
         {
@@ -46,6 +52,12 @@ namespace API.Controllers
         public async Task<AppResponse<UserDto>> UpdateUser(int id, [FromBody] UserInputDto dto)
         {
             return await _userManagementService.UpdateUser(id, dto);
+        }
+
+        [HttpPatch("toggleStatus/{id}")]
+        public async Task<AppResponse<bool>> ToggleUserStatus(int id)
+        {
+            return await _userManagementService.ToggleUserStatus(id);
         }
     }
 }

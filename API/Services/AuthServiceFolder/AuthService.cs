@@ -64,7 +64,9 @@ namespace API.Services.TokenServiceFolder.AuthService
                     Email = user.Email,
                     Rolename = user.Role.ToString(),
                     Token = _tokenService.CreateToken(user),
-                    Address = user.Address
+                    Address = user.Address,
+                    Status = user.Status.ToString(),
+                    IsActive = user.Status == API.Enums.UserStatus.Active
                 };
 
                 return new AppResponse<UserDto>(userDto, "Login successful", 200, true);
@@ -119,6 +121,7 @@ namespace API.Services.TokenServiceFolder.AuthService
                     LastName = dto.LastName,
                     Email = dto.Email,
                     Address = dto.Address ?? new List<string>(),
+                    Status = dto.IsActive.HasValue && dto.IsActive.Value ? API.Enums.UserStatus.Active : API.Enums.UserStatus.Active,
                     PasswordHash = await _argonHashing.HashPasswordAsync(dto.Password),
                     CreatedAt = DateTime.UtcNow
                 };
@@ -143,7 +146,9 @@ namespace API.Services.TokenServiceFolder.AuthService
                     Rolename = user.Role.ToString(),
                     Token = _tokenService.CreateToken(user),
                     Address = user.Address,
-                    Createdat = user.CreatedAt
+                    Createdat = user.CreatedAt,
+                    Status = user.Status.ToString(),
+                    IsActive = user.Status == API.Enums.UserStatus.Active
                 };
                 return new AppResponse<UserDto>(userDto, "User registered successfully", 200, true);
             }

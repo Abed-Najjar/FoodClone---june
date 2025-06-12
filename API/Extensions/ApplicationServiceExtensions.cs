@@ -1,6 +1,7 @@
 using API.Data;
 using API.Repositories.Implementations;
 using API.Repositories.Interfaces;
+using API.Services.AddressServiceFolder;
 using API.Services.Argon;
 using API.Services.CartServiceFolder;
 using API.Services.CmsServiceFolder;
@@ -44,6 +45,7 @@ namespace API.Extensions
             services.AddHttpContextAccessor();
             services.AddTransient<ITokenService, TokenService>();
             services.AddTransient<IArgonHashing, ArgonHashing>();
+            services.AddTransient<IAddressService, AddressService>();
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<IDishManagementService, DishManagementService>();
             services.AddTransient<IOrderService, OrderService>();
